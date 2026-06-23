@@ -105,6 +105,34 @@ class AppsFlyerClientImplTest {
     }
 
     @Test
+    fun getStartResultIsIdempotent() = runTest {
+        client.start()
+        sdk.onStart?.invoke(StartResult.Success)
+
+        val first = client.getStartResult()
+        val second = client.getStartResult()
+
+        assertEquals(first, second)
+    }
+
+    @Test
+    fun getConversionDataIsIdempotent() = runTest {
+        client.start()
+        sdk.onConversion?.invoke(
+            mapOf(
+                "af_status" to "Non-organic",
+                "media_source" to "facebook",
+                "campaign" to "summer",
+            ),
+        )
+
+        val first = client.getConversionData()
+        val second = client.getConversionData()
+
+        assertEquals(first, second)
+    }
+
+    @Test
     fun deepLinkCallbackEmitsToFlow() = runTest {
         client.start()
         val expected = DeepLinkResult.Found(
