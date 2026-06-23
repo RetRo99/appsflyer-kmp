@@ -64,8 +64,9 @@ private var _linkHandler: AppsFlyerLinkHandler? = null
  */
 fun AppsFlyer.initialize(config: AppsFlyerConfig) {
     if (isInitialized) return
-    val client = IosAppsFlyerClient(config)
-    _linkHandler = AppsFlyerLinkHandler(client.bridge)
+    val sdk = IosAppsFlyerSdk()
+    val client = AppsFlyerClientImpl(sdk, config)
+    _linkHandler = AppsFlyerLinkHandler(sdk.bridge)
     if (!setClient(client)) {
         _linkHandler = null
     }

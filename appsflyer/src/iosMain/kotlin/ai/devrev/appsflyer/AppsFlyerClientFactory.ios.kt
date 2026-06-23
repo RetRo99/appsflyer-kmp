@@ -3,48 +3,18 @@
 package com.retro99.appsflyer
 
 import AppsFlyerBridge.AppsFlyerBridge
-import kotlin.concurrent.AtomicInt
-import kotlinx.coroutines.channels.BufferOverflow
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.asSharedFlow
-import kotlinx.coroutines.flow.first
 
-actual class AppsFlyerClientFactory {
-    actual fun create(config: AppsFlyerConfig): AppsFlyerClient {
-        return IosAppsFlyerClient(config)
-    }
-}
-
-internal class IosAppsFlyerClient(
-    private val config: AppsFlyerConfig,
-) : AppsFlyerClient {
+internal class IosAppsFlyerSdk : AppsFlyerSdk {
 
     internal val bridge = AppsFlyerBridge()
 
-    private val started = AtomicInt(0)
-
-    private val conversionRelay = MutableSharedFlow<CampaignData>(
-        replay = 1,
-    )
-
-    private val deepLinkRelay = MutableSharedFlow<DeepLinkResult>(
-        extraBufferCapacity = 1,
-        onBufferOverflow = BufferOverflow.DROP_OLDEST,
-    )
-
-    private val startResultRelay = MutableSharedFlow<StartResult>(
-        replay = 1,
-    )
-
-    override val deepLink: Flow<DeepLinkResult> = deepLinkRelay.asSharedFlow()
-
-    override suspend fun getStartResult(): StartResult = startResultRelay.first()
-
-    override suspend fun getConversionData(): CampaignData = conversionRelay.first()
-
-    override fun start() {
-        if (started.compareAndExchange(0, 1) != 0) return
+    override fun configure(
+        config: AppsFlyerConfig,
+        onConversion: (Map<String, Any?>) -> Unit,
+        onConversionError: (String) -> Unit,
+        onDeepLink: (DeepLinkResult) -> Unit,
+        onStart: (StartResult) -> Unit,
+    ) {
         requireNotNull(config.iosAppId) {
             "AppsFlyerConfig.iosAppId must be set on iOS."
         }
@@ -55,22 +25,18 @@ internal class IosAppsFlyerClient(
             onConversion = { data ->
                 if (data != null) {
                     @Suppress("UNCHECKED_CAST")
-                    val map = data as Map<String, Any?>
-                    conversionRelay.tryEmit(map.toCampaignData())
+                    onConversion(data as Map<String, Any?>)
                 } else {
-                    conversionRelay.tryEmit(
-                        CampaignData.Error(message = "Conversion data was null"),
-                    )
+                    onConversionError("Conversion data was null")
                 }
             },
-            onConversionError = { message ->
-                conversionRelay.tryEmit(CampaignData.Error(message = message))
-            },
+            onConversionError = { message -> onConversionError(message ?: "Unknown error") },
             onDeepLinkFound = { deepLinkValue, isDeferred, mediaSource, campaign, raw ->
                 @Suppress("UNCHECKED_CAST")
                 val rawMap = raw as? Map<String, Any?> ?: emptyMap()
-                deepLinkRelay.tryEmit(
-                    DeepLinkResult.Found(
+                onDeepLink(
+                    mapDeepLinkResult(
+                        status = DeepLinkStatus.FOUND,
                         deepLinkValue = deepLinkValue,
                         isDeferred = isDeferred,
                         mediaSource = mediaSource,
@@ -80,13 +46,13 @@ internal class IosAppsFlyerClient(
                 )
             },
             onDeepLinkNotFound = {
-                deepLinkRelay.tryEmit(DeepLinkResult.NotFound)
+                onDeepLink(mapDeepLinkResult(DeepLinkStatus.NOT_FOUND))
             },
             onDeepLinkError = { message ->
-                deepLinkRelay.tryEmit(DeepLinkResult.Error(message = message))
+                onDeepLink(mapDeepLinkResult(DeepLinkStatus.ERROR, error = message))
             },
             onStart = { success, code, message ->
-                startResultRelay.tryEmit(
+                onStart(
                     if (success) {
                         StartResult.Success
                     } else {
@@ -102,8 +68,16 @@ internal class IosAppsFlyerClient(
     }
 
     override fun logEvent(name: String, params: Map<String, Any?>) {
-        val filtered = params.filterValues { value -> value != null }
         @Suppress("UNCHECKED_CAST")
-        bridge.logEvent(name, filtered as Map<Any?, *>)
+        bridge.logEvent(name, params as Map<Any?, *>)
+    }
+}
+
+actual class AppsFlyerClientFactory {
+    actual fun create(config: AppsFlyerConfig): AppsFlyerClient {
+        return AppsFlyerClientImpl(
+            sdk = IosAppsFlyerSdk(),
+            config = config,
+        )
     }
 }
