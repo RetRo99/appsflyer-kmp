@@ -16,3 +16,4 @@ dependencyResolutionManagement {
 rootProject.name = "appsflyer-kmp"
 
 include(":appsflyer")
+include(":samples:android-sample")

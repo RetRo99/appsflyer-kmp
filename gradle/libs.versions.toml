@@ -1,9 +1,23 @@
 [versions]
 kotlin = "2.3.10"
 agp = "9.0.1"
+coroutines = "1.10.2"
+appsflyerAndroidSdk = "6.18.1"
+appsflyerIosSdk = "7.0.0"
+spmForKmp = "1.9.4"
+composeMultiplatform = "1.8.3"
+androidx-activityCompose = "1.10.1"
+androidx-lifecycle = "2.9.0"
 
 [libraries]
+kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "coroutines" }
+kotlinx-coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "coroutines" }
+appsflyer-android-sdk = { module = "com.appsflyer:af-android-sdk", version.ref = "appsflyerAndroidSdk" }
+play-services-ads-identifier = { module = "com.google.android.gms:play-services-ads-identifier", version = "18.2.0" }
 
 [plugins]
 kotlinMultiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
 androidLibrary = { id = "com.android.kotlin.multiplatform.library", version.ref = "agp" }
+androidApplication = { id = "com.android.application", version.ref = "agp" }
+kotlinAndroid = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
+spmForKmp = { id = "io.github.frankois944.spmForKmp", version.ref = "spmForKmp" }

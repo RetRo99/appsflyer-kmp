@@ -1,7 +1,14 @@
+import io.github.frankois944.spmForKmp.swiftPackageConfig
+
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
     alias(libs.plugins.androidLibrary)
+    alias(libs.plugins.spmForKmp)
+    `maven-publish`
 }
+
+group = "com.retro99.appsflyer"
+version = providers.gradleProperty("LIBRARY_VERSION").orElse("0.1.0").get()
 
 kotlin {
     android {
@@ -17,13 +24,63 @@ kotlin {
             }
         }
     }
-    iosX64()
-    iosArm64()
-    iosSimulatorArm64()
+
+    listOf(
+        iosX64(),
+        iosArm64(),
+        iosSimulatorArm64(),
+    ).forEach { target ->
+        target.binaries.framework {
+            baseName = "AppsFlyerKmp"
+            isStatic = true
+        }
+        target.swiftPackageConfig(cinteropName = "AppsFlyerBridge") {
+            dependency {
+                remotePackageVersion(
+                    url = uri("https://github.com/AppsFlyerSDK/AppsFlyerFramework.git"),
+                    version = libs.versions.appsflyerIosSdk.get(),
+                    products = {
+                        add("AppsFlyerLib")
+                    },
+                )
+            }
+        }
+    }
 
     sourceSets {
         commonMain {
             dependencies {
+                api(libs.kotlinx.coroutines.core)
+            }
+        }
+        androidMain {
+            dependencies {
+                api(libs.appsflyer.android.sdk)
+            }
+        }
+    }
+}
+
+publishing {
+    publications.withType<org.gradle.api.publish.maven.MavenPublication>().configureEach {
+        pom {
+            name.set("appsflyer-kmp")
+            description.set("Kotlin Multiplatform wrapper for the AppsFlyer SDK (Android + iOS).")
+            licenses {
+                license {
+                    name.set("MIT")
+                    url.set("https://opensource.org/license/mit")
+                }
+            }
+            developers {
+                developer {
+                    id.set("retro99")
+                    name.set("Retros99")
+                }
+            }
+            scm {
+                connection.set("scm:git:git://github.com/retro99/appsflyer-kmp.git")
+                url.set("https://github.com/retro99/appsflyer-kmp")
             }
         }
     }

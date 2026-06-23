@@ -1,16 +1,121 @@
 package com.retro99.appsflyer
 
+import kotlinx.coroutines.flow.Flow
+
+/**
+ * Kotlin Multiplatform wrapper for the AppsFlyer SDK.
+ *
+ * Call [start] to initialize the SDK, then use the suspend accessors and
+ * [deepLink] flow to observe results. All suspend functions are idempotent —
+ * calling them multiple times returns the same cached result.
+ */
 interface AppsFlyerClient {
+    /**
+     * Initializes and starts the AppsFlyer SDK. Must be called before any
+     * other method. Safe to call from any thread; does not block.
+     */
     fun start()
+
+    /**
+     * Suspends until the SDK reports whether it started successfully.
+     * Must be called after [start]; suspends indefinitely if [start] was not called.
+     * Idempotent — subsequent calls return the cached result immediately.
+     */
+    suspend fun getStartResult(): StartResult
+
+    /**
+     * Suspends until install conversion data is available.
+     * Must be called after [start]; suspends indefinitely if [start] was not called.
+     * Idempotent — subsequent calls return the cached result immediately.
+     */
+    suspend fun getConversionData(): CampaignData
+
+    /** Sets the customer user ID for attribution. Pass null to clear. */
     fun setCustomerUserId(id: String?)
+
+    /** Logs an in-app event. Null values in [params] are silently dropped. */
     fun logEvent(name: String, params: Map<String, Any?> = emptyMap())
+
+    /**
+     * Emits deep link results as they arrive (including re-engagement links).
+     * Does not replay past emissions — collect before calling [start] to
+     * avoid missing the initial deep link.
+     */
+    val deepLink: Flow<DeepLinkResult>
 }
 
 data class AppsFlyerConfig(
     val devKey: String,
     val isDebug: Boolean = false,
     val iosAppId: String? = null,
+    val collectAndroidId: Boolean = false,
 )
+
+sealed interface CampaignData {
+    data class Success(
+        val status: AfStatus,
+        val mediaSource: String?,
+        val campaign: String?,
+        val raw: Map<String, Any?>,
+    ) : CampaignData
+
+    data class Error(val message: String?) : CampaignData
+}
+
+enum class AfStatus { ORGANIC, NON_ORGANIC }
+
+sealed interface DeepLinkResult {
+    data class Found(
+        val deepLinkValue: String?,
+        val isDeferred: Boolean,
+        val mediaSource: String?,
+        val campaign: String?,
+        val raw: Map<String, Any?>,
+    ) : DeepLinkResult
+
+    data object NotFound : DeepLinkResult
+
+    data class Error(val message: String?) : DeepLinkResult
+}
+
+/**
+ * AppsFlyer conversion-data keys and values. These are AppsFlyer's documented
+ * `onConversionDataSuccess` payload contract (the SDK exposes no typed status),
+ * stated once here so the Android and iOS actuals map identically.
+ */
+private object AfConversionKeys {
+    const val STATUS = "af_status"
+    const val MEDIA_SOURCE = "media_source"
+    const val CAMPAIGN = "campaign"
+
+    const val STATUS_ORGANIC = "Organic"
+    const val STATUS_NON_ORGANIC = "Non-organic"
+}
+
+/**
+ * Maps a raw AppsFlyer conversion-data map into [CampaignData]. Shared by both
+ * platform actuals so Android and iOS produce identical results.
+ */
+internal fun Map<String, Any?>.toCampaignData(): CampaignData {
+    val status = when (this[AfConversionKeys.STATUS]?.toString()) {
+        AfConversionKeys.STATUS_ORGANIC -> AfStatus.ORGANIC
+        AfConversionKeys.STATUS_NON_ORGANIC -> AfStatus.NON_ORGANIC
+        else -> return CampaignData.Error(
+            message = "Unexpected af_status: ${this[AfConversionKeys.STATUS]}",
+        )
+    }
+    return CampaignData.Success(
+        status = status,
+        mediaSource = this[AfConversionKeys.MEDIA_SOURCE]?.toString(),
+        campaign = this[AfConversionKeys.CAMPAIGN]?.toString(),
+        raw = this,
+    )
+}
+
+sealed interface StartResult {
+    data object Success : StartResult
+    data class Error(val code: Int, val message: String) : StartResult
+}
 
 expect class AppsFlyerClientFactory {
     fun create(config: AppsFlyerConfig): AppsFlyerClient
