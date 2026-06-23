@@ -42,4 +42,8 @@ internal interface AppsFlyerSdk {
     fun isStopped(): Boolean
 
     fun anonymizeUser(shouldAnonymize: Boolean)
+
+    fun setConsentData(consent: AppsFlyerConsent)
+
+    fun enableTCFDataCollection(enabled: Boolean)
 }

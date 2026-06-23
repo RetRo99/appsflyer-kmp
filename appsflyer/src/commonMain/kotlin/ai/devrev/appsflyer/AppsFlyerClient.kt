@@ -56,6 +56,18 @@ interface AppsFlyerClient {
     fun anonymizeUser(shouldAnonymize: Boolean)
 
     /**
+     * Sets GDPR/DMA consent data. Must be called before [start].
+     * Use [AppsFlyerConsent.forNonGDPRUser] for users outside GDPR scope.
+     */
+    fun setConsentData(consent: AppsFlyerConsent)
+
+    /**
+     * Enables or disables TCF v2.x consent string collection.
+     * Must be called before [start].
+     */
+    fun enableTCFDataCollection(enabled: Boolean)
+
+    /**
      * Emits deep link results as they arrive (including re-engagement links).
      * Does not replay past emissions — collect before calling [start] to
      * avoid missing the initial deep link.
@@ -138,6 +150,31 @@ internal fun Map<String, Any?>.toCampaignData(): CampaignData {
 sealed interface StartResult {
     data object Success : StartResult
     data class Error(val code: Int, val message: String) : StartResult
+}
+
+/**
+ * GDPR/DMA consent data for AppsFlyer. All fields are nullable to represent
+ * tri-state consent (granted / denied / unknown). Must be passed to
+ * [AppsFlyerClient.setConsentData] before [AppsFlyerClient.start].
+ */
+data class AppsFlyerConsent(
+    val isUserSubjectToGDPR: Boolean? = null,
+    val hasConsentForDataUsage: Boolean? = null,
+    val hasConsentForAdsPersonalization: Boolean? = null,
+    val hasConsentForAdStorage: Boolean? = null,
+) {
+    companion object {
+        fun forNonGDPRUser() = AppsFlyerConsent(isUserSubjectToGDPR = false)
+
+        fun forGDPRUser(
+            hasConsentForDataUsage: Boolean,
+            hasConsentForAdsPersonalization: Boolean,
+        ) = AppsFlyerConsent(
+            isUserSubjectToGDPR = true,
+            hasConsentForDataUsage = hasConsentForDataUsage,
+            hasConsentForAdsPersonalization = hasConsentForAdsPersonalization,
+        )
+    }
 }
 
 internal expect class AppsFlyerClientFactory {

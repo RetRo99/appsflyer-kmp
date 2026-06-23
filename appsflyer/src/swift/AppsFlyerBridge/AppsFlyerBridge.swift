@@ -63,6 +63,25 @@ public class AppsFlyerBridge: NSObject, AppsFlyerLibDelegate, AppsFlyerDeepLinkD
         AppsFlyerLib.shared().anonymizeUser = shouldAnonymize
     }
 
+    public func setConsentData(
+        isUserSubjectToGDPR: NSNumber?,
+        hasConsentForDataUsage: NSNumber?,
+        hasConsentForAdsPersonalization: NSNumber?,
+        hasConsentForAdStorage: NSNumber?
+    ) {
+        let afConsent = AppsFlyerConsent(
+            isUserSubjectToGDPR: isUserSubjectToGDPR,
+            hasConsentForDataUsage: hasConsentForDataUsage,
+            hasConsentForAdsPersonalization: hasConsentForAdsPersonalization,
+            hasConsentForAdStorage: hasConsentForAdStorage
+        )
+        AppsFlyerLib.shared().setConsentData(afConsent)
+    }
+
+    public func enableTCFDataCollection(_ enabled: Bool) {
+        AppsFlyerLib.shared().enableTCFDataCollection(enabled)
+    }
+
     public func logEvent(_ name: String, values: NSDictionary?) {
         let dict = values as? [AnyHashable: Any] ?? [:]
         AppsFlyerLib.shared().logEvent(name, withValues: dict)

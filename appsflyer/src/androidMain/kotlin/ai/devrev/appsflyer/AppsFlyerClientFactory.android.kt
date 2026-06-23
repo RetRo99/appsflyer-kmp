@@ -80,6 +80,20 @@ internal class AndroidAppsFlyerSdk(
     override fun anonymizeUser(shouldAnonymize: Boolean) =
         lib.anonymizeUser(shouldAnonymize)
 
+    override fun setConsentData(consent: AppsFlyerConsent) {
+        lib.setConsentData(
+            com.appsflyer.AppsFlyerConsent(
+                consent.isUserSubjectToGDPR,
+                consent.hasConsentForDataUsage,
+                consent.hasConsentForAdsPersonalization,
+                consent.hasConsentForAdStorage,
+            ),
+        )
+    }
+
+    override fun enableTCFDataCollection(enabled: Boolean) =
+        lib.enableTCFDataCollection(enabled)
+
     private fun toDeepLinkResult(result: AfDeepLinkResult): DeepLinkResult {
         return when (result.status) {
             Status.FOUND -> {

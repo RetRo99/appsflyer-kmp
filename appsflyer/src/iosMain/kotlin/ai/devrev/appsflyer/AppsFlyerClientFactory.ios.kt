@@ -3,6 +3,7 @@
 package com.retro99.appsflyer
 
 import AppsFlyerBridge.AppsFlyerBridge
+import platform.Foundation.NSNumber
 
 internal class IosAppsFlyerSdk : AppsFlyerSdk {
 
@@ -84,6 +85,19 @@ internal class IosAppsFlyerSdk : AppsFlyerSdk {
 
     override fun anonymizeUser(shouldAnonymize: Boolean) {
         bridge.anonymizeUser(shouldAnonymize)
+    }
+
+    override fun setConsentData(consent: AppsFlyerConsent) {
+        bridge.setConsentDataWithIsUserSubjectToGDPR(
+            isUserSubjectToGDPR = consent.isUserSubjectToGDPR?.let { NSNumber(it) },
+            hasConsentForDataUsage = consent.hasConsentForDataUsage?.let { NSNumber(it) },
+            hasConsentForAdsPersonalization = consent.hasConsentForAdsPersonalization?.let { NSNumber(it) },
+            hasConsentForAdStorage = consent.hasConsentForAdStorage?.let { NSNumber(it) },
+        )
+    }
+
+    override fun enableTCFDataCollection(enabled: Boolean) {
+        bridge.enableTCFDataCollection(enabled)
     }
 }
 

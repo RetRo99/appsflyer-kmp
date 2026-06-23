@@ -350,4 +350,12 @@ private class FakeAppsFlyerSdk : AppsFlyerSdk {
     override fun anonymizeUser(shouldAnonymize: Boolean) {
         // no-op
     }
+
+    override fun setConsentData(consent: AppsFlyerConsent) {
+        // no-op
+    }
+
+    override fun enableTCFDataCollection(enabled: Boolean) {
+        // no-op
+    }
 }
