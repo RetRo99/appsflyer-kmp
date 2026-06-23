@@ -336,4 +336,6 @@ private class FakeAppsFlyerSdk : AppsFlyerSdk {
         lastEventName = name
         lastEventParams = params
     }
+
+    override fun getAppsFlyerUID(): String? = "fake-uid"
 }

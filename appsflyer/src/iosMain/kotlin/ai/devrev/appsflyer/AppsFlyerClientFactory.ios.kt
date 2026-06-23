@@ -71,6 +71,9 @@ internal class IosAppsFlyerSdk : AppsFlyerSdk {
         @Suppress("UNCHECKED_CAST")
         bridge.logEvent(name, params as Map<Any?, *>)
     }
+
+    override fun getAppsFlyerUID(): String? =
+        bridge.getAppsFlyerUID()
 }
 
 internal actual class AppsFlyerClientFactory {

@@ -36,6 +36,9 @@ interface AppsFlyerClient {
     /** Logs an in-app event. Null values in [params] are silently dropped. */
     fun logEvent(name: String, params: Map<String, Any?> = emptyMap())
 
+    /** Returns the AppsFlyer device ID, or null if the SDK hasn't started yet. */
+    fun getAppsFlyerUID(): String?
+
     /**
      * Emits deep link results as they arrive (including re-engagement links).
      * Does not replay past emissions — collect before calling [start] to

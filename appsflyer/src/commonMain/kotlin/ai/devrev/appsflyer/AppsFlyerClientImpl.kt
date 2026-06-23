@@ -52,4 +52,6 @@ internal class AppsFlyerClientImpl(
     override fun logEvent(name: String, params: Map<String, Any?>) {
         sdk.logEvent(name, params.filterValues { value -> value != null })
     }
+
+    override fun getAppsFlyerUID(): String? = sdk.getAppsFlyerUID()
 }

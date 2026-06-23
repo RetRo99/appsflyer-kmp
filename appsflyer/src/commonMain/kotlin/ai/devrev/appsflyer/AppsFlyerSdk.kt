@@ -34,4 +34,6 @@ internal interface AppsFlyerSdk {
     fun setCustomerUserId(id: String?)
 
     fun logEvent(name: String, params: Map<String, Any?>)
+
+    fun getAppsFlyerUID(): String?
 }

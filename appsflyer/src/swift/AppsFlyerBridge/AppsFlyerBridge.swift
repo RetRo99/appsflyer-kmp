@@ -47,6 +47,10 @@ public class AppsFlyerBridge: NSObject, AppsFlyerLibDelegate, AppsFlyerDeepLinkD
         AppsFlyerLib.shared().customerUserID = id
     }
 
+    public func getAppsFlyerUID() -> String {
+        return AppsFlyerLib.shared().getAppsFlyerUID()
+    }
+
     public func logEvent(_ name: String, values: NSDictionary?) {
         let dict = values as? [AnyHashable: Any] ?? [:]
         AppsFlyerLib.shared().logEvent(name, withValues: dict)

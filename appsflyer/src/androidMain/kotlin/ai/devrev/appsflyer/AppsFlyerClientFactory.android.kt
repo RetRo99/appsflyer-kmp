@@ -68,6 +68,9 @@ internal class AndroidAppsFlyerSdk(
         lib.logEvent(appContext, name, params)
     }
 
+    override fun getAppsFlyerUID(): String? =
+        lib.getAppsFlyerUID(appContext)
+
     private fun toDeepLinkResult(result: AfDeepLinkResult): DeepLinkResult {
         return when (result.status) {
             Status.FOUND -> {
