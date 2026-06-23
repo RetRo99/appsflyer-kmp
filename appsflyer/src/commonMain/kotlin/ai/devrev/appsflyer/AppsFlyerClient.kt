@@ -49,7 +49,11 @@ data class AppsFlyerConfig(
     val isDebug: Boolean = false,
     val iosAppId: String? = null,
     val collectAndroidId: Boolean = false,
-)
+) {
+    init {
+        require(devKey.isNotBlank()) { "AppsFlyerConfig.devKey must not be blank." }
+    }
+}
 
 sealed interface CampaignData {
     data class Success(
@@ -117,6 +121,6 @@ sealed interface StartResult {
     data class Error(val code: Int, val message: String) : StartResult
 }
 
-expect class AppsFlyerClientFactory {
+internal expect class AppsFlyerClientFactory {
     fun create(config: AppsFlyerConfig): AppsFlyerClient
 }

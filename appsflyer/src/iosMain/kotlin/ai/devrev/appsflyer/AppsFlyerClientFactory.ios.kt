@@ -73,7 +73,7 @@ internal class IosAppsFlyerSdk : AppsFlyerSdk {
     }
 }
 
-actual class AppsFlyerClientFactory {
+internal actual class AppsFlyerClientFactory {
     actual fun create(config: AppsFlyerConfig): AppsFlyerClient {
         return AppsFlyerClientImpl(
             sdk = IosAppsFlyerSdk(),

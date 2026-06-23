@@ -90,7 +90,7 @@ internal class AndroidAppsFlyerSdk(
     }
 }
 
-actual class AppsFlyerClientFactory(
+internal actual class AppsFlyerClientFactory(
     private val context: Context,
 ) {
     actual fun create(config: AppsFlyerConfig): AppsFlyerClient {
