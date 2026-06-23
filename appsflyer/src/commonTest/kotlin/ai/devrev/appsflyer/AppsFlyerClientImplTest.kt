@@ -1,6 +1,7 @@
 package com.retro99.appsflyer
 
 import app.cash.turbine.test
+import kotlinx.coroutines.async
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -204,6 +205,63 @@ class AppsFlyerClientImplTest {
 
         assertEquals("event", sdk.lastEventName)
         assertEquals(mapOf("key" to "value"), sdk.lastEventParams)
+    }
+
+    @Test
+    fun conversionCallbackWithUnexpectedStatusEmitsError() = runTest {
+        client.start()
+        sdk.onConversion?.invoke(mapOf("af_status" to "Unknown"))
+
+        val result = client.getConversionData()
+
+        assertIs<CampaignData.Error>(result)
+        assertEquals("Unexpected af_status: Unknown", result.message)
+    }
+
+    @Test
+    fun getStartResultSuspendsUntilCallbackFires() = runTest {
+        client.start()
+
+        var result: StartResult? = null
+        val deferred = async { result = client.getStartResult() }
+
+        assertFalse(result != null)
+        sdk.onStart?.invoke(StartResult.Success)
+        deferred.join()
+
+        assertIs<StartResult.Success>(result)
+    }
+
+    @Test
+    fun getConversionDataSuspendsUntilCallbackFires() = runTest {
+        client.start()
+
+        var result: CampaignData? = null
+        val deferred = async { result = client.getConversionData() }
+
+        assertFalse(result != null)
+        sdk.onConversion?.invoke(
+            mapOf(
+                "af_status" to "Organic",
+                "media_source" to "organic",
+            ),
+        )
+        deferred.join()
+
+        assertIs<CampaignData.Success>(result)
+        assertEquals(AfStatus.ORGANIC, (result as CampaignData.Success).status)
+    }
+
+    @Test
+    fun deepLinkFlowDoesNotReplayPastEmissions() = runTest {
+        client.start()
+        sdk.onDeepLink?.invoke(DeepLinkResult.NotFound)
+
+        client.deepLink.test {
+            sdk.onDeepLink?.invoke(DeepLinkResult.Error(message = "new"))
+            assertIs<DeepLinkResult.Error>(awaitItem())
+            expectNoEvents()
+        }
     }
 }
 
