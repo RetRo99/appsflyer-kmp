@@ -25,6 +25,18 @@ kotlin {
         }
     }
 
+    // JVM target exists only for running unit tests that need org.json
+    jvm {
+        withSourcesJar(publish = false)
+        compilations.all {
+            compileTaskProvider.configure {
+                compilerOptions {
+                    jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)
+                }
+            }
+        }
+    }
+
     listOf(
         iosX64(),
         iosArm64(),
@@ -53,9 +65,20 @@ kotlin {
                 api(libs.kotlinx.coroutines.core)
             }
         }
+        commonTest {
+            dependencies {
+                implementation(libs.kotlin.test)
+                implementation(libs.kotlinx.coroutines.test)
+            }
+        }
         androidMain {
             dependencies {
                 api(libs.appsflyer.android.sdk)
+            }
+        }
+        val jvmTest by getting {
+            dependencies {
+                implementation("org.json:json:20250517")
             }
         }
     }

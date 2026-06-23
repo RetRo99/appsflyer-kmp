@@ -7,6 +7,7 @@ import com.appsflyer.attribution.AppsFlyerRequestListener
 import com.appsflyer.deeplink.DeepLink
 import com.appsflyer.deeplink.DeepLinkResult as AfDeepLinkResult
 import com.appsflyer.deeplink.DeepLinkResult.Status
+import org.json.JSONArray
 import org.json.JSONObject
 import java.lang.ref.WeakReference
 import kotlinx.coroutines.channels.BufferOverflow
@@ -132,8 +133,15 @@ private class AndroidAppsFlyerClient(
     }
 }
 
-private fun JSONObject.toMap(): Map<String, Any?> {
+internal fun JSONObject.toMap(): Map<String, Any?> {
     val map = mutableMapOf<String, Any?>()
-    keys().forEach { key -> map[key] = opt(key) }
+    keys().forEach { key -> map[key] = opt(key).unwrap() }
     return map
+}
+
+private fun Any?.unwrap(): Any? = when (this) {
+    is JSONObject -> toMap()
+    is JSONArray -> (0 until length()).map { i -> opt(i).unwrap() }
+    JSONObject.NULL -> null
+    else -> this
 }
