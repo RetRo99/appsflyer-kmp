@@ -74,6 +74,13 @@ internal class IosAppsFlyerSdk : AppsFlyerSdk {
 
     override fun getAppsFlyerUID(): String? =
         bridge.getAppsFlyerUID()
+
+    override fun stop(stop: Boolean) {
+        bridge.stop(stop)
+    }
+
+    override fun isStopped(): Boolean =
+        bridge.isStopped()
 }
 
 internal actual class AppsFlyerClientFactory {

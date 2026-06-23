@@ -36,4 +36,8 @@ internal interface AppsFlyerSdk {
     fun logEvent(name: String, params: Map<String, Any?>)
 
     fun getAppsFlyerUID(): String?
+
+    fun stop(stop: Boolean)
+
+    fun isStopped(): Boolean
 }

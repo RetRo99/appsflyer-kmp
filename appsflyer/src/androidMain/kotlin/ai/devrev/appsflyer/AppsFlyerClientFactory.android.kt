@@ -71,6 +71,12 @@ internal class AndroidAppsFlyerSdk(
     override fun getAppsFlyerUID(): String? =
         lib.getAppsFlyerUID(appContext)
 
+    override fun stop(stop: Boolean) =
+        lib.stop(stop, appContext)
+
+    override fun isStopped(): Boolean =
+        lib.isStopped
+
     private fun toDeepLinkResult(result: AfDeepLinkResult): DeepLinkResult {
         return when (result.status) {
             Status.FOUND -> {

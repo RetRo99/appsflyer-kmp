@@ -51,6 +51,14 @@ public class AppsFlyerBridge: NSObject, AppsFlyerLibDelegate, AppsFlyerDeepLinkD
         return AppsFlyerLib.shared().getAppsFlyerUID()
     }
 
+    public func stop(_ stop: Bool) {
+        AppsFlyerLib.shared().isStopped = stop
+    }
+
+    public func isStopped() -> Bool {
+        return AppsFlyerLib.shared().isStopped
+    }
+
     public func logEvent(_ name: String, values: NSDictionary?) {
         let dict = values as? [AnyHashable: Any] ?? [:]
         AppsFlyerLib.shared().logEvent(name, withValues: dict)

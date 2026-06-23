@@ -40,6 +40,15 @@ interface AppsFlyerClient {
     fun getAppsFlyerUID(): String?
 
     /**
+     * Stops (or re-enables) the SDK. When stopped, the SDK will not collect
+     * data or communicate with AppsFlyer servers. Pass `false` to re-enable.
+     */
+    fun stop(stop: Boolean = true)
+
+    /** Whether the SDK is currently stopped. */
+    val isStopped: Boolean
+
+    /**
      * Emits deep link results as they arrive (including re-engagement links).
      * Does not replay past emissions — collect before calling [start] to
      * avoid missing the initial deep link.

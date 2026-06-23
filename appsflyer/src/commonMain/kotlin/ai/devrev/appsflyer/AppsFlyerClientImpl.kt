@@ -54,4 +54,9 @@ internal class AppsFlyerClientImpl(
     }
 
     override fun getAppsFlyerUID(): String? = sdk.getAppsFlyerUID()
+
+    override fun stop(stop: Boolean) = sdk.stop(stop)
+
+    override val isStopped: Boolean
+        get() = sdk.isStopped()
 }

@@ -338,4 +338,12 @@ private class FakeAppsFlyerSdk : AppsFlyerSdk {
     }
 
     override fun getAppsFlyerUID(): String? = "fake-uid"
+
+    override fun stop(stop: Boolean) {
+        isStoppedValue = stop
+    }
+
+    private var isStoppedValue: Boolean = false
+
+    override fun isStopped(): Boolean = isStoppedValue
 }
