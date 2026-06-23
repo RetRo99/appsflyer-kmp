@@ -49,6 +49,13 @@ interface AppsFlyerClient {
     val isStopped: Boolean
 
     /**
+     * Anonymizes user data when set to true. Must be called before [start]
+     * for full effect. When enabled, the SDK does not collect or send user
+     * identifiers (IDFV, IDFA, Android ID, etc.).
+     */
+    fun anonymizeUser(shouldAnonymize: Boolean)
+
+    /**
      * Emits deep link results as they arrive (including re-engagement links).
      * Does not replay past emissions — collect before calling [start] to
      * avoid missing the initial deep link.

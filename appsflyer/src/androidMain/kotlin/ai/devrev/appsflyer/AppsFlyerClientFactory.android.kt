@@ -77,6 +77,9 @@ internal class AndroidAppsFlyerSdk(
     override fun isStopped(): Boolean =
         lib.isStopped
 
+    override fun anonymizeUser(shouldAnonymize: Boolean) =
+        lib.anonymizeUser(shouldAnonymize)
+
     private fun toDeepLinkResult(result: AfDeepLinkResult): DeepLinkResult {
         return when (result.status) {
             Status.FOUND -> {

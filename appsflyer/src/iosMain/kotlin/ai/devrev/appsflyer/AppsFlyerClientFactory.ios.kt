@@ -81,6 +81,10 @@ internal class IosAppsFlyerSdk : AppsFlyerSdk {
 
     override fun isStopped(): Boolean =
         bridge.isStopped()
+
+    override fun anonymizeUser(shouldAnonymize: Boolean) {
+        bridge.anonymizeUser(shouldAnonymize)
+    }
 }
 
 internal actual class AppsFlyerClientFactory {

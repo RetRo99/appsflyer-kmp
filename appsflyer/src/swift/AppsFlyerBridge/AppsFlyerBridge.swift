@@ -59,6 +59,10 @@ public class AppsFlyerBridge: NSObject, AppsFlyerLibDelegate, AppsFlyerDeepLinkD
         return AppsFlyerLib.shared().isStopped
     }
 
+    public func anonymizeUser(_ shouldAnonymize: Bool) {
+        AppsFlyerLib.shared().anonymizeUser = shouldAnonymize
+    }
+
     public func logEvent(_ name: String, values: NSDictionary?) {
         let dict = values as? [AnyHashable: Any] ?? [:]
         AppsFlyerLib.shared().logEvent(name, withValues: dict)

@@ -346,4 +346,8 @@ private class FakeAppsFlyerSdk : AppsFlyerSdk {
     private var isStoppedValue: Boolean = false
 
     override fun isStopped(): Boolean = isStoppedValue
+
+    override fun anonymizeUser(shouldAnonymize: Boolean) {
+        // no-op
+    }
 }

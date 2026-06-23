@@ -40,4 +40,6 @@ internal interface AppsFlyerSdk {
     fun stop(stop: Boolean)
 
     fun isStopped(): Boolean
+
+    fun anonymizeUser(shouldAnonymize: Boolean)
 }

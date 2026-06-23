@@ -59,4 +59,7 @@ internal class AppsFlyerClientImpl(
 
     override val isStopped: Boolean
         get() = sdk.isStopped()
+
+    override fun anonymizeUser(shouldAnonymize: Boolean) =
+        sdk.anonymizeUser(shouldAnonymize)
 }
