@@ -14,3 +14,4 @@ Secrets.xcconfig
 ios-sdk-logs.txt
 *.xcodeproj/
 *.xcworkspace/
+xcuserdata/
