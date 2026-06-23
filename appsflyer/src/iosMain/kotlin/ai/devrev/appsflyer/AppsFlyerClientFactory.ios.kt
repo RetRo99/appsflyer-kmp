@@ -15,11 +15,14 @@ actual class AppsFlyerClientFactory {
     }
 }
 
-private class IosAppsFlyerClient(
+internal class IosAppsFlyerClient(
     private val config: AppsFlyerConfig,
 ) : AppsFlyerClient {
 
-    private val bridge = AppsFlyerBridge()
+    internal val bridge = AppsFlyerBridge()
+
+    @Volatile
+    private var started = false
 
     private val conversionRelay = MutableSharedFlow<CampaignData>(
         replay = 1,
@@ -41,6 +44,10 @@ private class IosAppsFlyerClient(
     override suspend fun getConversionData(): CampaignData = conversionRelay.first()
 
     override fun start() {
+        synchronized(this) {
+            if (started) return
+            started = true
+        }
         requireNotNull(config.iosAppId) {
             "AppsFlyerConfig.iosAppId must be set on iOS."
         }

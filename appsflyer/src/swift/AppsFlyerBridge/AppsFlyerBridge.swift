@@ -1,4 +1,5 @@
 import Foundation
+import UIKit
 import AppsFlyerLib
 
 @objcMembers
@@ -31,6 +32,7 @@ public class AppsFlyerBridge: NSObject, AppsFlyerLibDelegate, AppsFlyerDeepLinkD
         AppsFlyerLib.shared().delegate = self
         AppsFlyerLib.shared().deepLinkDelegate = self
         AppsFlyerLib.shared().isDebug = isDebug
+
         AppsFlyerLib.shared().start(completionHandler: { (dictionary, error) in
             if let error = error {
                 let code = (error as NSError).code
@@ -48,6 +50,15 @@ public class AppsFlyerBridge: NSObject, AppsFlyerLibDelegate, AppsFlyerDeepLinkD
     public func logEvent(_ name: String, values: NSDictionary?) {
         let dict = values as? [AnyHashable: Any] ?? [:]
         AppsFlyerLib.shared().logEvent(name, withValues: dict)
+    }
+
+    public func handleOpenUrl(_ url: URL, options: NSDictionary?) {
+        let opts = options as? [UIApplication.OpenURLOptionsKey: Any] ?? [:]
+        AppsFlyerLib.shared().handleOpen(url, options: opts)
+    }
+
+    public func handleUniversalLink(_ userActivity: NSUserActivity) {
+        AppsFlyerLib.shared().continue(userActivity, restorationHandler: nil)
     }
 
     // MARK: AppsFlyerLibDelegate
