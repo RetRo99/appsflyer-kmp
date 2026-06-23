@@ -12,7 +12,8 @@ class AppDelegate: NSObject, UIApplicationDelegate {
         AppsFlyer.shared.initialize(config: AppsFlyerConfig(
             devKey: devKey,
             isDebug: true,
-            iosAppId: appId
+            iosAppId: appId,
+            collectAndroidId: false
         ))
         return true
     }
