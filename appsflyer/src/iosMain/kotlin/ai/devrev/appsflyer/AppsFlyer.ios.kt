@@ -3,7 +3,7 @@
 package com.retro99.appsflyer
 
 import AppsFlyerBridge.AppsFlyerBridge
-import platform.Foundation.NSDictionary
+import kotlin.concurrent.Volatile
 import platform.Foundation.NSURL
 import platform.Foundation.NSUserActivity
 
@@ -24,7 +24,7 @@ class AppsFlyerLinkHandler internal constructor(
      *   AppDelegate for best attribution accuracy; omit in SwiftUI where
      *   options are unavailable).
      */
-    fun handleOpenUrl(url: NSURL, options: NSDictionary? = null) {
+    fun handleOpenUrl(url: NSURL, options: Map<Any?, *>? = null) {
         bridge.handleOpenUrl(url, options = options)
     }
 

@@ -3,6 +3,7 @@
 package com.retro99.appsflyer
 
 import AppsFlyerBridge.AppsFlyerBridge
+import kotlin.concurrent.Volatile
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -44,10 +45,8 @@ internal class IosAppsFlyerClient(
     override suspend fun getConversionData(): CampaignData = conversionRelay.first()
 
     override fun start() {
-        synchronized(this) {
-            if (started) return
-            started = true
-        }
+        if (started) return
+        started = true
         requireNotNull(config.iosAppId) {
             "AppsFlyerConfig.iosAppId must be set on iOS."
         }

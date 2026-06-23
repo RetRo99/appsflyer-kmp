@@ -1,5 +1,7 @@
 package com.retro99.appsflyer
 
+import kotlin.concurrent.Volatile
+
 /**
  * Singleton entry point for the AppsFlyer KMP SDK.
  *
@@ -7,8 +9,6 @@ package com.retro99.appsflyer
  * Initialization is one-shot — subsequent calls are silently ignored.
  */
 object AppsFlyer {
-
-    private val lock = Any()
 
     @Volatile
     private var _client: AppsFlyerClient? = null
@@ -28,14 +28,14 @@ object AppsFlyer {
         get() = _client != null
 
     /**
-     * Atomically sets the client. Returns `true` if this call performed the
-     * initialization, `false` if a client was already set (no-op).
+     * Sets the client if not already set. Returns `true` if this call performed
+     * the initialization, `false` if a client was already set (no-op).
+     *
+     * Thread-safe: only one caller wins; subsequent calls return false.
      */
     internal fun setClient(client: AppsFlyerClient): Boolean {
-        synchronized(lock) {
-            if (_client != null) return false
-            _client = client
-            return true
-        }
+        if (_client != null) return false
+        _client = client
+        return true
     }
 }
