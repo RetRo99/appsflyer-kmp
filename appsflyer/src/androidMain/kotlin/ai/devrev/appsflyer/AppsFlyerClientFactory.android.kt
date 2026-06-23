@@ -7,12 +7,13 @@ import com.appsflyer.attribution.AppsFlyerRequestListener
 import com.appsflyer.deeplink.DeepLink
 import com.appsflyer.deeplink.DeepLinkResult as AfDeepLinkResult
 import com.appsflyer.deeplink.DeepLinkResult.Status
+import org.json.JSONObject
+import java.lang.ref.WeakReference
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.first
-import org.json.JSONObject
 
 actual class AppsFlyerClientFactory(
     private val context: Context,
@@ -23,11 +24,18 @@ actual class AppsFlyerClientFactory(
 }
 
 private class AndroidAppsFlyerClient(
-    private val context: Context,
+    context: Context,
     private val config: AppsFlyerConfig,
 ) : AppsFlyerClient {
 
+    private val appContext: Context = context.applicationContext
+    // Weak ref so the Activity can be GC'd if start() is never called.
+    private var startContextRef: WeakReference<Context>? = WeakReference(context)
+
     private val lib: AppsFlyerLib = AppsFlyerLib.getInstance()
+
+    @Volatile
+    private var started = false
 
     private val conversionRelay = MutableSharedFlow<CampaignData>(
         replay = 1,
@@ -49,6 +57,12 @@ private class AndroidAppsFlyerClient(
     override suspend fun getConversionData(): CampaignData = conversionRelay.first()
 
     override fun start() {
+        synchronized(this) {
+            if (started) return
+            started = true
+        }
+        val ctx = startContextRef?.get() ?: appContext
+        startContextRef = null
         lib.setDebugLog(config.isDebug)
         lib.setCollectAndroidID(config.collectAndroidId)
         lib.init(
@@ -72,13 +86,13 @@ private class AndroidAppsFlyerClient(
                     // No-op: unified deep link API (subscribeForDeepLink) handles this.
                 }
             },
-            context,
+            ctx,
         )
         lib.subscribeForDeepLink { result ->
             deepLinkRelay.tryEmit(toDeepLinkResult(result))
         }
         lib.start(
-            context,
+            ctx,
             config.devKey,
             object : AppsFlyerRequestListener {
                 override fun onSuccess() {
@@ -97,7 +111,7 @@ private class AndroidAppsFlyerClient(
     }
 
     override fun logEvent(name: String, params: Map<String, Any?>) {
-        lib.logEvent(context, name, params.filterValues { value -> value != null })
+        lib.logEvent(appContext, name, params.filterValues { value -> value != null })
     }
 
     private fun toDeepLinkResult(result: AfDeepLinkResult): DeepLinkResult {
