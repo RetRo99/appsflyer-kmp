@@ -10,3 +10,7 @@
 .cxx
 .kotlin
 /appsflyer/exportedAppsFlyerBridge/
+Secrets.xcconfig
+ios-sdk-logs.txt
+*.xcodeproj/
+*.xcworkspace/
