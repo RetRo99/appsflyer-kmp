@@ -6,11 +6,10 @@
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
     <application
-        android:name=".SampleApp"
-        android:label="AppsFlyer KMP Sample"
+        android:label="AF KMP Demo"
         android:allowBackup="false"
-        android:theme="@android:style/Theme.Material.Light"
-        tools:replace="android:allowBackup">
+        tools:replace="android:allowBackup"
+        android:theme="@android:style/Theme.Material.Light.NoActionBar">
         <activity
             android:name=".MainActivity"
             android:exported="true">

@@ -1,5 +1,12 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.androidApplication)
+    alias(libs.plugins.composeCompiler)
+}
+
+val localProps = Properties().apply {
+    rootProject.file("local.properties").takeIf { it.exists() }?.inputStream()?.use { load(it) }
 }
 
 android {
@@ -14,12 +21,13 @@ android {
         versionName = "1.0"
         buildConfigField(
             "String",
-            "DEV_KEY",
-            "\"${project.findProperty("appsflyer.devKey") ?: ""}\"",
+            "AF_DEV_KEY",
+            "\"${localProps.getProperty("appsflyer.devKey", "")}\"",
         )
     }
 
     buildFeatures {
+        compose = true
         buildConfig = true
     }
 
@@ -30,7 +38,7 @@ android {
 }
 
 dependencies {
-    implementation(project(":appsflyer"))
-    implementation(libs.kotlinx.coroutines.android)
-    implementation(libs.play.services.ads.identifier)
+    implementation(project(":samples:demo-app:composeApp"))
+    implementation(libs.androidx.activity.compose)
+    implementation(libs.androidx.lifecycle.viewmodel.compose.android)
 }

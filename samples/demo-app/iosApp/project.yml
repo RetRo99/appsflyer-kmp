@@ -1,0 +1,64 @@
+name: iosApp
+options:
+  bundleIdPrefix: com.retro99.appsflyer.sample
+  deploymentTarget:
+    iOS: "16.0"
+
+packages:
+  AppsFlyerFramework:
+    url: https://github.com/AppsFlyerSDK/AppsFlyerFramework.git
+    exactVersion: "7.0.0"
+
+configFiles:
+  Debug: Secrets.xcconfig
+  Release: Secrets.xcconfig
+
+settings:
+  base:
+    DEVELOPMENT_TEAM: ""
+
+targets:
+  iosApp:
+    type: application
+    platform: iOS
+    sources:
+      - iosApp
+    info:
+      path: iosApp/Info.plist
+      properties:
+        CFBundleDisplayName: AF KMP Demo
+        LSRequiresIPhoneOS: true
+        CADisableMinimumFrameDurationOnPhone: true
+        UILaunchScreen: {}
+        AF_DEV_KEY: $(AF_DEV_KEY)
+        AF_IOS_APP_ID: $(AF_IOS_APP_ID)
+        CFBundleURLTypes:
+          - CFBundleURLSchemes:
+              - appsflyerkmp
+    entitlements:
+      path: iosApp/iosApp.entitlements
+      properties:
+        com.apple.developer.associated-domains:
+          - applinks:appsflyerkmp.onelink.me
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.retro99.appsflyer.sample.ios
+        INFOPLIST_FILE: iosApp/Info.plist
+        CODE_SIGN_ENTITLEMENTS: iosApp/iosApp.entitlements
+        FRAMEWORK_SEARCH_PATHS:
+          - "$(SRCROOT)/../composeApp/build/bin/iosSimulatorArm64/debugFramework"
+          - "$(SRCROOT)/../composeApp/build/bin/iosArm64/releaseFramework"
+        OTHER_LDFLAGS:
+          - "-framework"
+          - "ComposeApp"
+    dependencies:
+      - framework: "../composeApp/build/bin/iosSimulatorArm64/debugFramework/ComposeApp.framework"
+        embed: true
+      - package: AppsFlyerFramework
+        product: AppsFlyerLib
+    preBuildScripts:
+      - name: "Build Kotlin Framework"
+        script: |
+          cd "$SRCROOT/../../.."
+          ./gradlew :samples:demo-app:composeApp:linkDebugFrameworkIosSimulatorArm64
+        basedOnDependencyAnalysis: false
