@@ -181,6 +181,30 @@ class AppsFlyerClientImplTest {
         assertEquals("event", sdk.lastEventName)
         assertEquals(emptyMap(), sdk.lastEventParams)
     }
+
+    @Test
+    fun logEventStripsAllNullValuesToEmptyMap() {
+        client.logEvent("event", mapOf("a" to null, "b" to null))
+
+        assertEquals("event", sdk.lastEventName)
+        assertEquals(emptyMap(), sdk.lastEventParams)
+    }
+
+    @Test
+    fun logEventEmptyMapForwardsAsIs() {
+        client.logEvent("event", emptyMap())
+
+        assertEquals("event", sdk.lastEventName)
+        assertEquals(emptyMap(), sdk.lastEventParams)
+    }
+
+    @Test
+    fun logEventWorksBeforeStart() {
+        client.logEvent("event", mapOf("key" to "value"))
+
+        assertEquals("event", sdk.lastEventName)
+        assertEquals(mapOf("key" to "value"), sdk.lastEventParams)
+    }
 }
 
 private class FakeAppsFlyerSdk : AppsFlyerSdk {
