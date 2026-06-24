@@ -156,6 +156,10 @@ public class AppsFlyerBridge: NSObject, AppsFlyerLibDelegate, AppsFlyerDeepLinkD
         return AppsFlyerLib.shared().hostPrefix ?? ""
     }
 
+    public func setAppInviteOneLink(_ oneLinkId: String) {
+        AppsFlyerLib.shared().appInviteOneLinkID = oneLinkId
+    }
+
     public func stop(_ stop: Bool) {
         AppsFlyerLib.shared().isStopped = stop
     }

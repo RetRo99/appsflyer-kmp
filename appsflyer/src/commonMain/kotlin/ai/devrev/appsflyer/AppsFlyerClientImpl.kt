@@ -114,6 +114,9 @@ internal class AppsFlyerClientImpl(
 
     override fun getHostPrefix(): String = sdk.getHostPrefix()
 
+    override fun setAppInviteOneLink(oneLinkId: String) =
+        sdk.setAppInviteOneLink(oneLinkId)
+
     override fun getSdkVersion(): String = sdk.getSdkVersion()
 
     override fun setAnonymizeUser(enabled: Boolean) {

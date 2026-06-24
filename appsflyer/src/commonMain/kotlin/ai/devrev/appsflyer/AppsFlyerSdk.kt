@@ -77,6 +77,8 @@ internal interface AppsFlyerSdk {
 
     fun getHostPrefix(): String
 
+    fun setAppInviteOneLink(oneLinkId: String)
+
     fun getAppsFlyerUID(): String?
 
     fun getSdkVersion(): String

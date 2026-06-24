@@ -181,6 +181,10 @@ internal class IosAppsFlyerSdk(
 
     override fun getHostPrefix(): String = bridge.getHostPrefix()
 
+    override fun setAppInviteOneLink(oneLinkId: String) {
+        bridge.setAppInviteOneLink(oneLinkId)
+    }
+
     override fun setAnonymizeUser(enabled: Boolean) {
         bridge.setAnonymizeUser(enabled)
     }

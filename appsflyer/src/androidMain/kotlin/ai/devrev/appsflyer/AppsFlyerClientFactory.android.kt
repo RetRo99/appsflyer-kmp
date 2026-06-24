@@ -171,6 +171,10 @@ internal class AndroidAppsFlyerSdk(
 
     override fun getHostPrefix(): String = lib.hostPrefix
 
+    override fun setAppInviteOneLink(oneLinkId: String) {
+        lib.setAppInviteOneLink(oneLinkId)
+    }
+
     override fun setAnonymizeUser(enabled: Boolean) {
         lib.anonymizeUser(enabled)
     }

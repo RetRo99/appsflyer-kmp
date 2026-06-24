@@ -635,6 +635,12 @@ class AppsFlyerClientImplTest {
     }
 
     @Test
+    fun setAppInviteOneLinkForwardsToBackend() {
+        client.setAppInviteOneLink("abc123")
+        assertEquals("abc123", sdk.lastAppInviteOneLink)
+    }
+
+    @Test
     fun logAdRevenueForwardsToBackend() {
         val data = AdRevenueData(
             monetizationNetwork = "ironsource",
@@ -890,6 +896,8 @@ private class FakeAppsFlyerSdk : AppsFlyerSdk {
         private set
     var lastHostName: String? = null
         private set
+    var lastAppInviteOneLink: String? = null
+        private set
     var lastAnonymizeUser: Boolean? = null
         private set
     var lastSharingFilterPartners: Set<String>? = null
@@ -1003,6 +1011,10 @@ private class FakeAppsFlyerSdk : AppsFlyerSdk {
     override fun getHostName(): String = "default-host"
 
     override fun getHostPrefix(): String = "default-prefix"
+
+    override fun setAppInviteOneLink(oneLinkId: String) {
+        lastAppInviteOneLink = oneLinkId
+    }
 
     override fun setAnonymizeUser(enabled: Boolean) {
         lastAnonymizeUser = enabled

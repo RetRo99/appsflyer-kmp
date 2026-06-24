@@ -163,6 +163,14 @@ interface AppsFlyerClient {
     fun getHostPrefix(): String
 
     /**
+     * Sets the OneLink ID used for cross-promotion invite links.
+     * Call before [start].
+     *
+     * @param oneLinkId the OneLink ID.
+     */
+    fun setAppInviteOneLink(oneLinkId: String)
+
+    /**
      * Validates and logs an in-app purchase using the AppsFlyer VAL V2 flow.
      * Suspends until the SDK receives a response from the server.
      *
