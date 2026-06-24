@@ -297,20 +297,20 @@ public class AppsFlyerBridge: NSObject, AppsFlyerLibDelegate, AppsFlyerDeepLinkD
 
     private func mapMediationNetworkType(_ rawValue: Int) -> MediationNetworkType {
         switch rawValue {
-        case 0: return .googleAdMob
-        case 1: return .ironSource
-        case 2: return .applovinMax
-        case 3: return .fyber
-        case 4: return .appodeal
-        case 5: return .admost
-        case 6: return .topon
-        case 7: return .tradplus
-        case 8: return .yandex
-        case 9: return .chartBoost
-        case 10: return .unity
-        case 11: return .toponPte
-        case 12: return .custom
-        case 13: return .directMonetization
+        case 1: return .googleAdMob
+        case 2: return .ironSource
+        case 3: return .applovinMax
+        case 4: return .fyber
+        case 5: return .appodeal
+        case 6: return .admost
+        case 7: return .topon
+        case 8: return .tradplus
+        case 9: return .yandex
+        case 10: return .chartBoost
+        case 11: return .unity
+        case 12: return .toponPte
+        case 13: return .custom
+        case 14: return .directMonetization
         default: return .googleAdMob
         }
     }

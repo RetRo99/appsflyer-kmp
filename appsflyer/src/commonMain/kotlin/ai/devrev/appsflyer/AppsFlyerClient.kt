@@ -294,6 +294,43 @@ interface AppsFlyerClient {
     fun remoteDebuggingCall(data: String)
 
     /**
+     * Whether the app was pre-installed on the device (Android only;
+     * returns `false` on iOS).
+     */
+    fun isPreInstalledApp(): Boolean
+
+    /**
+     * Returns the Facebook attribution ID, or null if unavailable
+     * (Android only; returns `null` on iOS).
+     */
+    fun getAttributionId(): String?
+
+    /**
+     * Returns the out-of-store source identifier (Android only;
+     * returns an empty string on iOS).
+     */
+    fun getOutOfStore(): String
+
+    /**
+     * Logs a session manually. The SDK auto-tracks sessions by default;
+     * call this only if you've disabled auto-tracking (Android only; no-op on iOS).
+     */
+    fun logSession()
+
+    /**
+     * Notifies the SDK that the app was paused. The SDK handles this
+     * automatically via lifecycle callbacks; call this only for manual
+     * integration (Android only; no-op on iOS).
+     */
+    fun onPause()
+
+    /**
+     * Sets the customer user ID and immediately logs a session
+     * (Android only; no-op on iOS).
+     */
+    fun setCustomerIdAndLogSession(customerUserId: String)
+
+    /**
      * Validates and logs an in-app purchase using the AppsFlyer VAL V2 flow.
      * Suspends until the SDK receives a response from the server.
      *

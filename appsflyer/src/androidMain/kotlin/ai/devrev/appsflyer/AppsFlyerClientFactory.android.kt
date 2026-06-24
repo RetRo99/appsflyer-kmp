@@ -263,6 +263,27 @@ internal class AndroidAppsFlyerSdk(
         // iOS only — no-op on Android.
     }
 
+    override fun isPreInstalledApp(): Boolean =
+        lib.isPreInstalledApp(appContext)
+
+    override fun getAttributionId(): String? =
+        lib.getAttributionId(appContext)
+
+    override fun getOutOfStore(): String =
+        lib.getOutOfStore(appContext)
+
+    override fun logSession() {
+        lib.logSession(appContext)
+    }
+
+    override fun onPause() {
+        lib.onPause(appContext)
+    }
+
+    override fun setCustomerIdAndLogSession(customerUserId: String) {
+        lib.setCustomerIdAndLogSession(customerUserId, appContext)
+    }
+
     override fun setAnonymizeUser(enabled: Boolean) {
         lib.anonymizeUser(enabled)
     }

@@ -273,6 +273,24 @@ internal class IosAppsFlyerSdk(
         bridge.remoteDebuggingCall(data)
     }
 
+    override fun isPreInstalledApp(): Boolean = false
+
+    override fun getAttributionId(): String? = null
+
+    override fun getOutOfStore(): String = ""
+
+    override fun logSession() {
+        // Android only — no-op on iOS.
+    }
+
+    override fun onPause() {
+        // Android only — no-op on iOS.
+    }
+
+    override fun setCustomerIdAndLogSession(customerUserId: String) {
+        // Android only — no-op on iOS.
+    }
+
     override fun setAnonymizeUser(enabled: Boolean) {
         bridge.setAnonymizeUser(enabled)
     }

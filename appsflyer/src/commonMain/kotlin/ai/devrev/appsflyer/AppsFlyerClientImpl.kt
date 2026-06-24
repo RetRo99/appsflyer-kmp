@@ -183,6 +183,19 @@ internal class AppsFlyerClientImpl(
     override fun remoteDebuggingCall(data: String) =
         sdk.remoteDebuggingCall(data)
 
+    override fun isPreInstalledApp(): Boolean = sdk.isPreInstalledApp()
+
+    override fun getAttributionId(): String? = sdk.getAttributionId()
+
+    override fun getOutOfStore(): String = sdk.getOutOfStore()
+
+    override fun logSession() = sdk.logSession()
+
+    override fun onPause() = sdk.onPause()
+
+    override fun setCustomerIdAndLogSession(customerUserId: String) =
+        sdk.setCustomerIdAndLogSession(customerUserId)
+
     override fun getSdkVersion(): String = sdk.getSdkVersion()
 
     override fun setAnonymizeUser(enabled: Boolean) {

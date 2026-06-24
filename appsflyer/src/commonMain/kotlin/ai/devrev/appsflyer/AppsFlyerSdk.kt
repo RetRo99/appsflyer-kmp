@@ -123,6 +123,18 @@ internal interface AppsFlyerSdk {
 
     fun remoteDebuggingCall(data: String)
 
+    fun isPreInstalledApp(): Boolean
+
+    fun getAttributionId(): String?
+
+    fun getOutOfStore(): String
+
+    fun logSession()
+
+    fun onPause()
+
+    fun setCustomerIdAndLogSession(customerUserId: String)
+
     fun getAppsFlyerUID(): String?
 
     fun getSdkVersion(): String

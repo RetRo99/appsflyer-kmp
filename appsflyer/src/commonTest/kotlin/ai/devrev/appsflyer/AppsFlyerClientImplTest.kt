@@ -787,6 +787,40 @@ class AppsFlyerClientImplTest {
     }
 
     @Test
+    fun isPreInstalledAppForwardsToBackend() {
+        client.isPreInstalledApp()
+        assertEquals(true, sdk.lastIsPreInstalledApp)
+    }
+
+    @Test
+    fun getAttributionIdForwardsToBackend() {
+        assertEquals("fb-attribution-123", client.getAttributionId())
+    }
+
+    @Test
+    fun getOutOfStoreForwardsToBackend() {
+        assertEquals("amazon", client.getOutOfStore())
+    }
+
+    @Test
+    fun logSessionForwardsToBackend() {
+        client.logSession()
+        assertEquals(true, sdk.logSessionCalled)
+    }
+
+    @Test
+    fun onPauseForwardsToBackend() {
+        client.onPause()
+        assertEquals(true, sdk.onPauseCalled)
+    }
+
+    @Test
+    fun setCustomerIdAndLogSessionForwardsToBackend() {
+        client.setCustomerIdAndLogSession("user-42")
+        assertEquals("user-42", sdk.lastCustomerIdForLogSession)
+    }
+
+    @Test
     fun logAdRevenueForwardsToBackend() {
         val data = AdRevenueData(
             monetizationNetwork = "ironsource",
@@ -1092,6 +1126,14 @@ private class FakeAppsFlyerSdk : AppsFlyerSdk {
         private set
     var lastRemoteDebuggingData: String? = null
         private set
+    var lastIsPreInstalledApp: Boolean = false
+        private set
+    var logSessionCalled: Boolean = false
+        private set
+    var onPauseCalled: Boolean = false
+        private set
+    var lastCustomerIdForLogSession: String? = null
+        private set
     var lastAnonymizeUser: Boolean? = null
         private set
     var lastSharingFilterPartners: Set<String>? = null
@@ -1298,6 +1340,27 @@ private class FakeAppsFlyerSdk : AppsFlyerSdk {
 
     override fun remoteDebuggingCall(data: String) {
         lastRemoteDebuggingData = data
+    }
+
+    override fun isPreInstalledApp(): Boolean {
+        lastIsPreInstalledApp = true
+        return true
+    }
+
+    override fun getAttributionId(): String? = "fb-attribution-123"
+
+    override fun getOutOfStore(): String = "amazon"
+
+    override fun logSession() {
+        logSessionCalled = true
+    }
+
+    override fun onPause() {
+        onPauseCalled = true
+    }
+
+    override fun setCustomerIdAndLogSession(customerUserId: String) {
+        lastCustomerIdForLogSession = customerUserId
     }
 
     override fun setAnonymizeUser(enabled: Boolean) {
