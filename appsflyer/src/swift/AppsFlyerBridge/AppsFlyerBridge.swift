@@ -97,6 +97,10 @@ public class AppsFlyerBridge: NSObject, AppsFlyerLibDelegate, AppsFlyerDeepLinkD
         AppsFlyerLib.shared().customData = data
     }
 
+    public func setMinTimeBetweenSessions(_ seconds: Int) {
+        AppsFlyerLib.shared().minTimeBetweenSessions = UInt(seconds)
+    }
+
     public func stop(_ stop: Bool) {
         AppsFlyerLib.shared().isStopped = stop
     }

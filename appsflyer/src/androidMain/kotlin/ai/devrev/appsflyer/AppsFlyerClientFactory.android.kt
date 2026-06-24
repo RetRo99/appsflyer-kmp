@@ -119,6 +119,10 @@ internal class AndroidAppsFlyerSdk(
         lib.setAdditionalData(data)
     }
 
+    override fun setMinTimeBetweenSessions(seconds: Int) {
+        lib.setMinTimeBetweenSessions(seconds)
+    }
+
     override fun setAnonymizeUser(enabled: Boolean) {
         lib.anonymizeUser(enabled)
     }

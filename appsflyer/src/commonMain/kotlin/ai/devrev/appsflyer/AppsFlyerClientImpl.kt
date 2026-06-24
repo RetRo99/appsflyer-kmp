@@ -77,6 +77,9 @@ internal class AppsFlyerClientImpl(
     override fun setAdditionalData(data: Map<String, Any?>) =
         sdk.setAdditionalData(data.filterValues { it != null })
 
+    override fun setMinTimeBetweenSessions(seconds: Int) =
+        sdk.setMinTimeBetweenSessions(seconds)
+
     override fun getSdkVersion(): String = sdk.getSdkVersion()
 
     override fun setAnonymizeUser(enabled: Boolean) {

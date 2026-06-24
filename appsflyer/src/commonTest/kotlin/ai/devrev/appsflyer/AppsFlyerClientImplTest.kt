@@ -355,6 +355,12 @@ class AppsFlyerClientImplTest {
     }
 
     @Test
+    fun setMinTimeBetweenSessionsForwardsToBackend() {
+        client.setMinTimeBetweenSessions(10)
+        assertEquals(10, sdk.lastMinTimeBetweenSessions)
+    }
+
+    @Test
     fun logAdRevenueForwardsToBackend() {
         val data = AdRevenueData(
             monetizationNetwork = "ironsource",
@@ -511,6 +517,8 @@ private class FakeAppsFlyerSdk : AppsFlyerSdk {
         private set
     var lastAdditionalData: Map<String, Any?>? = null
         private set
+    var lastMinTimeBetweenSessions: Int? = null
+        private set
     var lastAnonymizeUser: Boolean? = null
         private set
     var lastSharingFilterPartners: Set<String>? = null
@@ -566,6 +574,10 @@ private class FakeAppsFlyerSdk : AppsFlyerSdk {
 
     override fun setAdditionalData(data: Map<String, Any?>) {
         lastAdditionalData = data
+    }
+
+    override fun setMinTimeBetweenSessions(seconds: Int) {
+        lastMinTimeBetweenSessions = seconds
     }
 
     override fun setAnonymizeUser(enabled: Boolean) {

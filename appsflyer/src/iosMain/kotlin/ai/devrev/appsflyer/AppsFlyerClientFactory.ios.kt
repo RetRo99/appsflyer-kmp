@@ -124,6 +124,10 @@ internal class IosAppsFlyerSdk(
         bridge.setCustomData(data as Map<Any?, *>?)
     }
 
+    override fun setMinTimeBetweenSessions(seconds: Int) {
+        bridge.setMinTimeBetweenSessions(seconds.toLong())
+    }
+
     override fun setAnonymizeUser(enabled: Boolean) {
         bridge.setAnonymizeUser(enabled)
     }

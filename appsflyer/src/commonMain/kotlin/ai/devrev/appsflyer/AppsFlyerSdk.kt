@@ -51,6 +51,8 @@ internal interface AppsFlyerSdk {
 
     fun setAdditionalData(data: Map<String, Any?>)
 
+    fun setMinTimeBetweenSessions(seconds: Int)
+
     fun getAppsFlyerUID(): String?
 
     fun getSdkVersion(): String

@@ -78,6 +78,9 @@ interface AppsFlyerClient {
     /** Sets additional custom data to be included in raw data reports. */
     fun setAdditionalData(data: Map<String, Any?>)
 
+    /** Sets the minimum time between sessions in seconds. */
+    fun setMinTimeBetweenSessions(seconds: Int)
+
     /** Returns the AppsFlyer device ID, or null if the SDK hasn't started yet. */
     fun getAppsFlyerUID(): String?
 
