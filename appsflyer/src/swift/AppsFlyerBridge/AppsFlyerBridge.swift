@@ -81,6 +81,10 @@ public class AppsFlyerBridge: NSObject, AppsFlyerLibDelegate, AppsFlyerDeepLinkD
         return AppsFlyerLib.shared().getAppsFlyerUID()
     }
 
+    public func getSdkVersion() -> String {
+        return AppsFlyerLib.shared().getSdkVersion()
+    }
+
     public func stop(_ stop: Bool) {
         AppsFlyerLib.shared().isStopped = stop
     }

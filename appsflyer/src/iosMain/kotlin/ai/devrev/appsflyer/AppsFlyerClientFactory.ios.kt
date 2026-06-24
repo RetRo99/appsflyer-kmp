@@ -108,6 +108,9 @@ internal class IosAppsFlyerSdk(
     override fun getAppsFlyerUID(): String? =
         bridge.getAppsFlyerUID()
 
+    override fun getSdkVersion(): String =
+        bridge.getSdkVersion()
+
     override fun setAnonymizeUser(enabled: Boolean) {
         bridge.setAnonymizeUser(enabled)
     }

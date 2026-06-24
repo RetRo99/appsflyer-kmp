@@ -67,6 +67,9 @@ interface AppsFlyerClient {
     /** Returns the AppsFlyer device ID, or null if the SDK hasn't started yet. */
     fun getAppsFlyerUID(): String?
 
+    /** Returns the AppsFlyer SDK version string. */
+    fun getSdkVersion(): String
+
     /**
      * Stops (or re-enables) the SDK. When stopped, the SDK will not collect
      * data or communicate with AppsFlyer servers. Pass `false` to re-enable.

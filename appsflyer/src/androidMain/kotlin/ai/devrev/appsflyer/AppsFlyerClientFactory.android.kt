@@ -104,6 +104,9 @@ internal class AndroidAppsFlyerSdk(
     override fun getAppsFlyerUID(): String? =
         lib.getAppsFlyerUID(appContext)
 
+    override fun getSdkVersion(): String =
+        lib.sdkVersion
+
     override fun setAnonymizeUser(enabled: Boolean) {
         lib.anonymizeUser(enabled)
     }

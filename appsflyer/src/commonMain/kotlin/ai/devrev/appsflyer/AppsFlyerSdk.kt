@@ -47,6 +47,8 @@ internal interface AppsFlyerSdk {
 
     fun getAppsFlyerUID(): String?
 
+    fun getSdkVersion(): String
+
     fun logAdRevenue(data: AdRevenueData)
 
     fun stop(stop: Boolean)

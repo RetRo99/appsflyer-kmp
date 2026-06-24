@@ -325,6 +325,11 @@ class AppsFlyerClientImplTest {
     }
 
     @Test
+    fun getSdkVersionForwardsToBackend() {
+        assertEquals("6.18.1", client.getSdkVersion())
+    }
+
+    @Test
     fun logAdRevenueForwardsToBackend() {
         val data = AdRevenueData(
             monetizationNetwork = "ironsource",
@@ -514,6 +519,8 @@ private class FakeAppsFlyerSdk : AppsFlyerSdk {
     }
 
     override fun getAppsFlyerUID(): String? = "fake-uid"
+
+    override fun getSdkVersion(): String = "6.18.1"
 
     override fun setAnonymizeUser(enabled: Boolean) {
         lastAnonymizeUser = enabled
