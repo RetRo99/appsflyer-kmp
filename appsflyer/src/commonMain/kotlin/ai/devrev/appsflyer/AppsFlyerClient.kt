@@ -149,6 +149,20 @@ interface AppsFlyerClient {
     fun setResolveDeepLinkURLs(urls: List<String>)
 
     /**
+     * Sets a custom host for SDK server communication. Call before [start].
+     *
+     * @param hostPrefix the host prefix.
+     * @param hostName the host name.
+     */
+    fun setHost(hostPrefix: String, hostName: String)
+
+    /** Returns the current host name. */
+    fun getHostName(): String
+
+    /** Returns the current host prefix. */
+    fun getHostPrefix(): String
+
+    /**
      * Validates and logs an in-app purchase using the AppsFlyer VAL V2 flow.
      * Suspends until the SDK receives a response from the server.
      *

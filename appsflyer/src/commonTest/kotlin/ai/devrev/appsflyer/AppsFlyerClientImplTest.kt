@@ -618,6 +618,23 @@ class AppsFlyerClientImplTest {
     }
 
     @Test
+    fun setHostForwardsToBackend() {
+        client.setHost(hostPrefix = "prefix", hostName = "example.com")
+        assertEquals("prefix", sdk.lastHostPrefix)
+        assertEquals("example.com", sdk.lastHostName)
+    }
+
+    @Test
+    fun getHostNameForwardsToBackend() {
+        assertEquals("default-host", client.getHostName())
+    }
+
+    @Test
+    fun getHostPrefixForwardsToBackend() {
+        assertEquals("default-prefix", client.getHostPrefix())
+    }
+
+    @Test
     fun logAdRevenueForwardsToBackend() {
         val data = AdRevenueData(
             monetizationNetwork = "ironsource",
@@ -869,6 +886,10 @@ private class FakeAppsFlyerSdk : AppsFlyerSdk {
         private set
     var lastResolveDeepLinkURLs: List<String>? = null
         private set
+    var lastHostPrefix: String? = null
+        private set
+    var lastHostName: String? = null
+        private set
     var lastAnonymizeUser: Boolean? = null
         private set
     var lastSharingFilterPartners: Set<String>? = null
@@ -973,6 +994,15 @@ private class FakeAppsFlyerSdk : AppsFlyerSdk {
     override fun setResolveDeepLinkURLs(urls: List<String>) {
         lastResolveDeepLinkURLs = urls
     }
+
+    override fun setHost(hostPrefix: String, hostName: String) {
+        lastHostPrefix = hostPrefix
+        lastHostName = hostName
+    }
+
+    override fun getHostName(): String = "default-host"
+
+    override fun getHostPrefix(): String = "default-prefix"
 
     override fun setAnonymizeUser(enabled: Boolean) {
         lastAnonymizeUser = enabled

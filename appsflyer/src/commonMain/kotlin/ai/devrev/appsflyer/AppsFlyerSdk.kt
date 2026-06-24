@@ -71,6 +71,12 @@ internal interface AppsFlyerSdk {
 
     fun setResolveDeepLinkURLs(urls: List<String>)
 
+    fun setHost(hostPrefix: String, hostName: String)
+
+    fun getHostName(): String
+
+    fun getHostPrefix(): String
+
     fun getAppsFlyerUID(): String?
 
     fun getSdkVersion(): String

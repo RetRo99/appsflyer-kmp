@@ -107,6 +107,13 @@ internal class AppsFlyerClientImpl(
     override fun setResolveDeepLinkURLs(urls: List<String>) =
         sdk.setResolveDeepLinkURLs(urls)
 
+    override fun setHost(hostPrefix: String, hostName: String) =
+        sdk.setHost(hostPrefix, hostName)
+
+    override fun getHostName(): String = sdk.getHostName()
+
+    override fun getHostPrefix(): String = sdk.getHostPrefix()
+
     override fun getSdkVersion(): String = sdk.getSdkVersion()
 
     override fun setAnonymizeUser(enabled: Boolean) {

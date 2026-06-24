@@ -163,6 +163,14 @@ internal class AndroidAppsFlyerSdk(
         lib.setResolveDeepLinkURLs(*urls.toTypedArray())
     }
 
+    override fun setHost(hostPrefix: String, hostName: String) {
+        lib.setHost(hostPrefix, hostName)
+    }
+
+    override fun getHostName(): String = lib.hostName
+
+    override fun getHostPrefix(): String = lib.hostPrefix
+
     override fun setAnonymizeUser(enabled: Boolean) {
         lib.anonymizeUser(enabled)
     }

@@ -173,6 +173,14 @@ internal class IosAppsFlyerSdk(
         bridge.setResolveDeepLinkURLs(urls)
     }
 
+    override fun setHost(hostPrefix: String, hostName: String) {
+        bridge.setHost(hostPrefix, hostName)
+    }
+
+    override fun getHostName(): String = bridge.getHostName()
+
+    override fun getHostPrefix(): String = bridge.getHostPrefix()
+
     override fun setAnonymizeUser(enabled: Boolean) {
         bridge.setAnonymizeUser(enabled)
     }

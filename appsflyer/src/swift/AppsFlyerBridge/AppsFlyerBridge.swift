@@ -144,6 +144,18 @@ public class AppsFlyerBridge: NSObject, AppsFlyerLibDelegate, AppsFlyerDeepLinkD
         AppsFlyerLib.shared().resolveDeepLinkURLs = urls
     }
 
+    public func setHost(_ hostPrefix: String, hostName: String) {
+        AppsFlyerLib.shared().setHost(hostPrefix, hostName: hostName)
+    }
+
+    public func getHostName() -> String {
+        return AppsFlyerLib.shared().host ?? ""
+    }
+
+    public func getHostPrefix() -> String {
+        return AppsFlyerLib.shared().hostPrefix ?? ""
+    }
+
     public func stop(_ stop: Bool) {
         AppsFlyerLib.shared().isStopped = stop
     }
