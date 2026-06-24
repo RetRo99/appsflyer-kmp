@@ -401,6 +401,55 @@ class AppsFlyerClientImplTest {
         assertEquals("JPY", forwarded.currency)
         assertEquals(100.0, forwarded.revenue)
     }
+
+    @Test
+    fun setAnonymizeUserForwardsToBackend() {
+        client.setAnonymizeUser(true)
+        assertTrue(sdk.lastAnonymizeUser == true)
+
+        client.setAnonymizeUser(false)
+        assertFalse(sdk.lastAnonymizeUser == true)
+    }
+
+    @Test
+    fun setAnonymizeUserWorksBeforeStart() {
+        client.setAnonymizeUser(true)
+
+        assertEquals(0, sdk.configureCount)
+        assertTrue(sdk.lastAnonymizeUser == true)
+    }
+
+    @Test
+    fun setSharingFilterPartnersForwardsToBackend() {
+        val partners = setOf("facebook", "google")
+
+        client.setSharingFilterPartners(partners)
+
+        assertEquals(partners, sdk.lastSharingFilterPartners)
+    }
+
+    @Test
+    fun setSharingFilterPartnersReplacesPreviousValue() {
+        client.setSharingFilterPartners(setOf("facebook"))
+        client.setSharingFilterPartners(setOf("google", "twitter"))
+
+        assertEquals(setOf("google", "twitter"), sdk.lastSharingFilterPartners)
+    }
+
+    @Test
+    fun setSharingFilterPartnersEmptySetForwardsAsIs() {
+        client.setSharingFilterPartners(emptySet())
+
+        assertEquals(emptySet(), sdk.lastSharingFilterPartners)
+    }
+
+    @Test
+    fun setSharingFilterPartnersWorksBeforeStart() {
+        client.setSharingFilterPartners(setOf("facebook"))
+
+        assertEquals(0, sdk.configureCount)
+        assertEquals(setOf("facebook"), sdk.lastSharingFilterPartners)
+    }
 }
 
 private class FakeAppsFlyerSdk : AppsFlyerSdk {
@@ -423,6 +472,10 @@ private class FakeAppsFlyerSdk : AppsFlyerSdk {
     var lastEventParams: Map<String, Any?>? = null
         private set
     var lastAdRevenueData: AdRevenueData? = null
+        private set
+    var lastAnonymizeUser: Boolean? = null
+        private set
+    var lastSharingFilterPartners: Set<String>? = null
         private set
     var logEventResult: LogEventResult? = null
 
@@ -461,6 +514,14 @@ private class FakeAppsFlyerSdk : AppsFlyerSdk {
     }
 
     override fun getAppsFlyerUID(): String? = "fake-uid"
+
+    override fun setAnonymizeUser(enabled: Boolean) {
+        lastAnonymizeUser = enabled
+    }
+
+    override fun setSharingFilterPartners(partners: Set<String>) {
+        lastSharingFilterPartners = partners
+    }
 
     override fun logAdRevenue(data: AdRevenueData) {
         lastAdRevenueData = data
