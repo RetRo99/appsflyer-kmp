@@ -65,6 +65,8 @@ internal interface AppsFlyerSdk {
 
     fun appendParametersToDeepLinkingURL(contains: String, parameters: Map<String, String>)
 
+    fun setPartnerData(partnerId: String, data: Map<String, Any?>)
+
     fun getAppsFlyerUID(): String?
 
     fun getSdkVersion(): String

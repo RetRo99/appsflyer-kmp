@@ -575,6 +575,25 @@ class AppsFlyerClientImplTest {
     }
 
     @Test
+    fun setPartnerDataForwardsToBackend() {
+        client.setPartnerData("partner1", mapOf("key1" to "value1", "key2" to 42))
+        assertEquals("partner1", sdk.lastPartnerId)
+        assertEquals(mapOf("key1" to "value1", "key2" to 42), sdk.lastPartnerData)
+    }
+
+    @Test
+    fun setPartnerDataStripsNullValues() {
+        client.setPartnerData("partner1", mapOf("a" to "b", "c" to null, "d" to 3))
+        assertEquals(mapOf("a" to "b", "d" to 3), sdk.lastPartnerData)
+    }
+
+    @Test
+    fun setPartnerDataEmptyMapForwardsAsIs() {
+        client.setPartnerData("partner1", emptyMap())
+        assertEquals(emptyMap(), sdk.lastPartnerData)
+    }
+
+    @Test
     fun logAdRevenueForwardsToBackend() {
         val data = AdRevenueData(
             monetizationNetwork = "ironsource",
@@ -818,6 +837,10 @@ private class FakeAppsFlyerSdk : AppsFlyerSdk {
         private set
     var lastDeepLinkParameters: Map<String, String>? = null
         private set
+    var lastPartnerId: String? = null
+        private set
+    var lastPartnerData: Map<String, Any?>? = null
+        private set
     var lastAnonymizeUser: Boolean? = null
         private set
     var lastSharingFilterPartners: Set<String>? = null
@@ -908,6 +931,11 @@ private class FakeAppsFlyerSdk : AppsFlyerSdk {
     override fun appendParametersToDeepLinkingURL(contains: String, parameters: Map<String, String>) {
         lastDeepLinkContains = contains
         lastDeepLinkParameters = parameters
+    }
+
+    override fun setPartnerData(partnerId: String, data: Map<String, Any?>) {
+        lastPartnerId = partnerId
+        lastPartnerData = data
     }
 
     override fun setAnonymizeUser(enabled: Boolean) {

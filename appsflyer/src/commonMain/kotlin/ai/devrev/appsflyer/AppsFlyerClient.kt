@@ -124,6 +124,15 @@ interface AppsFlyerClient {
     fun appendParametersToDeepLinkingURL(contains: String, parameters: Map<String, String>)
 
     /**
+     * Sets partner-specific data to be sent to AppsFlyer. Null values in
+     * [data] are silently dropped.
+     *
+     * @param partnerId the partner identifier.
+     * @param data the key-value pairs to send.
+     */
+    fun setPartnerData(partnerId: String, data: Map<String, Any?>)
+
+    /**
      * Validates and logs an in-app purchase using the AppsFlyer VAL V2 flow.
      * Suspends until the SDK receives a response from the server.
      *

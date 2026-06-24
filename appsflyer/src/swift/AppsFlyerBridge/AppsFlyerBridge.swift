@@ -131,6 +131,11 @@ public class AppsFlyerBridge: NSObject, AppsFlyerLibDelegate, AppsFlyerDeepLinkD
         AppsFlyerLib.shared().appendParametersToDeepLinkingURL(contains: contains, parameters: parameters)
     }
 
+    public func setPartnerData(_ partnerId: String, data: [AnyHashable: Any]?) {
+        let stringData = data as? [String: Any]
+        AppsFlyerLib.shared().setPartnerData(partnerId: partnerId, data: stringData)
+    }
+
     public func stop(_ stop: Bool) {
         AppsFlyerLib.shared().isStopped = stop
     }

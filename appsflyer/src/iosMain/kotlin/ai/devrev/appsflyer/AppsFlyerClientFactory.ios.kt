@@ -160,6 +160,11 @@ internal class IosAppsFlyerSdk(
         bridge.appendParametersToDeepLinkingURL(contains, parameters as Map<Any?, *>)
     }
 
+    override fun setPartnerData(partnerId: String, data: Map<String, Any?>) {
+        @Suppress("UNCHECKED_CAST")
+        bridge.setPartnerData(partnerId, data as Map<Any?, *>)
+    }
+
     override fun setAnonymizeUser(enabled: Boolean) {
         bridge.setAnonymizeUser(enabled)
     }

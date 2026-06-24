@@ -151,6 +151,10 @@ internal class AndroidAppsFlyerSdk(
         lib.appendParametersToDeepLinkingURL(contains, parameters)
     }
 
+    override fun setPartnerData(partnerId: String, data: Map<String, Any?>) {
+        lib.setPartnerData(partnerId, data)
+    }
+
     override fun setAnonymizeUser(enabled: Boolean) {
         lib.anonymizeUser(enabled)
     }
