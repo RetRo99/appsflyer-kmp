@@ -19,10 +19,22 @@ internal class IosAppsFlyerSdk : AppsFlyerSdk {
         requireNotNull(config.iosAppId) {
             "AppsFlyerConfig.iosAppId must be set on iOS."
         }
+        val consentDict: Map<Any?, *>? = config.consentData?.let { consent ->
+            mapOf(
+                "isUserSubjectToGDPR" to consent.isUserSubjectToGDPR?.let { NSNumber(it) },
+                "hasConsentForDataUsage" to consent.hasConsentForDataUsage?.let { NSNumber(it) },
+                "hasConsentForAdsPersonalization" to consent.hasConsentForAdsPersonalization?.let { NSNumber(it) },
+                "hasConsentForAdStorage" to consent.hasConsentForAdStorage?.let { NSNumber(it) },
+            )
+        }
         bridge.configureWithDevKey(
             devKey = config.devKey,
             appId = config.iosAppId,
             isDebug = config.isDebug,
+            anonymizeUser = config.anonymizeUser,
+            enableTCFDataCollection = config.enableTCFDataCollection,
+            consentData = consentDict,
+            sharingFilterPartners = config.sharingFilterPartners.toList(),
             onConversion = { data ->
                 if (data != null) {
                     @Suppress("UNCHECKED_CAST")
@@ -99,23 +111,6 @@ internal class IosAppsFlyerSdk : AppsFlyerSdk {
 
     override fun isStopped(): Boolean =
         bridge.isStopped()
-
-    override fun anonymizeUser(shouldAnonymize: Boolean) {
-        bridge.anonymizeUser(shouldAnonymize)
-    }
-
-    override fun setConsentData(consent: AppsFlyerConsent) {
-        bridge.setConsentDataWithIsUserSubjectToGDPR(
-            isUserSubjectToGDPR = consent.isUserSubjectToGDPR?.let { NSNumber(it) },
-            hasConsentForDataUsage = consent.hasConsentForDataUsage?.let { NSNumber(it) },
-            hasConsentForAdsPersonalization = consent.hasConsentForAdsPersonalization?.let { NSNumber(it) },
-            hasConsentForAdStorage = consent.hasConsentForAdStorage?.let { NSNumber(it) },
-        )
-    }
-
-    override fun enableTCFDataCollection(enabled: Boolean) {
-        bridge.enableTCFDataCollection(enabled)
-    }
 }
 
 internal actual class AppsFlyerClientFactory {

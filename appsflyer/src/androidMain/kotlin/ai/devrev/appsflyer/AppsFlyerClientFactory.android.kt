@@ -31,6 +31,19 @@ internal class AndroidAppsFlyerSdk(
         startContextRef = null
         lib.setDebugLog(config.isDebug)
         lib.setCollectAndroidID(config.collectAndroidId)
+        lib.anonymizeUser(config.anonymizeUser)
+        lib.enableTCFDataCollection(config.enableTCFDataCollection)
+        config.consentData?.let { consent ->
+            lib.setConsentData(
+                com.appsflyer.AppsFlyerConsent(
+                    consent.isUserSubjectToGDPR,
+                    consent.hasConsentForDataUsage,
+                    consent.hasConsentForAdsPersonalization,
+                    consent.hasConsentForAdStorage,
+                ),
+            )
+        }
+        lib.setSharingFilterForPartners(*config.sharingFilterPartners.toTypedArray())
         lib.init(
             config.devKey,
             object : AppsFlyerConversionListener {
@@ -94,23 +107,6 @@ internal class AndroidAppsFlyerSdk(
 
     override fun isStopped(): Boolean =
         lib.isStopped
-
-    override fun anonymizeUser(shouldAnonymize: Boolean) =
-        lib.anonymizeUser(shouldAnonymize)
-
-    override fun setConsentData(consent: AppsFlyerConsent) {
-        lib.setConsentData(
-            com.appsflyer.AppsFlyerConsent(
-                consent.isUserSubjectToGDPR,
-                consent.hasConsentForDataUsage,
-                consent.hasConsentForAdsPersonalization,
-                consent.hasConsentForAdStorage,
-            ),
-        )
-    }
-
-    override fun enableTCFDataCollection(enabled: Boolean) =
-        lib.enableTCFDataCollection(enabled)
 
     private fun toDeepLinkResult(result: AfDeepLinkResult): DeepLinkResult {
         return when (result.status) {

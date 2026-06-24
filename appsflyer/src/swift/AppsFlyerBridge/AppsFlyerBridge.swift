@@ -15,6 +15,10 @@ public class AppsFlyerBridge: NSObject, AppsFlyerLibDelegate, AppsFlyerDeepLinkD
         devKey: String,
         appId: String,
         isDebug: Bool,
+        anonymizeUser: Bool,
+        enableTCFDataCollection: Bool,
+        consentData: NSDictionary?,
+        sharingFilterPartners: [String],
         onConversion: @escaping (NSDictionary) -> Void,
         onConversionError: @escaping (String?) -> Void,
         onDeepLinkFound: @escaping (String?, Bool, String?, String?, NSDictionary?) -> Void,
@@ -32,6 +36,19 @@ public class AppsFlyerBridge: NSObject, AppsFlyerLibDelegate, AppsFlyerDeepLinkD
         AppsFlyerLib.shared().delegate = self
         AppsFlyerLib.shared().deepLinkDelegate = self
         AppsFlyerLib.shared().isDebug = isDebug
+
+        AppsFlyerLib.shared().anonymizeUser = anonymizeUser
+        AppsFlyerLib.shared().enableTCFDataCollection(enableTCFDataCollection)
+        if let consentDict = consentData {
+            let consent = AppsFlyerConsent(
+                isUserSubjectToGDPR: consentDict["isUserSubjectToGDPR"] as? NSNumber,
+                hasConsentForDataUsage: consentDict["hasConsentForDataUsage"] as? NSNumber,
+                hasConsentForAdsPersonalization: consentDict["hasConsentForAdsPersonalization"] as? NSNumber,
+                hasConsentForAdStorage: consentDict["hasConsentForAdStorage"] as? NSNumber
+            )
+            AppsFlyerLib.shared().setConsentData(consent)
+        }
+        AppsFlyerLib.shared().sharingFilter = sharingFilterPartners
 
         AppsFlyerLib.shared().start(completionHandler: { (dictionary, error) in
             if let error = error {
@@ -57,29 +74,6 @@ public class AppsFlyerBridge: NSObject, AppsFlyerLibDelegate, AppsFlyerDeepLinkD
 
     public func isStopped() -> Bool {
         return AppsFlyerLib.shared().isStopped
-    }
-
-    public func anonymizeUser(_ shouldAnonymize: Bool) {
-        AppsFlyerLib.shared().anonymizeUser = shouldAnonymize
-    }
-
-    public func setConsentData(
-        isUserSubjectToGDPR: NSNumber?,
-        hasConsentForDataUsage: NSNumber?,
-        hasConsentForAdsPersonalization: NSNumber?,
-        hasConsentForAdStorage: NSNumber?
-    ) {
-        let afConsent = AppsFlyerConsent(
-            isUserSubjectToGDPR: isUserSubjectToGDPR,
-            hasConsentForDataUsage: hasConsentForDataUsage,
-            hasConsentForAdsPersonalization: hasConsentForAdsPersonalization,
-            hasConsentForAdStorage: hasConsentForAdStorage
-        )
-        AppsFlyerLib.shared().setConsentData(afConsent)
-    }
-
-    public func enableTCFDataCollection(_ enabled: Bool) {
-        AppsFlyerLib.shared().enableTCFDataCollection(enabled)
     }
 
     public func logEvent(_ name: String, values: NSDictionary?) {

@@ -55,25 +55,6 @@ interface AppsFlyerClient {
     val isStopped: Boolean
 
     /**
-     * Anonymizes user data when set to true. Must be called before [start]
-     * for full effect. When enabled, the SDK does not collect or send user
-     * identifiers (IDFV, IDFA, Android ID, etc.).
-     */
-    fun anonymizeUser(shouldAnonymize: Boolean)
-
-    /**
-     * Sets GDPR/DMA consent data. Must be called before [start].
-     * Use [AppsFlyerConsent.forNonGDPRUser] for users outside GDPR scope.
-     */
-    fun setConsentData(consent: AppsFlyerConsent)
-
-    /**
-     * Enables or disables TCF v2.x consent string collection.
-     * Must be called before [start].
-     */
-    fun enableTCFDataCollection(enabled: Boolean)
-
-    /**
      * Emits deep link results as they arrive (including re-engagement links).
      * Does not replay past emissions — collect before calling [start] to
      * avoid missing the initial deep link.
@@ -86,6 +67,10 @@ data class AppsFlyerConfig(
     val isDebug: Boolean = false,
     val iosAppId: String? = null,
     val collectAndroidId: Boolean = false,
+    val anonymizeUser: Boolean = false,
+    val enableTCFDataCollection: Boolean = false,
+    val consentData: AppsFlyerConsent? = null,
+    val sharingFilterPartners: Set<String> = emptySet(),
 ) {
     init {
         require(devKey.isNotBlank()) { "AppsFlyerConfig.devKey must not be blank." }
@@ -165,8 +150,8 @@ sealed interface LogEventResult {
 
 /**
  * GDPR/DMA consent data for AppsFlyer. All fields are nullable to represent
- * tri-state consent (granted / denied / unknown). Must be passed to
- * [AppsFlyerClient.setConsentData] before [AppsFlyerClient.start].
+ * tri-state consent (granted / denied / unknown). Set via
+ * [AppsFlyerConfig.consentData] before [AppsFlyerClient.start].
  */
 data class AppsFlyerConsent(
     val isUserSubjectToGDPR: Boolean? = null,

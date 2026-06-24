@@ -73,13 +73,4 @@ internal class AppsFlyerClientImpl(
 
     override val isStopped: Boolean
         get() = sdk.isStopped()
-
-    override fun anonymizeUser(shouldAnonymize: Boolean) =
-        sdk.anonymizeUser(shouldAnonymize)
-
-    override fun setConsentData(consent: AppsFlyerConsent) =
-        sdk.setConsentData(consent)
-
-    override fun enableTCFDataCollection(enabled: Boolean) =
-        sdk.enableTCFDataCollection(enabled)
 }
