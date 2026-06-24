@@ -105,6 +105,14 @@ internal class IosAppsFlyerSdk : AppsFlyerSdk {
     override fun getAppsFlyerUID(): String? =
         bridge.getAppsFlyerUID()
 
+    override fun setAnonymizeUser(enabled: Boolean) {
+        bridge.setAnonymizeUser(enabled)
+    }
+
+    override fun setSharingFilterPartners(partners: Set<String>) {
+        bridge.setSharingFilterPartners(partners.toList())
+    }
+
     override fun logAdRevenue(data: AdRevenueData) {
         @Suppress("UNCHECKED_CAST")
         bridge.logAdRevenue(

@@ -34,17 +34,6 @@ internal class AndroidAppsFlyerSdk(
         lib.setDebugLog(config.isDebug)
         lib.setCollectAndroidID(config.collectAndroidId)
         lib.anonymizeUser(config.anonymizeUser)
-        lib.enableTCFDataCollection(config.enableTCFDataCollection)
-        config.consentData?.let { consent ->
-            lib.setConsentData(
-                com.appsflyer.AppsFlyerConsent(
-                    consent.isUserSubjectToGDPR,
-                    consent.hasConsentForDataUsage,
-                    consent.hasConsentForAdsPersonalization,
-                    consent.hasConsentForAdStorage,
-                ),
-            )
-        }
         lib.setSharingFilterForPartners(*config.sharingFilterPartners.toTypedArray())
         lib.init(
             config.devKey,
@@ -63,6 +52,17 @@ internal class AndroidAppsFlyerSdk(
             },
             ctx,
         )
+        lib.enableTCFDataCollection(config.enableTCFDataCollection)
+        config.consentData?.let { consent ->
+            lib.setConsentData(
+                com.appsflyer.AppsFlyerConsent(
+                    consent.isUserSubjectToGDPR,
+                    consent.hasConsentForDataUsage,
+                    consent.hasConsentForAdsPersonalization,
+                    consent.hasConsentForAdStorage,
+                ),
+            )
+        }
         lib.subscribeForDeepLink { result -> onDeepLink(toDeepLinkResult(result)) }
         lib.start(
             ctx,
@@ -103,6 +103,14 @@ internal class AndroidAppsFlyerSdk(
 
     override fun getAppsFlyerUID(): String? =
         lib.getAppsFlyerUID(appContext)
+
+    override fun setAnonymizeUser(enabled: Boolean) {
+        lib.anonymizeUser(enabled)
+    }
+
+    override fun setSharingFilterPartners(partners: Set<String>) {
+        lib.setSharingFilterForPartners(*partners.toTypedArray())
+    }
 
     override fun logAdRevenue(data: AdRevenueData) {
         val adRevenueData = AFAdRevenueData(

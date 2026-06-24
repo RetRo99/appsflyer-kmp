@@ -41,6 +41,10 @@ internal interface AppsFlyerSdk {
         onResult: (LogEventResult) -> Unit,
     )
 
+    fun setAnonymizeUser(enabled: Boolean)
+
+    fun setSharingFilterPartners(partners: Set<String>)
+
     fun getAppsFlyerUID(): String?
 
     fun logAdRevenue(data: AdRevenueData)

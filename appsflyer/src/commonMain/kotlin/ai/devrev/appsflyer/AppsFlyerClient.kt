@@ -49,6 +49,20 @@ interface AppsFlyerClient {
      */
     fun logAdRevenue(data: AdRevenueData)
 
+    /**
+     * Enables or disables user anonymization at runtime. When enabled, the SDK
+     * zeroes out the device ID before sending it to AppsFlyer. The initial
+     * value is set via [AppsFlyerConfig.anonymizeUser].
+     */
+    fun setAnonymizeUser(enabled: Boolean)
+
+    /**
+     * Sets the sharing filter for partners at runtime. Only the specified
+     * partners will receive data sharing; all others are excluded. The
+     * initial value is set via [AppsFlyerConfig.sharingFilterPartners].
+     */
+    fun setSharingFilterPartners(partners: Set<String>)
+
     /** Returns the AppsFlyer device ID, or null if the SDK hasn't started yet. */
     fun getAppsFlyerUID(): String?
 

@@ -64,6 +64,14 @@ public class AppsFlyerBridge: NSObject, AppsFlyerLibDelegate, AppsFlyerDeepLinkD
         AppsFlyerLib.shared().customerUserID = id
     }
 
+    public func setAnonymizeUser(_ enabled: Bool) {
+        AppsFlyerLib.shared().anonymizeUser = enabled
+    }
+
+    public func setSharingFilterPartners(_ partners: [String]) {
+        AppsFlyerLib.shared().sharingFilter = partners
+    }
+
     public func getAppsFlyerUID() -> String {
         return AppsFlyerLib.shared().getAppsFlyerUID()
     }
