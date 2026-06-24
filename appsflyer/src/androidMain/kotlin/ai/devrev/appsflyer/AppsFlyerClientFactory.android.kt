@@ -177,12 +177,12 @@ internal class AndroidAppsFlyerSdk(
             details,
             stringParams,
             object : AppsFlyerInAppPurchaseValidationCallback {
-                override fun onInAppPurchaseValidationFinished(data: Map<String, Any?>) {
-                    onResult(PurchaseValidationResult.Success(data))
+                override fun onInAppPurchaseValidationFinished(validationResult: Map<String, Any?>) {
+                    onResult(PurchaseValidationResult.Success(validationResult))
                 }
 
-                override fun onInAppPurchaseValidationError(data: Map<String, Any>) {
-                    onResult(PurchaseValidationResult.Error(message = data.toString()))
+                override fun onInAppPurchaseValidationError(validationError: Map<String, Any>) {
+                    onResult(PurchaseValidationResult.Error(message = validationError.toString()))
                 }
             },
         )

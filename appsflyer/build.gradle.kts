@@ -11,6 +11,10 @@ group = "com.retro99.appsflyer"
 version = providers.gradleProperty("LIBRARY_VERSION").orElse("0.1.0").get()
 
 kotlin {
+    compilerOptions {
+        freeCompilerArgs.add("-Xexpect-actual-classes")
+    }
+
     android {
         namespace = "com.retro99.appsflyer"
         compileSdk = 36

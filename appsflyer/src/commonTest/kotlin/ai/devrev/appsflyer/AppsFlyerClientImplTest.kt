@@ -6,10 +6,8 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
-import kotlin.test.assertFalse
 import kotlin.test.assertIs
 import kotlin.test.assertNull
-import kotlin.test.assertTrue
 class AppsFlyerClientImplTest {
 
     private val sdk = FakeAppsFlyerSdk()
@@ -23,7 +21,7 @@ class AppsFlyerClientImplTest {
         client.start()
 
         assertEquals(1, sdk.configureCount)
-        assertTrue(sdk.lastConfig === config)
+        assertEquals(config, sdk.lastConfig)
     }
 
     @Test
@@ -285,7 +283,7 @@ class AppsFlyerClientImplTest {
         var result: StartResult? = null
         val deferred = async { result = client.getStartResult() }
 
-        assertFalse(result != null)
+        assertEquals(null, result)
         sdk.onStart?.invoke(StartResult.Success)
         deferred.join()
 
@@ -299,7 +297,7 @@ class AppsFlyerClientImplTest {
         var result: CampaignData? = null
         val deferred = async { result = client.getConversionData() }
 
-        assertFalse(result != null)
+        assertEquals(null, result)
         sdk.onConversion?.invoke(
             mapOf(
                 "af_status" to "Organic",
@@ -423,7 +421,7 @@ class AppsFlyerClientImplTest {
         )
 
         val found = assertIs<DeepLinkResult.Found>(result)
-        assertFalse(found.isDeferred)
+        assertEquals(false, found.isDeferred)
     }
 
     @Test
@@ -628,10 +626,10 @@ class AppsFlyerClientImplTest {
     @Test
     fun setAnonymizeUserForwardsToBackend() {
         client.setAnonymizeUser(true)
-        assertTrue(sdk.lastAnonymizeUser == true)
+        assertEquals(true, sdk.lastAnonymizeUser)
 
         client.setAnonymizeUser(false)
-        assertFalse(sdk.lastAnonymizeUser == true)
+        assertEquals(false, sdk.lastAnonymizeUser)
     }
 
     @Test
@@ -639,7 +637,7 @@ class AppsFlyerClientImplTest {
         client.setAnonymizeUser(true)
 
         assertEquals(0, sdk.configureCount)
-        assertTrue(sdk.lastAnonymizeUser == true)
+        assertEquals(true, sdk.lastAnonymizeUser)
     }
 
     @Test
