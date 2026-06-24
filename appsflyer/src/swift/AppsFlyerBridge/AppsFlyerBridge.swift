@@ -160,6 +160,16 @@ public class AppsFlyerBridge: NSObject, AppsFlyerLibDelegate, AppsFlyerDeepLinkD
         AppsFlyerLib.shared().appInviteOneLinkID = oneLinkId
     }
 
+    public func setPhoneNumber(_ phoneNumber: String?) {
+        AppsFlyerLib.shared().phoneNumber = phoneNumber
+    }
+
+    public func performOnAppAttribution(_ urlString: String) {
+        if let url = URL(string: urlString) {
+            AppsFlyerLib.shared().performOnAppAttribution(with: url)
+        }
+    }
+
     public func stop(_ stop: Bool) {
         AppsFlyerLib.shared().isStopped = stop
     }

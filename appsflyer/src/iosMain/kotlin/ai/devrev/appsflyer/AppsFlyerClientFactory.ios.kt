@@ -185,6 +185,46 @@ internal class IosAppsFlyerSdk(
         bridge.setAppInviteOneLink(oneLinkId)
     }
 
+    override fun setPhoneNumber(phoneNumber: String?) {
+        bridge.setPhoneNumber(phoneNumber)
+    }
+
+    override fun performOnAppAttribution(url: String) {
+        bridge.performOnAppAttribution(url)
+    }
+
+    override fun setIsUpdate(isUpdate: Boolean) {
+        // Android only — no-op on iOS.
+    }
+
+    override fun setCollectIMEI(collect: Boolean) {
+        // Android only — no-op on iOS.
+    }
+
+    override fun setCollectOaid(collect: Boolean) {
+        // Android only — no-op on iOS.
+    }
+
+    override fun setImeiData(imei: String?) {
+        // Android only — no-op on iOS.
+    }
+
+    override fun setOaidData(oaid: String?) {
+        // Android only — no-op on iOS.
+    }
+
+    override fun setAndroidIdData(androidId: String?) {
+        // Android only — no-op on iOS.
+    }
+
+    override fun disableAppSetId() {
+        // Android only — no-op on iOS.
+    }
+
+    override fun setDisableNetworkData(disable: Boolean) {
+        // Android only — no-op on iOS.
+    }
+
     override fun setAnonymizeUser(enabled: Boolean) {
         bridge.setAnonymizeUser(enabled)
     }

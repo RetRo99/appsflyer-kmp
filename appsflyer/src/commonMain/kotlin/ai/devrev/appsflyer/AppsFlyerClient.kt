@@ -171,6 +171,63 @@ interface AppsFlyerClient {
     fun setAppInviteOneLink(oneLinkId: String)
 
     /**
+     * Sets the user's phone number. It will be sent as a SHA256 hash.
+     * Pass null to clear.
+     *
+     * @param phoneNumber the phone number, or null.
+     */
+    fun setPhoneNumber(phoneNumber: String?)
+
+    /**
+     * Triggers attribution for the given URL. Use when opening a URL
+     * outside the normal deep link flow.
+     *
+     * @param url the URL to attribute.
+     */
+    fun performOnAppAttribution(url: String)
+
+    /**
+     * Marks this launch as an update (vs. a fresh install).
+     * Android only; no-op on iOS.
+     */
+    fun setIsUpdate(isUpdate: Boolean)
+
+    /**
+     * Enables or disables IMEI collection (Android only; no-op on iOS).
+     */
+    fun setCollectIMEI(collect: Boolean)
+
+    /**
+     * Enables or disables OAID collection (Android only; no-op on iOS).
+     */
+    fun setCollectOaid(collect: Boolean)
+
+    /**
+     * Sets IMEI data manually (Android only; no-op on iOS).
+     */
+    fun setImeiData(imei: String?)
+
+    /**
+     * Sets OAID data manually (Android only; no-op on iOS).
+     */
+    fun setOaidData(oaid: String?)
+
+    /**
+     * Sets Android ID data manually (Android only; no-op on iOS).
+     */
+    fun setAndroidIdData(androidId: String?)
+
+    /**
+     * Disables app set ID collection (Android only; no-op on iOS).
+     */
+    fun disableAppSetId()
+
+    /**
+     * Disables network data collection (Android only; no-op on iOS).
+     */
+    fun setDisableNetworkData(disable: Boolean)
+
+    /**
      * Validates and logs an in-app purchase using the AppsFlyer VAL V2 flow.
      * Suspends until the SDK receives a response from the server.
      *

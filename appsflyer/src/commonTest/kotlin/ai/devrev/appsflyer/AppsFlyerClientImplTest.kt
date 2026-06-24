@@ -641,6 +641,72 @@ class AppsFlyerClientImplTest {
     }
 
     @Test
+    fun setPhoneNumberForwardsToBackend() {
+        client.setPhoneNumber("+1234567890")
+        assertEquals("+1234567890", sdk.lastPhoneNumber)
+    }
+
+    @Test
+    fun setPhoneNumberNullForwardsToBackend() {
+        client.setPhoneNumber(null)
+        assertEquals(null, sdk.lastPhoneNumber)
+    }
+
+    @Test
+    fun performOnAppAttributionForwardsToBackend() {
+        client.performOnAppAttribution("https://example.com/link")
+        assertEquals("https://example.com/link", sdk.lastAttributionUrl)
+    }
+
+    @Test
+    fun setIsUpdateForwardsToBackend() {
+        client.setIsUpdate(true)
+        assertEquals(true, sdk.lastIsUpdate)
+    }
+
+    @Test
+    fun setCollectIMEIForwardsToBackend() {
+        client.setCollectIMEI(true)
+        assertEquals(true, sdk.lastCollectIMEI)
+    }
+
+    @Test
+    fun setCollectOaidForwardsToBackend() {
+        client.setCollectOaid(false)
+        assertEquals(false, sdk.lastCollectOaid)
+    }
+
+    @Test
+    fun setImeiDataForwardsToBackend() {
+        client.setImeiData("imei-123")
+        assertEquals("imei-123", sdk.lastImeiData)
+    }
+
+    @Test
+    fun setOaidDataForwardsToBackend() {
+        client.setOaidData("oaid-456")
+        assertEquals("oaid-456", sdk.lastOaidData)
+    }
+
+    @Test
+    fun setAndroidIdDataForwardsToBackend() {
+        client.setAndroidIdData("android-id-789")
+        assertEquals("android-id-789", sdk.lastAndroidIdData)
+    }
+
+    @Test
+    fun disableAppSetIdForwardsToBackend() {
+        client.disableAppSetId()
+        assertEquals(true, sdk.disableAppSetIdCalled)
+    }
+
+    @Test
+    fun setDisableNetworkDataForwardsToBackend() {
+        client.setDisableNetworkData(true)
+        assertEquals(true, sdk.lastDisableNetworkData)
+    }
+
+    @Test
     fun logAdRevenueForwardsToBackend() {
         val data = AdRevenueData(
             monetizationNetwork = "ironsource",
@@ -898,6 +964,26 @@ private class FakeAppsFlyerSdk : AppsFlyerSdk {
         private set
     var lastAppInviteOneLink: String? = null
         private set
+    var lastPhoneNumber: String? = null
+        private set
+    var lastAttributionUrl: String? = null
+        private set
+    var lastIsUpdate: Boolean? = null
+        private set
+    var lastCollectIMEI: Boolean? = null
+        private set
+    var lastCollectOaid: Boolean? = null
+        private set
+    var lastImeiData: String? = null
+        private set
+    var lastOaidData: String? = null
+        private set
+    var lastAndroidIdData: String? = null
+        private set
+    var disableAppSetIdCalled: Boolean = false
+        private set
+    var lastDisableNetworkData: Boolean? = null
+        private set
     var lastAnonymizeUser: Boolean? = null
         private set
     var lastSharingFilterPartners: Set<String>? = null
@@ -1014,6 +1100,46 @@ private class FakeAppsFlyerSdk : AppsFlyerSdk {
 
     override fun setAppInviteOneLink(oneLinkId: String) {
         lastAppInviteOneLink = oneLinkId
+    }
+
+    override fun setPhoneNumber(phoneNumber: String?) {
+        lastPhoneNumber = phoneNumber
+    }
+
+    override fun performOnAppAttribution(url: String) {
+        lastAttributionUrl = url
+    }
+
+    override fun setIsUpdate(isUpdate: Boolean) {
+        lastIsUpdate = isUpdate
+    }
+
+    override fun setCollectIMEI(collect: Boolean) {
+        lastCollectIMEI = collect
+    }
+
+    override fun setCollectOaid(collect: Boolean) {
+        lastCollectOaid = collect
+    }
+
+    override fun setImeiData(imei: String?) {
+        lastImeiData = imei
+    }
+
+    override fun setOaidData(oaid: String?) {
+        lastOaidData = oaid
+    }
+
+    override fun setAndroidIdData(androidId: String?) {
+        lastAndroidIdData = androidId
+    }
+
+    override fun disableAppSetId() {
+        disableAppSetIdCalled = true
+    }
+
+    override fun setDisableNetworkData(disable: Boolean) {
+        lastDisableNetworkData = disable
     }
 
     override fun setAnonymizeUser(enabled: Boolean) {

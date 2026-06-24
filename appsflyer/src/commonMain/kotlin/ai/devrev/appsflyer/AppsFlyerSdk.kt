@@ -79,6 +79,26 @@ internal interface AppsFlyerSdk {
 
     fun setAppInviteOneLink(oneLinkId: String)
 
+    fun setPhoneNumber(phoneNumber: String?)
+
+    fun performOnAppAttribution(url: String)
+
+    fun setIsUpdate(isUpdate: Boolean)
+
+    fun setCollectIMEI(collect: Boolean)
+
+    fun setCollectOaid(collect: Boolean)
+
+    fun setImeiData(imei: String?)
+
+    fun setOaidData(oaid: String?)
+
+    fun setAndroidIdData(androidId: String?)
+
+    fun disableAppSetId()
+
+    fun setDisableNetworkData(disable: Boolean)
+
     fun getAppsFlyerUID(): String?
 
     fun getSdkVersion(): String

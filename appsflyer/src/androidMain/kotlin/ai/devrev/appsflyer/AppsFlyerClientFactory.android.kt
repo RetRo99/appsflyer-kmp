@@ -175,6 +175,46 @@ internal class AndroidAppsFlyerSdk(
         lib.setAppInviteOneLink(oneLinkId)
     }
 
+    override fun setPhoneNumber(phoneNumber: String?) {
+        lib.setPhoneNumber(phoneNumber)
+    }
+
+    override fun performOnAppAttribution(url: String) {
+        lib.performOnAppAttribution(appContext, java.net.URI(url))
+    }
+
+    override fun setIsUpdate(isUpdate: Boolean) {
+        lib.setIsUpdate(isUpdate)
+    }
+
+    override fun setCollectIMEI(collect: Boolean) {
+        lib.setCollectIMEI(collect)
+    }
+
+    override fun setCollectOaid(collect: Boolean) {
+        lib.setCollectOaid(collect)
+    }
+
+    override fun setImeiData(imei: String?) {
+        lib.setImeiData(imei)
+    }
+
+    override fun setOaidData(oaid: String?) {
+        lib.setOaidData(oaid)
+    }
+
+    override fun setAndroidIdData(androidId: String?) {
+        lib.setAndroidIdData(androidId)
+    }
+
+    override fun disableAppSetId() {
+        lib.disableAppSetId()
+    }
+
+    override fun setDisableNetworkData(disable: Boolean) {
+        lib.setDisableNetworkData(disable)
+    }
+
     override fun setAnonymizeUser(enabled: Boolean) {
         lib.anonymizeUser(enabled)
     }

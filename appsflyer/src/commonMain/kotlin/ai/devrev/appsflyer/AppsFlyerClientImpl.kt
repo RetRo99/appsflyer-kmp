@@ -117,6 +117,36 @@ internal class AppsFlyerClientImpl(
     override fun setAppInviteOneLink(oneLinkId: String) =
         sdk.setAppInviteOneLink(oneLinkId)
 
+    override fun setPhoneNumber(phoneNumber: String?) =
+        sdk.setPhoneNumber(phoneNumber)
+
+    override fun performOnAppAttribution(url: String) =
+        sdk.performOnAppAttribution(url)
+
+    override fun setIsUpdate(isUpdate: Boolean) =
+        sdk.setIsUpdate(isUpdate)
+
+    override fun setCollectIMEI(collect: Boolean) =
+        sdk.setCollectIMEI(collect)
+
+    override fun setCollectOaid(collect: Boolean) =
+        sdk.setCollectOaid(collect)
+
+    override fun setImeiData(imei: String?) =
+        sdk.setImeiData(imei)
+
+    override fun setOaidData(oaid: String?) =
+        sdk.setOaidData(oaid)
+
+    override fun setAndroidIdData(androidId: String?) =
+        sdk.setAndroidIdData(androidId)
+
+    override fun disableAppSetId() =
+        sdk.disableAppSetId()
+
+    override fun setDisableNetworkData(disable: Boolean) =
+        sdk.setDisableNetworkData(disable)
+
     override fun getSdkVersion(): String = sdk.getSdkVersion()
 
     override fun setAnonymizeUser(enabled: Boolean) {
