@@ -673,6 +673,75 @@ class AppsFlyerClientImplTest {
         assertEquals(0, sdk.configureCount)
         assertEquals(setOf("facebook"), sdk.lastSharingFilterPartners)
     }
+
+    @Test
+    fun afPurchaseTypeIosRawValues() {
+        assertEquals(0L, AfPurchaseType.SUBSCRIPTION.iosRawValue)
+        assertEquals(1L, AfPurchaseType.ONE_TIME_PURCHASE.iosRawValue)
+    }
+
+    @Test
+    fun validateAndLogInAppPurchaseResumesWithSuccess() = runBlocking {
+        sdk.purchaseValidationResult = PurchaseValidationResult.Success(
+            result = mapOf("status" to "ok"),
+        )
+        val details = PurchaseDetails(
+            productId = "com.example.pro",
+            transactionId = "txn-123",
+            purchaseType = AfPurchaseType.SUBSCRIPTION,
+        )
+
+        val result = client.validateAndLogInAppPurchase(details)
+
+        val success = assertIs<PurchaseValidationResult.Success>(result)
+        assertEquals(mapOf("status" to "ok"), success.result)
+    }
+
+    @Test
+    fun validateAndLogInAppPurchaseResumesWithError() = runBlocking {
+        sdk.purchaseValidationResult = PurchaseValidationResult.Error(message = "network error")
+        val details = PurchaseDetails(
+            productId = "com.example.pro",
+            transactionId = "txn-123",
+            purchaseType = AfPurchaseType.ONE_TIME_PURCHASE,
+        )
+
+        val result = client.validateAndLogInAppPurchase(details)
+
+        val error = assertIs<PurchaseValidationResult.Error>(result)
+        assertEquals("network error", error.message)
+    }
+
+    @Test
+    fun validateAndLogInAppPurchaseForwardsPurchaseDetailsAndParams() = runBlocking {
+        sdk.purchaseValidationResult = PurchaseValidationResult.Success(emptyMap())
+        val details = PurchaseDetails(
+            productId = "com.example.pro",
+            transactionId = "txn-456",
+            purchaseType = AfPurchaseType.SUBSCRIPTION,
+        )
+        val params = mapOf("key" to "value", "extra" to null)
+
+        client.validateAndLogInAppPurchase(details, params)
+
+        assertEquals(details, sdk.lastPurchaseDetails)
+        assertEquals(mapOf("key" to "value"), sdk.lastPurchaseAdditionalParams)
+    }
+
+    @Test
+    fun validateAndLogInAppPurchaseErrorWithNullMessage() = runBlocking {
+        sdk.purchaseValidationResult = PurchaseValidationResult.Error(message = null)
+        val details = PurchaseDetails(
+            productId = "p",
+            transactionId = "t",
+            purchaseType = AfPurchaseType.ONE_TIME_PURCHASE,
+        )
+
+        val result = client.validateAndLogInAppPurchase(details)
+
+        val error = assertIs<PurchaseValidationResult.Error>(result)
+        assertNull(error.message)
+    }
 }
 
 private class FakeAppsFlyerSdk : AppsFlyerSdk {
@@ -721,6 +790,11 @@ private class FakeAppsFlyerSdk : AppsFlyerSdk {
     var lastSharingFilterPartners: Set<String>? = null
         private set
     var logEventResult: LogEventResult? = null
+    var purchaseValidationResult: PurchaseValidationResult? = null
+    var lastPurchaseDetails: PurchaseDetails? = null
+        private set
+    var lastPurchaseAdditionalParams: Map<String, Any?>? = null
+        private set
 
     override fun configure(
         config: AppsFlyerConfig,
@@ -804,6 +878,16 @@ private class FakeAppsFlyerSdk : AppsFlyerSdk {
 
     override fun logAdRevenue(data: AdRevenueData) {
         lastAdRevenueData = data
+    }
+
+    override fun validateAndLogInAppPurchase(
+        purchaseDetails: PurchaseDetails,
+        additionalParameters: Map<String, Any?>,
+        onResult: (PurchaseValidationResult) -> Unit,
+    ) {
+        lastPurchaseDetails = purchaseDetails
+        lastPurchaseAdditionalParams = additionalParameters
+        onResult(purchaseValidationResult ?: error("purchaseValidationResult not set"))
     }
 
     override fun stop(stop: Boolean) {

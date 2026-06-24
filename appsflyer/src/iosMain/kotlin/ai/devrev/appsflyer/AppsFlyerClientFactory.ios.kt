@@ -167,6 +167,31 @@ internal class IosAppsFlyerSdk(
         )
     }
 
+    override fun validateAndLogInAppPurchase(
+        purchaseDetails: PurchaseDetails,
+        additionalParameters: Map<String, Any?>,
+        onResult: (PurchaseValidationResult) -> Unit,
+    ) {
+        @Suppress("UNCHECKED_CAST")
+        bridge.validateAndLogInAppPurchase(
+            productId = purchaseDetails.productId,
+            transactionId = purchaseDetails.transactionId,
+            purchaseType = purchaseDetails.purchaseType.iosRawValue,
+            additionalParameters = additionalParameters as Map<Any?, *>?,
+        ) { response, error ->
+            when {
+                error != null ->
+                    onResult(PurchaseValidationResult.Error(message = error))
+                response != null -> {
+                    @Suppress("UNCHECKED_CAST")
+                    onResult(PurchaseValidationResult.Success(result = response as Map<String, Any?>))
+                }
+                else ->
+                    onResult(PurchaseValidationResult.Error(message = null))
+            }
+        }
+    }
+
     override fun stop(stop: Boolean) {
         bridge.stop(stop)
     }

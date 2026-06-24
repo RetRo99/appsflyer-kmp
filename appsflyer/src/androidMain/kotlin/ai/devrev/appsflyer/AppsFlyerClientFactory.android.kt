@@ -2,7 +2,10 @@ package com.retro99.appsflyer
 
 import android.content.Context
 import com.appsflyer.AFAdRevenueData
+import com.appsflyer.AFPurchaseDetails
+import com.appsflyer.AFPurchaseType
 import com.appsflyer.AppsFlyerConversionListener
+import com.appsflyer.AppsFlyerInAppPurchaseValidationCallback
 import com.appsflyer.AppsFlyerLib
 import com.appsflyer.AppsFlyerProperties
 import com.appsflyer.MediationNetwork
@@ -158,6 +161,33 @@ internal class AndroidAppsFlyerSdk(
         lib.logAdRevenue(adRevenueData, data.additionalParameters)
     }
 
+    override fun validateAndLogInAppPurchase(
+        purchaseDetails: PurchaseDetails,
+        additionalParameters: Map<String, Any?>,
+        onResult: (PurchaseValidationResult) -> Unit,
+    ) {
+        val details = AFPurchaseDetails(
+            purchaseDetails.purchaseType.toAndroidPurchaseType(),
+            purchaseDetails.transactionId,
+            purchaseDetails.productId,
+        )
+        val stringParams = additionalParameters
+            .mapValues { it.value.toString() }
+        lib.validateAndLogInAppPurchase(
+            details,
+            stringParams,
+            object : AppsFlyerInAppPurchaseValidationCallback {
+                override fun onInAppPurchaseValidationFinished(data: Map<String, Any?>) {
+                    onResult(PurchaseValidationResult.Success(data))
+                }
+
+                override fun onInAppPurchaseValidationError(data: Map<String, Any>) {
+                    onResult(PurchaseValidationResult.Error(message = data.toString()))
+                }
+            },
+        )
+    }
+
     override fun stop(stop: Boolean) =
         lib.stop(stop, appContext)
 
@@ -223,6 +253,11 @@ internal fun AfMediationNetwork.toAndroidMediationNetwork(): MediationNetwork = 
     AfMediationNetwork.TOPON_PTE -> MediationNetwork.TOPON_PTE
     AfMediationNetwork.CUSTOM_MEDIATION -> MediationNetwork.CUSTOM_MEDIATION
     AfMediationNetwork.DIRECT_MONETIZATION -> MediationNetwork.DIRECT_MONETIZATION_NETWORK
+}
+
+internal fun AfPurchaseType.toAndroidPurchaseType(): AFPurchaseType = when (this) {
+    AfPurchaseType.SUBSCRIPTION -> AFPurchaseType.SUBSCRIPTION
+    AfPurchaseType.ONE_TIME_PURCHASE -> AFPurchaseType.ONE_TIME_PURCHASE
 }
 
 private fun Any?.unwrap(): Any? = when (this) {

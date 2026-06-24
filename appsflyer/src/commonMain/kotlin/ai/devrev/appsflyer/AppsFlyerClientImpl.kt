@@ -108,6 +108,18 @@ internal class AppsFlyerClientImpl(
         )
     }
 
+    override suspend fun validateAndLogInAppPurchase(
+        purchaseDetails: PurchaseDetails,
+        additionalParameters: Map<String, Any?>,
+    ): PurchaseValidationResult = suspendCancellableCoroutine { continuation ->
+        sdk.validateAndLogInAppPurchase(
+            purchaseDetails = purchaseDetails,
+            additionalParameters = additionalParameters.filterValues { it != null },
+        ) { result ->
+            continuation.resume(result)
+        }
+    }
+
     override fun stop(stop: Boolean) = sdk.stop(stop)
 
     override val isStopped: Boolean

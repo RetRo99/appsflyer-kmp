@@ -107,6 +107,19 @@ interface AppsFlyerClient {
      */
     fun registerUninstall(token: String)
 
+    /**
+     * Validates and logs an in-app purchase using the AppsFlyer VAL V2 flow.
+     * Suspends until the SDK receives a response from the server.
+     *
+     * @param purchaseDetails the purchase details (product ID, transaction ID, type).
+     * @param additionalParameters optional metadata associated with the purchase.
+     * Null values are silently dropped.
+     */
+    suspend fun validateAndLogInAppPurchase(
+        purchaseDetails: PurchaseDetails,
+        additionalParameters: Map<String, Any?> = emptyMap(),
+    ): PurchaseValidationResult
+
     /** Returns the AppsFlyer device ID, or null if the SDK hasn't started yet. */
     fun getAppsFlyerUID(): String?
 
@@ -256,6 +269,36 @@ sealed interface StartResult {
 sealed interface LogEventResult {
     data object Success : LogEventResult
     data class Error(val code: Int, val message: String) : LogEventResult
+}
+
+/**
+ * Purchase type for [PurchaseDetails]. Maps to `AFPurchaseType` (Android)
+ * and `AFSDKPurchaseType` (iOS).
+ */
+enum class AfPurchaseType(val iosRawValue: Long) {
+    SUBSCRIPTION(iosRawValue = 0L),
+    ONE_TIME_PURCHASE(iosRawValue = 1L),
+}
+
+/**
+ * Purchase details for [AppsFlyerClient.validateAndLogInAppPurchase].
+ *
+ * @param productId the product identifier from the store.
+ * @param transactionId the transaction/purchase token from the store.
+ * @param purchaseType whether this is a subscription or one-time purchase.
+ */
+data class PurchaseDetails(
+    val productId: String,
+    val transactionId: String,
+    val purchaseType: AfPurchaseType,
+)
+
+/**
+ * Result of [AppsFlyerClient.validateAndLogInAppPurchase].
+ */
+sealed interface PurchaseValidationResult {
+    data class Success(val result: Map<String, Any?>) : PurchaseValidationResult
+    data class Error(val message: String?) : PurchaseValidationResult
 }
 
 /**

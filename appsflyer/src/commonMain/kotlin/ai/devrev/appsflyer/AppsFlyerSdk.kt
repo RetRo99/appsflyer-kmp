@@ -67,6 +67,12 @@ internal interface AppsFlyerSdk {
 
     fun logAdRevenue(data: AdRevenueData)
 
+    fun validateAndLogInAppPurchase(
+        purchaseDetails: PurchaseDetails,
+        additionalParameters: Map<String, Any?>,
+        onResult: (PurchaseValidationResult) -> Unit,
+    )
+
     fun stop(stop: Boolean)
 
     fun isStopped(): Boolean

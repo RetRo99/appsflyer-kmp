@@ -178,6 +178,40 @@ public class AppsFlyerBridge: NSObject, AppsFlyerLibDelegate, AppsFlyerDeepLinkD
         AppsFlyerLib.shared().logAdRevenue(adRevenueData, additionalParameters: params)
     }
 
+    public func validateAndLogInAppPurchase(
+        _ productId: String,
+        transactionId: String,
+        purchaseType: Int,
+        additionalParameters: [AnyHashable: Any]?,
+        completion: @escaping (NSDictionary?, String?) -> Void
+    ) {
+        let type: AFSDKPurchaseType
+        switch purchaseType {
+        case 0: type = .subscription
+        case 1: type = .oneTimePurchase
+        default: type = .oneTimePurchase
+        }
+        let details = AFSDKPurchaseDetails(
+            productId: productId,
+            transactionId: transactionId,
+            purchaseType: type
+        )
+        guard let details else {
+            completion(nil, "Failed to create purchase details")
+            return
+        }
+        AppsFlyerLib.shared().validateAndLogInAppPurchase(
+            purchaseDetails: details,
+            purchaseAdditionalDetails: additionalParameters
+        ) { response, error in
+            if let error = error {
+                completion(nil, error.localizedDescription)
+            } else {
+                completion(response as NSDictionary?, nil)
+            }
+        }
+    }
+
     private func mapMediationNetworkType(_ rawValue: Int) -> MediationNetworkType {
         switch rawValue {
         case 0: return .googleAdMob

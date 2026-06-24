@@ -395,6 +395,32 @@ scope.launch {
 
 Null values in params are silently dropped on both methods.
 
+### Validating in-app purchases
+
+```kotlin
+scope.launch {
+    val result = AppsFlyer.client.validateAndLogInAppPurchase(
+        purchaseDetails = PurchaseDetails(
+            productId = "com.example.pro_monthly",
+            transactionId = "GPA.1234-5678-9012-34567",
+            purchaseType = AfPurchaseType.SUBSCRIPTION,
+        ),
+        additionalParameters = mapOf(
+            "af_currency" to "USD",
+            "af_revenue" to 9.99,
+        ),
+    )
+    when (result) {
+        is PurchaseValidationResult.Success ->
+            log("Purchase validated: ${result.result}")
+        is PurchaseValidationResult.Error ->
+            log("Purchase validation failed: ${result.message}")
+    }
+}
+```
+
+Null values in `additionalParameters` are silently dropped.
+
 ### Logging ad revenue
 
 ```kotlin
@@ -530,6 +556,8 @@ func application(_ application: UIApplication,
 - **`setDisableSKAdNetwork()`** — disables SKAdNetwork measurement (iOS only, no-op on Android).
 - **`setUserEmails()`** — sets user emails with a hashing type (`NONE` or `SHA256`).
 - **`registerUninstall()`** — registers the FCM push token for uninstall measurement.
+- **`validateAndLogInAppPurchase()`** — suspends until the server validates the
+  purchase. Null values in `additionalParameters` are silently dropped.
 
 ## Platform Comparison
 
