@@ -57,6 +57,8 @@ internal interface AppsFlyerSdk {
 
     fun setDisableSKAdNetwork(disable: Boolean)
 
+    fun setUserEmails(emails: List<String>, cryptType: AfEmailCryptType)
+
     fun getAppsFlyerUID(): String?
 
     fun getSdkVersion(): String

@@ -373,6 +373,43 @@ class AppsFlyerClientImplTest {
     }
 
     @Test
+    fun afEmailCryptTypeIosRawValues() {
+        assertEquals(0L, AfEmailCryptType.NONE.iosRawValue)
+        assertEquals(3L, AfEmailCryptType.SHA256.iosRawValue)
+    }
+
+    @Test
+    fun afMediationNetworkIosRawValues() {
+        assertEquals(1L, AfMediationNetwork.GOOGLE_ADMOB.iosRawValue)
+        assertEquals(2L, AfMediationNetwork.IRON_SOURCE.iosRawValue)
+        assertEquals(3L, AfMediationNetwork.APP_LOVIN_MAX.iosRawValue)
+        assertEquals(4L, AfMediationNetwork.FYBER.iosRawValue)
+        assertEquals(5L, AfMediationNetwork.APPODEAL.iosRawValue)
+        assertEquals(6L, AfMediationNetwork.ADMOST.iosRawValue)
+        assertEquals(7L, AfMediationNetwork.TOPON.iosRawValue)
+        assertEquals(8L, AfMediationNetwork.TRADPLUS.iosRawValue)
+        assertEquals(9L, AfMediationNetwork.YANDEX.iosRawValue)
+        assertEquals(10L, AfMediationNetwork.CHARTBOOST.iosRawValue)
+        assertEquals(11L, AfMediationNetwork.UNITY.iosRawValue)
+        assertEquals(12L, AfMediationNetwork.TOPON_PTE.iosRawValue)
+        assertEquals(13L, AfMediationNetwork.CUSTOM_MEDIATION.iosRawValue)
+        assertEquals(14L, AfMediationNetwork.DIRECT_MONETIZATION.iosRawValue)
+    }
+
+    @Test
+    fun setUserEmailsForwardsToBackend() {
+        client.setUserEmails(listOf("a@b.com", "c@d.com"), cryptType = AfEmailCryptType.SHA256)
+        assertEquals(listOf("a@b.com", "c@d.com"), sdk.lastUserEmails)
+        assertEquals(AfEmailCryptType.SHA256, sdk.lastEmailCryptType)
+    }
+
+    @Test
+    fun setUserEmailsWithNoneCryptType() {
+        client.setUserEmails(listOf("a@b.com"), cryptType = AfEmailCryptType.NONE)
+        assertEquals(AfEmailCryptType.NONE, sdk.lastEmailCryptType)
+    }
+
+    @Test
     fun logAdRevenueForwardsToBackend() {
         val data = AdRevenueData(
             monetizationNetwork = "ironsource",
@@ -535,6 +572,10 @@ private class FakeAppsFlyerSdk : AppsFlyerSdk {
         private set
     var lastDisableSKAdNetwork: Boolean? = null
         private set
+    var lastUserEmails: List<String>? = null
+        private set
+    var lastEmailCryptType: AfEmailCryptType? = null
+        private set
     var lastAnonymizeUser: Boolean? = null
         private set
     var lastSharingFilterPartners: Set<String>? = null
@@ -602,6 +643,11 @@ private class FakeAppsFlyerSdk : AppsFlyerSdk {
 
     override fun setDisableSKAdNetwork(disable: Boolean) {
         lastDisableSKAdNetwork = disable
+    }
+
+    override fun setUserEmails(emails: List<String>, cryptType: AfEmailCryptType) {
+        lastUserEmails = emails
+        lastEmailCryptType = cryptType
     }
 
     override fun setAnonymizeUser(enabled: Boolean) {

@@ -109,6 +109,16 @@ public class AppsFlyerBridge: NSObject, AppsFlyerLibDelegate, AppsFlyerDeepLinkD
         AppsFlyerLib.shared().disableSKAdNetwork = disable
     }
 
+    public func setUserEmails(_ emails: [String]?, cryptType: Int) {
+        let type: EmailCryptType
+        switch cryptType {
+        case 0: type = EmailCryptTypeNone
+        case 3: type = EmailCryptTypeSHA256
+        default: type = EmailCryptTypeNone
+        }
+        AppsFlyerLib.shared().setUserEmails(emails, with: type)
+    }
+
     public func stop(_ stop: Bool) {
         AppsFlyerLib.shared().isStopped = stop
     }

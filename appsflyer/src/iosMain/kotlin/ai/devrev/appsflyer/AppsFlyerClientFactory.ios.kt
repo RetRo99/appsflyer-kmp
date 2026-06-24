@@ -136,6 +136,10 @@ internal class IosAppsFlyerSdk(
         bridge.setDisableSKAdNetwork(disable)
     }
 
+    override fun setUserEmails(emails: List<String>, cryptType: AfEmailCryptType) {
+        bridge.setUserEmails(emails, cryptType.iosRawValue)
+    }
+
     override fun setAnonymizeUser(enabled: Boolean) {
         bridge.setAnonymizeUser(enabled)
     }
@@ -148,7 +152,7 @@ internal class IosAppsFlyerSdk(
         @Suppress("UNCHECKED_CAST")
         bridge.logAdRevenue(
             monetizationNetwork = data.monetizationNetwork,
-            mediationNetwork = data.mediationNetwork.ordinal.toLong(),
+            mediationNetwork = data.mediationNetwork.iosRawValue,
             currency = data.currency,
             revenue = data.revenue,
             additionalParameters = data.additionalParameters as Map<Any?, *>?,

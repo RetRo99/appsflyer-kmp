@@ -4,6 +4,7 @@ import android.content.Context
 import com.appsflyer.AFAdRevenueData
 import com.appsflyer.AppsFlyerConversionListener
 import com.appsflyer.AppsFlyerLib
+import com.appsflyer.AppsFlyerProperties
 import com.appsflyer.MediationNetwork
 import com.appsflyer.attribution.AppsFlyerRequestListener
 import com.appsflyer.deeplink.DeepLink
@@ -131,6 +132,10 @@ internal class AndroidAppsFlyerSdk(
         // SKAdNetwork is iOS only — no-op on Android.
     }
 
+    override fun setUserEmails(emails: List<String>, cryptType: AfEmailCryptType) {
+        lib.setUserEmails(cryptType.toAndroidCryptType(), *emails.toTypedArray())
+    }
+
     override fun setAnonymizeUser(enabled: Boolean) {
         lib.anonymizeUser(enabled)
     }
@@ -194,7 +199,12 @@ internal fun JSONObject.toMap(): Map<String, Any?> {
     return map
 }
 
-private fun AfMediationNetwork.toAndroidMediationNetwork(): MediationNetwork = when (this) {
+internal fun AfEmailCryptType.toAndroidCryptType(): AppsFlyerProperties.EmailsCryptType = when (this) {
+    AfEmailCryptType.NONE -> AppsFlyerProperties.EmailsCryptType.NONE
+    AfEmailCryptType.SHA256 -> AppsFlyerProperties.EmailsCryptType.SHA256
+}
+
+internal fun AfMediationNetwork.toAndroidMediationNetwork(): MediationNetwork = when (this) {
     AfMediationNetwork.GOOGLE_ADMOB -> MediationNetwork.GOOGLE_ADMOB
     AfMediationNetwork.IRON_SOURCE -> MediationNetwork.IRONSOURCE
     AfMediationNetwork.APP_LOVIN_MAX -> MediationNetwork.APPLOVIN_MAX

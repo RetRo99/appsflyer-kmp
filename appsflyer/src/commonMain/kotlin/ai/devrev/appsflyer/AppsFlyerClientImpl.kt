@@ -86,6 +86,9 @@ internal class AppsFlyerClientImpl(
     override fun setDisableSKAdNetwork(disable: Boolean) =
         sdk.setDisableSKAdNetwork(disable)
 
+    override fun setUserEmails(emails: List<String>, cryptType: AfEmailCryptType) =
+        sdk.setUserEmails(emails, cryptType)
+
     override fun getSdkVersion(): String = sdk.getSdkVersion()
 
     override fun setAnonymizeUser(enabled: Boolean) {

@@ -92,6 +92,9 @@ interface AppsFlyerClient {
      */
     fun setDisableSKAdNetwork(disable: Boolean)
 
+    /** Sets user emails for attribution with a hashing type. */
+    fun setUserEmails(emails: List<String>, cryptType: AfEmailCryptType)
+
     /** Returns the AppsFlyer device ID, or null if the SDK hasn't started yet. */
     fun getAppsFlyerUID(): String?
 
@@ -144,24 +147,33 @@ sealed interface CampaignData {
 enum class AfStatus { ORGANIC, NON_ORGANIC }
 
 /**
+ * Email hashing type for [AppsFlyerClient.setUserEmails]. Maps to
+ * `EmailsCryptType` (Android) and `EmailCryptType` (iOS).
+ */
+enum class AfEmailCryptType(val iosRawValue: Long) {
+    NONE(iosRawValue = 0L),
+    SHA256(iosRawValue = 3L),
+}
+
+/**
  * Ad-network mediation type known to the AppsFlyer SDK. Maps to
  * `MediationNetwork` (Android) and `MediationNetworkType` (iOS).
  */
-enum class AfMediationNetwork {
-    GOOGLE_ADMOB,
-    IRON_SOURCE,
-    APP_LOVIN_MAX,
-    FYBER,
-    APPODEAL,
-    ADMOST,
-    TOPON,
-    TRADPLUS,
-    YANDEX,
-    CHARTBOOST,
-    UNITY,
-    TOPON_PTE,
-    CUSTOM_MEDIATION,
-    DIRECT_MONETIZATION,
+enum class AfMediationNetwork(val iosRawValue: Long) {
+    GOOGLE_ADMOB(iosRawValue = 1L),
+    IRON_SOURCE(iosRawValue = 2L),
+    APP_LOVIN_MAX(iosRawValue = 3L),
+    FYBER(iosRawValue = 4L),
+    APPODEAL(iosRawValue = 5L),
+    ADMOST(iosRawValue = 6L),
+    TOPON(iosRawValue = 7L),
+    TRADPLUS(iosRawValue = 8L),
+    YANDEX(iosRawValue = 9L),
+    CHARTBOOST(iosRawValue = 10L),
+    UNITY(iosRawValue = 11L),
+    TOPON_PTE(iosRawValue = 12L),
+    CUSTOM_MEDIATION(iosRawValue = 13L),
+    DIRECT_MONETIZATION(iosRawValue = 14L),
 }
 
 /**
