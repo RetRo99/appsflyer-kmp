@@ -606,6 +606,18 @@ class AppsFlyerClientImplTest {
     }
 
     @Test
+    fun setResolveDeepLinkURLsForwardsToBackend() {
+        client.setResolveDeepLinkURLs(listOf("short.link", "another.link"))
+        assertEquals(listOf("short.link", "another.link"), sdk.lastResolveDeepLinkURLs)
+    }
+
+    @Test
+    fun setResolveDeepLinkURLsEmptyListForwardsAsIs() {
+        client.setResolveDeepLinkURLs(emptyList())
+        assertEquals(emptyList(), sdk.lastResolveDeepLinkURLs)
+    }
+
+    @Test
     fun logAdRevenueForwardsToBackend() {
         val data = AdRevenueData(
             monetizationNetwork = "ironsource",
@@ -855,6 +867,8 @@ private class FakeAppsFlyerSdk : AppsFlyerSdk {
         private set
     var lastPushNotificationDeepLinkPath: List<String>? = null
         private set
+    var lastResolveDeepLinkURLs: List<String>? = null
+        private set
     var lastAnonymizeUser: Boolean? = null
         private set
     var lastSharingFilterPartners: Set<String>? = null
@@ -954,6 +968,10 @@ private class FakeAppsFlyerSdk : AppsFlyerSdk {
 
     override fun addPushNotificationDeepLinkPath(keys: List<String>) {
         lastPushNotificationDeepLinkPath = keys
+    }
+
+    override fun setResolveDeepLinkURLs(urls: List<String>) {
+        lastResolveDeepLinkURLs = urls
     }
 
     override fun setAnonymizeUser(enabled: Boolean) {

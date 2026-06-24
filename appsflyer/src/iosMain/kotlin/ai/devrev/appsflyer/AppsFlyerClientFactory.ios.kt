@@ -169,6 +169,10 @@ internal class IosAppsFlyerSdk(
         bridge.addPushNotificationDeepLinkPath(keys)
     }
 
+    override fun setResolveDeepLinkURLs(urls: List<String>) {
+        bridge.setResolveDeepLinkURLs(urls)
+    }
+
     override fun setAnonymizeUser(enabled: Boolean) {
         bridge.setAnonymizeUser(enabled)
     }

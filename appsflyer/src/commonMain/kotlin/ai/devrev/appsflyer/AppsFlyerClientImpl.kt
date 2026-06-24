@@ -104,6 +104,9 @@ internal class AppsFlyerClientImpl(
     override fun addPushNotificationDeepLinkPath(keys: List<String>) =
         sdk.addPushNotificationDeepLinkPath(keys)
 
+    override fun setResolveDeepLinkURLs(urls: List<String>) =
+        sdk.setResolveDeepLinkURLs(urls)
+
     override fun getSdkVersion(): String = sdk.getSdkVersion()
 
     override fun setAnonymizeUser(enabled: Boolean) {

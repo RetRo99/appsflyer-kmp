@@ -141,6 +141,14 @@ interface AppsFlyerClient {
     fun addPushNotificationDeepLinkPath(keys: List<String>)
 
     /**
+     * Sets a list of URLs that the SDK should resolve before redirecting
+     * to the final deep link destination. Call before [start].
+     *
+     * @param urls the URLs to resolve.
+     */
+    fun setResolveDeepLinkURLs(urls: List<String>)
+
+    /**
      * Validates and logs an in-app purchase using the AppsFlyer VAL V2 flow.
      * Suspends until the SDK receives a response from the server.
      *
