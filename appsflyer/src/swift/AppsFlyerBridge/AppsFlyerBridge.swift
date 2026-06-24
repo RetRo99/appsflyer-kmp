@@ -19,6 +19,7 @@ public class AppsFlyerBridge: NSObject, AppsFlyerLibDelegate, AppsFlyerDeepLinkD
         enableTCFDataCollection: Bool,
         consentData: NSDictionary?,
         sharingFilterPartners: [String],
+        launchOptions: [AnyHashable: Any]?,
         onConversion: @escaping (NSDictionary) -> Void,
         onConversionError: @escaping (String?) -> Void,
         onDeepLinkFound: @escaping (String?, Bool, String?, String?, NSDictionary?) -> Void,
@@ -50,15 +51,18 @@ public class AppsFlyerBridge: NSObject, AppsFlyerLibDelegate, AppsFlyerDeepLinkD
         }
         AppsFlyerLib.shared().sharingFilter = sharingFilterPartners
 
-        AppsFlyerLib.shared().start(completionHandler: { [weak self] (dictionary, error) in
+        AppsFlyerLib.shared().handleLaunchOptions(launchOptions)
+        AppsFlyerLib.shared().registerSessionReadyListener { [weak self] in
             guard let self = self else { return }
-            if let error = error {
-                let code = (error as NSError).code
-                self.onStart?(false, code, error.localizedDescription)
-            } else {
-                self.onStart?(true, 0, nil)
-            }
-        })
+            AppsFlyerLib.shared().start(completionHandler: { (dictionary, error) in
+                if let error = error {
+                    let code = (error as NSError).code
+                    self.onStart?(false, code, error.localizedDescription)
+                } else {
+                    self.onStart?(true, 0, nil)
+                }
+            })
+        }
     }
 
     public func setCustomerUserId(_ id: String?) {

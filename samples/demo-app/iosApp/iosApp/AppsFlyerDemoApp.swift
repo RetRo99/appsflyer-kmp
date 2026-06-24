@@ -9,12 +9,19 @@ class AppDelegate: NSObject, UIApplicationDelegate {
         let devKey = Bundle.main.object(forInfoDictionaryKey: "AF_DEV_KEY") as? String ?? ""
         let appId = Bundle.main.object(forInfoDictionaryKey: "AF_IOS_APP_ID") as? String ?? ""
 
-        AppsFlyer.shared.initialize(config: AppsFlyerConfig(
-            devKey: devKey,
-            isDebug: true,
-            iosAppId: appId,
-            collectAndroidId: false
-        ))
+        AppsFlyer.shared.initialize(
+            config: AppsFlyerConfig(
+                devKey: devKey,
+                isDebug: true,
+                iosAppId: appId,
+                collectAndroidId: false,
+                anonymizeUser: false,
+                enableTCFDataCollection: false,
+                consentData: nil,
+                sharingFilterPartners: []
+            ),
+            launchOptions: launchOptions
+        )
         return true
     }
 }

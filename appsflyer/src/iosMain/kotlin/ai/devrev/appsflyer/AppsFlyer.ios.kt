@@ -56,15 +56,19 @@ private var _linkHandler: AppsFlyerLinkHandler? = null
  * Initializes AppsFlyer on iOS.
  *
  * Call from `AppDelegate.didFinishLaunchingWithOptions` or the SwiftUI app's
- * init. After this, use [AppsFlyer.linkHandler] to forward deep link URLs.
+ * init. Pass `launchOptions` from `didFinishLaunchingWithOptions` so the SDK
+ * can pre-resolve cold-launch Universal Links via `handleLaunchOptions`.
+ * After this, use [AppsFlyer.linkHandler] to forward deep link URLs.
  *
  * Safe to call multiple times; only the first call takes effect.
  *
  * @param config SDK configuration including dev key, app ID, and debug flag.
+ * @param launchOptions the launch options dictionary from
+ *   `application(_:didFinishLaunchingWithOptions:)`. Pass null if unavailable.
  */
-fun AppsFlyer.initialize(config: AppsFlyerConfig) {
+fun AppsFlyer.initialize(config: AppsFlyerConfig, launchOptions: Map<Any?, *>? = null) {
     if (isInitialized) return
-    val sdk = IosAppsFlyerSdk()
+    val sdk = IosAppsFlyerSdk(launchOptions)
     val client = AppsFlyerClientImpl(sdk, config)
     _linkHandler = AppsFlyerLinkHandler(sdk.bridge)
     if (!setClient(client)) {

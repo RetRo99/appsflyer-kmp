@@ -5,7 +5,9 @@ package com.retro99.appsflyer
 import AppsFlyerBridge.AppsFlyerBridge
 import platform.Foundation.NSNumber
 
-internal class IosAppsFlyerSdk : AppsFlyerSdk {
+internal class IosAppsFlyerSdk(
+    private val launchOptions: Map<Any?, *>? = null,
+) : AppsFlyerSdk {
 
     internal val bridge = AppsFlyerBridge()
 
@@ -35,6 +37,7 @@ internal class IosAppsFlyerSdk : AppsFlyerSdk {
             enableTCFDataCollection = config.enableTCFDataCollection,
             consentData = consentDict,
             sharingFilterPartners = config.sharingFilterPartners.toList(),
+            launchOptions = launchOptions,
             onConversion = { data ->
                 if (data != null) {
                     @Suppress("UNCHECKED_CAST")
@@ -132,10 +135,12 @@ internal class IosAppsFlyerSdk : AppsFlyerSdk {
         bridge.isStopped()
 }
 
-internal actual class AppsFlyerClientFactory {
+internal actual class AppsFlyerClientFactory(
+    private val launchOptions: Map<Any?, *>? = null,
+) {
     actual fun create(config: AppsFlyerConfig): AppsFlyerClient {
         return AppsFlyerClientImpl(
-            sdk = IosAppsFlyerSdk(),
+            sdk = IosAppsFlyerSdk(launchOptions),
             config = config,
         )
     }
