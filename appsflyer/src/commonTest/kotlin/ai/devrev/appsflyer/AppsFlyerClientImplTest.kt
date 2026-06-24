@@ -821,6 +821,42 @@ class AppsFlyerClientImplTest {
     }
 
     @Test
+    fun setSharingFilterForAllPartnersForwardsToBackend() {
+        client.setSharingFilterForAllPartners()
+        assertEquals(true, sdk.sharingFilterForAllPartnersCalled)
+    }
+
+    @Test
+    fun setExtensionForwardsToBackend() {
+        client.setExtension("cordova")
+        assertEquals("cordova", sdk.lastExtension)
+    }
+
+    @Test
+    fun setInstallIdForwardsToBackend() {
+        client.setInstallId("install-123")
+        assertEquals("install-123", sdk.lastInstallId)
+    }
+
+    @Test
+    fun isSessionReadyForwardsToBackend() {
+        assertEquals(true, sdk.isSessionReadyValue)
+        client.isSessionReady()
+    }
+
+    @Test
+    fun handlePushNotificationForwardsToBackend() {
+        client.handlePushNotification(mapOf("af" to "value"))
+        assertEquals(mapOf("af" to "value"), sdk.lastPushNotificationPayload)
+    }
+
+    @Test
+    fun unregisterSessionReadyListenerForwardsToBackend() {
+        client.unregisterSessionReadyListener()
+        assertEquals(true, sdk.unregisterSessionReadyCalled)
+    }
+
+    @Test
     fun logAdRevenueForwardsToBackend() {
         val data = AdRevenueData(
             monetizationNetwork = "ironsource",
@@ -1134,6 +1170,18 @@ private class FakeAppsFlyerSdk : AppsFlyerSdk {
         private set
     var lastCustomerIdForLogSession: String? = null
         private set
+    var sharingFilterForAllPartnersCalled: Boolean = false
+        private set
+    var lastExtension: String? = null
+        private set
+    var lastInstallId: String? = null
+        private set
+    var isSessionReadyValue: Boolean = true
+        private set
+    var lastPushNotificationPayload: Map<String, Any?>? = null
+        private set
+    var unregisterSessionReadyCalled: Boolean = false
+        private set
     var lastAnonymizeUser: Boolean? = null
         private set
     var lastSharingFilterPartners: Set<String>? = null
@@ -1361,6 +1409,28 @@ private class FakeAppsFlyerSdk : AppsFlyerSdk {
 
     override fun setCustomerIdAndLogSession(customerUserId: String) {
         lastCustomerIdForLogSession = customerUserId
+    }
+
+    override fun setSharingFilterForAllPartners() {
+        sharingFilterForAllPartnersCalled = true
+    }
+
+    override fun setExtension(extension: String) {
+        lastExtension = extension
+    }
+
+    override fun setInstallId(installId: String) {
+        lastInstallId = installId
+    }
+
+    override fun isSessionReady(): Boolean = isSessionReadyValue
+
+    override fun handlePushNotification(payload: Map<String, Any?>) {
+        lastPushNotificationPayload = payload
+    }
+
+    override fun unregisterSessionReadyListener() {
+        unregisterSessionReadyCalled = true
     }
 
     override fun setAnonymizeUser(enabled: Boolean) {

@@ -284,6 +284,28 @@ internal class AndroidAppsFlyerSdk(
         lib.setCustomerIdAndLogSession(customerUserId, appContext)
     }
 
+    override fun setSharingFilterForAllPartners() {
+        lib.setSharingFilterForAllPartners()
+    }
+
+    override fun setExtension(extension: String) {
+        lib.setExtension(extension)
+    }
+
+    override fun setInstallId(installId: String) {
+        lib.setInstallId(installId)
+    }
+
+    override fun isSessionReady(): Boolean = false
+
+    override fun handlePushNotification(payload: Map<String, Any?>) {
+        // iOS only — no-op on Android.
+    }
+
+    override fun unregisterSessionReadyListener() {
+        // iOS only — no-op on Android.
+    }
+
     override fun setAnonymizeUser(enabled: Boolean) {
         lib.anonymizeUser(enabled)
     }

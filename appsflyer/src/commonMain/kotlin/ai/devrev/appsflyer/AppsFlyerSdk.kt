@@ -135,6 +135,18 @@ internal interface AppsFlyerSdk {
 
     fun setCustomerIdAndLogSession(customerUserId: String)
 
+    fun setSharingFilterForAllPartners()
+
+    fun setExtension(extension: String)
+
+    fun setInstallId(installId: String)
+
+    fun isSessionReady(): Boolean
+
+    fun handlePushNotification(payload: Map<String, Any?>)
+
+    fun unregisterSessionReadyListener()
+
     fun getAppsFlyerUID(): String?
 
     fun getSdkVersion(): String

@@ -291,6 +291,30 @@ internal class IosAppsFlyerSdk(
         // Android only — no-op on iOS.
     }
 
+    override fun setSharingFilterForAllPartners() {
+        bridge.setSharingFilterForAllPartners()
+    }
+
+    override fun setExtension(extension: String) {
+        // Android only — no-op on iOS.
+    }
+
+    override fun setInstallId(installId: String) {
+        bridge.setInstallId(installId)
+    }
+
+    override fun isSessionReady(): Boolean =
+        bridge.isSessionReady()
+
+    override fun handlePushNotification(payload: Map<String, Any?>) {
+        @Suppress("UNCHECKED_CAST")
+        bridge.handlePushNotification(payload as Map<Any?, *>?)
+    }
+
+    override fun unregisterSessionReadyListener() {
+        bridge.unregisterSessionReadyListener()
+    }
+
     override fun setAnonymizeUser(enabled: Boolean) {
         bridge.setAnonymizeUser(enabled)
     }

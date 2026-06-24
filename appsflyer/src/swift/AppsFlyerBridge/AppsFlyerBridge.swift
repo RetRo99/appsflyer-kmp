@@ -206,6 +206,26 @@ public class AppsFlyerBridge: NSObject, AppsFlyerLibDelegate, AppsFlyerDeepLinkD
         AppsFlyerLib.shared().remoteDebuggingCallV2(withData: data)
     }
 
+    public func setSharingFilterForAllPartners() {
+        AppsFlyerLib.shared().sharingFilter = nil
+    }
+
+    public func setInstallId(_ installId: String) {
+        AppsFlyerLib.shared().setInstallId(installId)
+    }
+
+    public func isSessionReady() -> Bool {
+        return AppsFlyerLib.shared().isSessionReady()
+    }
+
+    public func handlePushNotification(_ payload: [AnyHashable: Any]?) {
+        AppsFlyerLib.shared().handlePushNotification(payload)
+    }
+
+    public func unregisterSessionReadyListener() {
+        AppsFlyerLib.shared().unregisterSessionReadyListener()
+    }
+
     public func stop(_ stop: Bool) {
         AppsFlyerLib.shared().isStopped = stop
     }

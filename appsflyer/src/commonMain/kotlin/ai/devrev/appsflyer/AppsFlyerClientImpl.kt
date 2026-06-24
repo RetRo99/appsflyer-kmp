@@ -196,6 +196,23 @@ internal class AppsFlyerClientImpl(
     override fun setCustomerIdAndLogSession(customerUserId: String) =
         sdk.setCustomerIdAndLogSession(customerUserId)
 
+    override fun setSharingFilterForAllPartners() =
+        sdk.setSharingFilterForAllPartners()
+
+    override fun setExtension(extension: String) =
+        sdk.setExtension(extension)
+
+    override fun setInstallId(installId: String) =
+        sdk.setInstallId(installId)
+
+    override fun isSessionReady(): Boolean = sdk.isSessionReady()
+
+    override fun handlePushNotification(payload: Map<String, Any?>) =
+        sdk.handlePushNotification(payload)
+
+    override fun unregisterSessionReadyListener() =
+        sdk.unregisterSessionReadyListener()
+
     override fun getSdkVersion(): String = sdk.getSdkVersion()
 
     override fun setAnonymizeUser(enabled: Boolean) {

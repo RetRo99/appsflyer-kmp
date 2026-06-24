@@ -331,6 +331,42 @@ interface AppsFlyerClient {
     fun setCustomerIdAndLogSession(customerUserId: String)
 
     /**
+     * Excludes all partners from data sharing. Use
+     * [setSharingFilterPartners] to exclude specific partners only.
+     */
+    fun setSharingFilterForAllPartners()
+
+    /**
+     * Sets the extension name for server-side reporting
+     * (Android only; no-op on iOS).
+     */
+    fun setExtension(extension: String)
+
+    /**
+     * Sets a custom install ID for server-side matching.
+     */
+    fun setInstallId(installId: String)
+
+    /**
+     * Whether the SDK session is ready (iOS only; returns `false` on Android).
+     */
+    fun isSessionReady(): Boolean
+
+    /**
+     * Handles push notification payload for attribution. Call with the
+     * `userInfo` dictionary from `didReceiveRemoteNotification`
+     * (iOS only; no-op on Android).
+     *
+     * @param payload the push notification payload.
+     */
+    fun handlePushNotification(payload: Map<String, Any?>)
+
+    /**
+     * Unregisters the session-ready listener (iOS only; no-op on Android).
+     */
+    fun unregisterSessionReadyListener()
+
+    /**
      * Validates and logs an in-app purchase using the AppsFlyer VAL V2 flow.
      * Suspends until the SDK receives a response from the server.
      *
