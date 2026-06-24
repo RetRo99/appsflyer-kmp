@@ -260,7 +260,10 @@ Same Gradle dependency as Android (shared KMP module).
 
 ### 3. Initialize and forward deep links
 
-```swift
+> **Important:** Pass `launchOptions` from `didFinishLaunchingWithOptions` to
+> `initialize()`. The SDK uses `handleLaunchOptions` + `registerSessionReadyListener`
+> to pre-resolve cold-launch Universal Links and wait for ATT readiness before
+> calling `start()`.```
 import SwiftUI
 import AppsFlyerKmp // or your shared framework name if you re-export the module
 
@@ -269,11 +272,14 @@ class AppDelegate: NSObject, UIApplicationDelegate {
         _ application: UIApplication,
         didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil
     ) -> Bool {
-        AppsFlyer.shared.initialize(config: AppsFlyerConfig(
-            devKey: "YOUR_AF_DEV_KEY",
-            isDebug: true,
-            iosAppId: "YOUR_APPLE_APP_ID"
-        ))
+        AppsFlyer.shared.initialize(
+            config: AppsFlyerConfig(
+                devKey: "YOUR_AF_DEV_KEY",
+                isDebug: true,
+                iosAppId: "YOUR_APPLE_APP_ID"
+            ),
+            launchOptions: launchOptions
+        )
         return true
     }
 }
