@@ -397,6 +397,138 @@ class AppsFlyerClientImplTest {
     }
 
     @Test
+    fun mapDeepLinkResultFoundMapsAllFields() {
+        val result = mapDeepLinkResult(
+            status = DeepLinkStatus.FOUND,
+            deepLinkValue = "product_123",
+            isDeferred = true,
+            mediaSource = "email",
+            campaign = "welcome",
+            raw = mapOf("key" to "value"),
+        )
+
+        val found = assertIs<DeepLinkResult.Found>(result)
+        assertEquals("product_123", found.deepLinkValue)
+        assertEquals(true, found.isDeferred)
+        assertEquals("email", found.mediaSource)
+        assertEquals("welcome", found.campaign)
+        assertEquals(mapOf("key" to "value"), found.raw)
+    }
+
+    @Test
+    fun mapDeepLinkResultFoundWithNullIsDeferredDefaultsToFalse() {
+        val result = mapDeepLinkResult(
+            status = DeepLinkStatus.FOUND,
+            isDeferred = null,
+        )
+
+        val found = assertIs<DeepLinkResult.Found>(result)
+        assertFalse(found.isDeferred)
+    }
+
+    @Test
+    fun mapDeepLinkResultNotFound() {
+        val result = mapDeepLinkResult(status = DeepLinkStatus.NOT_FOUND)
+        assertIs<DeepLinkResult.NotFound>(result)
+    }
+
+    @Test
+    fun mapDeepLinkResultErrorWithMessage() {
+        val result = mapDeepLinkResult(
+            status = DeepLinkStatus.ERROR,
+            error = "Something went wrong",
+        )
+
+        val error = assertIs<DeepLinkResult.Error>(result)
+        assertEquals("Something went wrong", error.message)
+    }
+
+    @Test
+    fun mapDeepLinkResultErrorWithNullMessage() {
+        val result = mapDeepLinkResult(status = DeepLinkStatus.ERROR)
+
+        val error = assertIs<DeepLinkResult.Error>(result)
+        assertNull(error.message)
+    }
+
+    @Test
+    fun toCampaignDataOrganicWithAllFields() {
+        val result = mapOf(
+            "af_status" to "Organic",
+            "media_source" to "organic",
+            "campaign" to "default",
+        ).toCampaignData()
+
+        val success = assertIs<CampaignData.Success>(result)
+        assertEquals(AfStatus.ORGANIC, success.status)
+        assertEquals("organic", success.mediaSource)
+        assertEquals("default", success.campaign)
+    }
+
+    @Test
+    fun toCampaignDataNonOrganic() {
+        val result = mapOf(
+            "af_status" to "Non-organic",
+            "media_source" to "facebook",
+            "campaign" to "summer",
+        ).toCampaignData()
+
+        val success = assertIs<CampaignData.Success>(result)
+        assertEquals(AfStatus.NON_ORGANIC, success.status)
+        assertEquals("facebook", success.mediaSource)
+        assertEquals("summer", success.campaign)
+    }
+
+    @Test
+    fun toCampaignDataMissingMediaSourceReturnsNull() {
+        val result = mapOf("af_status" to "Organic").toCampaignData()
+
+        val success = assertIs<CampaignData.Success>(result)
+        assertNull(success.mediaSource)
+        assertNull(success.campaign)
+    }
+
+    @Test
+    fun toCampaignDataUnexpectedStatusReturnsError() {
+        val result = mapOf("af_status" to "Unknown").toCampaignData()
+
+        val error = assertIs<CampaignData.Error>(result)
+        assertEquals("Unexpected af_status: Unknown", error.message)
+    }
+
+    @Test
+    fun toCampaignDataMissingStatusReturnsError() {
+        val result = mapOf("media_source" to "facebook").toCampaignData()
+
+        val error = assertIs<CampaignData.Error>(result)
+        assertEquals("Unexpected af_status: null", error.message)
+    }
+
+    @Test
+    fun toCampaignDataEmptyMapReturnsError() {
+        val result = emptyMap<String, Any?>().toCampaignData()
+
+        val error = assertIs<CampaignData.Error>(result)
+        assertEquals("Unexpected af_status: null", error.message)
+    }
+
+    @Test
+    fun toCampaignDataPreservesRawMap() {
+        val raw = mapOf(
+            "af_status" to "Organic",
+            "media_source" to "organic",
+            "campaign" to "default",
+            "extra_field" to "extra_value",
+            "is_lat" to true,
+        )
+
+        val result = raw.toCampaignData()
+
+        val success = assertIs<CampaignData.Success>(result)
+        assertEquals(raw, success.raw)
+    }
+
+    @Test
     fun setUserEmailsForwardsToBackend() {
         client.setUserEmails(listOf("a@b.com", "c@d.com"), cryptType = AfEmailCryptType.SHA256)
         assertEquals(listOf("a@b.com", "c@d.com"), sdk.lastUserEmails)
