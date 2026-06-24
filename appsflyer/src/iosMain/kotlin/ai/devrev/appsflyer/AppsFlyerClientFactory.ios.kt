@@ -151,6 +151,10 @@ internal class IosAppsFlyerSdk(
         bridge.registerUninstall(token.hexToNSData())
     }
 
+    override fun setOneLinkCustomDomain(domains: List<String>) {
+        bridge.setOneLinkCustomDomains(domains)
+    }
+
     override fun setAnonymizeUser(enabled: Boolean) {
         bridge.setAnonymizeUser(enabled)
     }

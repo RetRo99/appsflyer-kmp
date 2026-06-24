@@ -143,6 +143,10 @@ internal class AndroidAppsFlyerSdk(
         lib.updateServerUninstallToken(appContext, token)
     }
 
+    override fun setOneLinkCustomDomain(domains: List<String>) {
+        lib.setOneLinkCustomDomain(*domains.toTypedArray())
+    }
+
     override fun setAnonymizeUser(enabled: Boolean) {
         lib.anonymizeUser(enabled)
     }

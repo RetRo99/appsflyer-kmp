@@ -92,6 +92,9 @@ internal class AppsFlyerClientImpl(
     override fun registerUninstall(token: String) =
         sdk.registerUninstall(token)
 
+    override fun setOneLinkCustomDomain(domains: List<String>) =
+        sdk.setOneLinkCustomDomain(domains)
+
     override fun getSdkVersion(): String = sdk.getSdkVersion()
 
     override fun setAnonymizeUser(enabled: Boolean) {

@@ -61,6 +61,8 @@ internal interface AppsFlyerSdk {
 
     fun registerUninstall(token: String)
 
+    fun setOneLinkCustomDomain(domains: List<String>)
+
     fun getAppsFlyerUID(): String?
 
     fun getSdkVersion(): String

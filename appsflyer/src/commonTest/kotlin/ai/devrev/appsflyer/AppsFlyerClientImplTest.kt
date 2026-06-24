@@ -546,6 +546,18 @@ class AppsFlyerClientImplTest {
     }
 
     @Test
+    fun setOneLinkCustomDomainForwardsToBackend() {
+        client.setOneLinkCustomDomain(listOf("mydomain.com", "sub.domain.com"))
+        assertEquals(listOf("mydomain.com", "sub.domain.com"), sdk.lastOneLinkCustomDomains)
+    }
+
+    @Test
+    fun setOneLinkCustomDomainEmptyListForwardsAsIs() {
+        client.setOneLinkCustomDomain(emptyList())
+        assertEquals(emptyList(), sdk.lastOneLinkCustomDomains)
+    }
+
+    @Test
     fun logAdRevenueForwardsToBackend() {
         val data = AdRevenueData(
             monetizationNetwork = "ironsource",
@@ -783,6 +795,8 @@ private class FakeAppsFlyerSdk : AppsFlyerSdk {
         private set
     var lastUninstallToken: String? = null
         private set
+    var lastOneLinkCustomDomains: List<String>? = null
+        private set
     var lastAnonymizeUser: Boolean? = null
         private set
     var lastSharingFilterPartners: Set<String>? = null
@@ -864,6 +878,10 @@ private class FakeAppsFlyerSdk : AppsFlyerSdk {
 
     override fun registerUninstall(token: String) {
         lastUninstallToken = token
+    }
+
+    override fun setOneLinkCustomDomain(domains: List<String>) {
+        lastOneLinkCustomDomains = domains
     }
 
     override fun setAnonymizeUser(enabled: Boolean) {

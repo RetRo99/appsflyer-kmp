@@ -123,6 +123,10 @@ public class AppsFlyerBridge: NSObject, AppsFlyerLibDelegate, AppsFlyerDeepLinkD
         AppsFlyerLib.shared().registerUninstall(token)
     }
 
+    public func setOneLinkCustomDomains(_ domains: [String]) {
+        AppsFlyerLib.shared().oneLinkCustomDomains = domains
+    }
+
     public func stop(_ stop: Bool) {
         AppsFlyerLib.shared().isStopped = stop
     }

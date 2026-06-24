@@ -108,6 +108,13 @@ interface AppsFlyerClient {
     fun registerUninstall(token: String)
 
     /**
+     * Sets custom OneLink domains for deep linking. Call before [start].
+     *
+     * @param domains the custom domain strings (e.g. `listOf("mydomain.com")`).
+     */
+    fun setOneLinkCustomDomain(domains: List<String>)
+
+    /**
      * Validates and logs an in-app purchase using the AppsFlyer VAL V2 flow.
      * Suspends until the SDK receives a response from the server.
      *
