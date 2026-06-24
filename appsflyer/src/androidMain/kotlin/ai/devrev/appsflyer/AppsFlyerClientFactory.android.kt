@@ -215,6 +215,54 @@ internal class AndroidAppsFlyerSdk(
         lib.setDisableNetworkData(disable)
     }
 
+    override fun waitForCustomerUserId(wait: Boolean) {
+        lib.waitForCustomerUserId(wait)
+    }
+
+    override fun setPreinstallAttribution(mediaSource: String, campaign: String, siteId: String) {
+        lib.setPreinstallAttribution(mediaSource, campaign, siteId)
+    }
+
+    override fun setOutOfStore(source: String) {
+        lib.setOutOfStore(source)
+    }
+
+    override fun setDisableIDFVCollection(disable: Boolean) {
+        // iOS only — no-op on Android.
+    }
+
+    override fun setDisableCollectASA(disable: Boolean) {
+        // iOS only — no-op on Android.
+    }
+
+    override fun setDisableAppleAdsAttribution(disable: Boolean) {
+        // iOS only — no-op on Android.
+    }
+
+    override fun setShouldCollectDeviceName(collect: Boolean) {
+        // iOS only — no-op on Android.
+    }
+
+    override fun setUseReceiptValidationSandbox(enable: Boolean) {
+        // iOS only — no-op on Android.
+    }
+
+    override fun setUseUninstallSandbox(enable: Boolean) {
+        // iOS only — no-op on Android.
+    }
+
+    override fun setCurrentDeviceLanguage(language: String?) {
+        // iOS only — no-op on Android.
+    }
+
+    override fun setDeepLinkTimeout(seconds: Int) {
+        // iOS only — no-op on Android.
+    }
+
+    override fun remoteDebuggingCall(data: String) {
+        // iOS only — no-op on Android.
+    }
+
     override fun setAnonymizeUser(enabled: Boolean) {
         lib.anonymizeUser(enabled)
     }

@@ -707,6 +707,86 @@ class AppsFlyerClientImplTest {
     }
 
     @Test
+    fun waitForCustomerUserIdForwardsToBackend() {
+        client.waitForCustomerUserId(true)
+        assertEquals(true, sdk.lastWaitForCustomerUserId)
+    }
+
+    @Test
+    fun setPreinstallAttributionForwardsToBackend() {
+        client.setPreinstallAttribution("organic", "campaign1", "site123")
+        assertEquals("organic", sdk.lastPreinstallMediaSource)
+        assertEquals("campaign1", sdk.lastPreinstallCampaign)
+        assertEquals("site123", sdk.lastPreinstallSiteId)
+    }
+
+    @Test
+    fun setOutOfStoreForwardsToBackend() {
+        client.setOutOfStore("amazon")
+        assertEquals("amazon", sdk.lastOutOfStore)
+    }
+
+    @Test
+    fun setDisableIDFVCollectionForwardsToBackend() {
+        client.setDisableIDFVCollection(true)
+        assertEquals(true, sdk.lastDisableIDFVCollection)
+    }
+
+    @Test
+    fun setDisableCollectASAForwardsToBackend() {
+        client.setDisableCollectASA(true)
+        assertEquals(true, sdk.lastDisableCollectASA)
+    }
+
+    @Test
+    fun setDisableAppleAdsAttributionForwardsToBackend() {
+        client.setDisableAppleAdsAttribution(true)
+        assertEquals(true, sdk.lastDisableAppleAdsAttribution)
+    }
+
+    @Test
+    fun setShouldCollectDeviceNameForwardsToBackend() {
+        client.setShouldCollectDeviceName(true)
+        assertEquals(true, sdk.lastShouldCollectDeviceName)
+    }
+
+    @Test
+    fun setUseReceiptValidationSandboxForwardsToBackend() {
+        client.setUseReceiptValidationSandbox(true)
+        assertEquals(true, sdk.lastUseReceiptValidationSandbox)
+    }
+
+    @Test
+    fun setUseUninstallSandboxForwardsToBackend() {
+        client.setUseUninstallSandbox(true)
+        assertEquals(true, sdk.lastUseUninstallSandbox)
+    }
+
+    @Test
+    fun setCurrentDeviceLanguageForwardsToBackend() {
+        client.setCurrentDeviceLanguage("EN")
+        assertEquals("EN", sdk.lastCurrentDeviceLanguage)
+    }
+
+    @Test
+    fun setCurrentDeviceLanguageNullForwardsToBackend() {
+        client.setCurrentDeviceLanguage(null)
+        assertEquals(null, sdk.lastCurrentDeviceLanguage)
+    }
+
+    @Test
+    fun setDeepLinkTimeoutForwardsToBackend() {
+        client.setDeepLinkTimeout(5)
+        assertEquals(5, sdk.lastDeepLinkTimeout)
+    }
+
+    @Test
+    fun remoteDebuggingCallForwardsToBackend() {
+        client.remoteDebuggingCall("debug-data")
+        assertEquals("debug-data", sdk.lastRemoteDebuggingData)
+    }
+
+    @Test
     fun logAdRevenueForwardsToBackend() {
         val data = AdRevenueData(
             monetizationNetwork = "ironsource",
@@ -984,6 +1064,34 @@ private class FakeAppsFlyerSdk : AppsFlyerSdk {
         private set
     var lastDisableNetworkData: Boolean? = null
         private set
+    var lastWaitForCustomerUserId: Boolean? = null
+        private set
+    var lastPreinstallMediaSource: String? = null
+        private set
+    var lastPreinstallCampaign: String? = null
+        private set
+    var lastPreinstallSiteId: String? = null
+        private set
+    var lastOutOfStore: String? = null
+        private set
+    var lastDisableIDFVCollection: Boolean? = null
+        private set
+    var lastDisableCollectASA: Boolean? = null
+        private set
+    var lastDisableAppleAdsAttribution: Boolean? = null
+        private set
+    var lastShouldCollectDeviceName: Boolean? = null
+        private set
+    var lastUseReceiptValidationSandbox: Boolean? = null
+        private set
+    var lastUseUninstallSandbox: Boolean? = null
+        private set
+    var lastCurrentDeviceLanguage: String? = null
+        private set
+    var lastDeepLinkTimeout: Int? = null
+        private set
+    var lastRemoteDebuggingData: String? = null
+        private set
     var lastAnonymizeUser: Boolean? = null
         private set
     var lastSharingFilterPartners: Set<String>? = null
@@ -1140,6 +1248,56 @@ private class FakeAppsFlyerSdk : AppsFlyerSdk {
 
     override fun setDisableNetworkData(disable: Boolean) {
         lastDisableNetworkData = disable
+    }
+
+    override fun waitForCustomerUserId(wait: Boolean) {
+        lastWaitForCustomerUserId = wait
+    }
+
+    override fun setPreinstallAttribution(mediaSource: String, campaign: String, siteId: String) {
+        lastPreinstallMediaSource = mediaSource
+        lastPreinstallCampaign = campaign
+        lastPreinstallSiteId = siteId
+    }
+
+    override fun setOutOfStore(source: String) {
+        lastOutOfStore = source
+    }
+
+    override fun setDisableIDFVCollection(disable: Boolean) {
+        lastDisableIDFVCollection = disable
+    }
+
+    override fun setDisableCollectASA(disable: Boolean) {
+        lastDisableCollectASA = disable
+    }
+
+    override fun setDisableAppleAdsAttribution(disable: Boolean) {
+        lastDisableAppleAdsAttribution = disable
+    }
+
+    override fun setShouldCollectDeviceName(collect: Boolean) {
+        lastShouldCollectDeviceName = collect
+    }
+
+    override fun setUseReceiptValidationSandbox(enable: Boolean) {
+        lastUseReceiptValidationSandbox = enable
+    }
+
+    override fun setUseUninstallSandbox(enable: Boolean) {
+        lastUseUninstallSandbox = enable
+    }
+
+    override fun setCurrentDeviceLanguage(language: String?) {
+        lastCurrentDeviceLanguage = language
+    }
+
+    override fun setDeepLinkTimeout(seconds: Int) {
+        lastDeepLinkTimeout = seconds
+    }
+
+    override fun remoteDebuggingCall(data: String) {
+        lastRemoteDebuggingData = data
     }
 
     override fun setAnonymizeUser(enabled: Boolean) {

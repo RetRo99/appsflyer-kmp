@@ -99,6 +99,30 @@ internal interface AppsFlyerSdk {
 
     fun setDisableNetworkData(disable: Boolean)
 
+    fun waitForCustomerUserId(wait: Boolean)
+
+    fun setPreinstallAttribution(mediaSource: String, campaign: String, siteId: String)
+
+    fun setOutOfStore(source: String)
+
+    fun setDisableIDFVCollection(disable: Boolean)
+
+    fun setDisableCollectASA(disable: Boolean)
+
+    fun setDisableAppleAdsAttribution(disable: Boolean)
+
+    fun setShouldCollectDeviceName(collect: Boolean)
+
+    fun setUseReceiptValidationSandbox(enable: Boolean)
+
+    fun setUseUninstallSandbox(enable: Boolean)
+
+    fun setCurrentDeviceLanguage(language: String?)
+
+    fun setDeepLinkTimeout(seconds: Int)
+
+    fun remoteDebuggingCall(data: String)
+
     fun getAppsFlyerUID(): String?
 
     fun getSdkVersion(): String

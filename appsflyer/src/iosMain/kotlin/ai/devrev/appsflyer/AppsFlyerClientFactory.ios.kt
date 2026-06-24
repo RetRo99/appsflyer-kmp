@@ -225,6 +225,54 @@ internal class IosAppsFlyerSdk(
         // Android only — no-op on iOS.
     }
 
+    override fun waitForCustomerUserId(wait: Boolean) {
+        // Android only — no-op on iOS.
+    }
+
+    override fun setPreinstallAttribution(mediaSource: String, campaign: String, siteId: String) {
+        // Android only — no-op on iOS.
+    }
+
+    override fun setOutOfStore(source: String) {
+        // Android only — no-op on iOS.
+    }
+
+    override fun setDisableIDFVCollection(disable: Boolean) {
+        bridge.setDisableIDFVCollection(disable)
+    }
+
+    override fun setDisableCollectASA(disable: Boolean) {
+        bridge.setDisableCollectASA(disable)
+    }
+
+    override fun setDisableAppleAdsAttribution(disable: Boolean) {
+        bridge.setDisableAppleAdsAttribution(disable)
+    }
+
+    override fun setShouldCollectDeviceName(collect: Boolean) {
+        bridge.setShouldCollectDeviceName(collect)
+    }
+
+    override fun setUseReceiptValidationSandbox(enable: Boolean) {
+        bridge.setUseReceiptValidationSandbox(enable)
+    }
+
+    override fun setUseUninstallSandbox(enable: Boolean) {
+        bridge.setUseUninstallSandbox(enable)
+    }
+
+    override fun setCurrentDeviceLanguage(language: String?) {
+        bridge.setCurrentDeviceLanguage(language)
+    }
+
+    override fun setDeepLinkTimeout(seconds: Int) {
+        bridge.setDeepLinkTimeout(seconds.toLong())
+    }
+
+    override fun remoteDebuggingCall(data: String) {
+        bridge.remoteDebuggingCall(data)
+    }
+
     override fun setAnonymizeUser(enabled: Boolean) {
         bridge.setAnonymizeUser(enabled)
     }

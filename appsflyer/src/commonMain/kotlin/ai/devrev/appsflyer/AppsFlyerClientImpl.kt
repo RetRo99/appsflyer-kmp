@@ -147,6 +147,42 @@ internal class AppsFlyerClientImpl(
     override fun setDisableNetworkData(disable: Boolean) =
         sdk.setDisableNetworkData(disable)
 
+    override fun waitForCustomerUserId(wait: Boolean) =
+        sdk.waitForCustomerUserId(wait)
+
+    override fun setPreinstallAttribution(mediaSource: String, campaign: String, siteId: String) =
+        sdk.setPreinstallAttribution(mediaSource, campaign, siteId)
+
+    override fun setOutOfStore(source: String) =
+        sdk.setOutOfStore(source)
+
+    override fun setDisableIDFVCollection(disable: Boolean) =
+        sdk.setDisableIDFVCollection(disable)
+
+    override fun setDisableCollectASA(disable: Boolean) =
+        sdk.setDisableCollectASA(disable)
+
+    override fun setDisableAppleAdsAttribution(disable: Boolean) =
+        sdk.setDisableAppleAdsAttribution(disable)
+
+    override fun setShouldCollectDeviceName(collect: Boolean) =
+        sdk.setShouldCollectDeviceName(collect)
+
+    override fun setUseReceiptValidationSandbox(enable: Boolean) =
+        sdk.setUseReceiptValidationSandbox(enable)
+
+    override fun setUseUninstallSandbox(enable: Boolean) =
+        sdk.setUseUninstallSandbox(enable)
+
+    override fun setCurrentDeviceLanguage(language: String?) =
+        sdk.setCurrentDeviceLanguage(language)
+
+    override fun setDeepLinkTimeout(seconds: Int) =
+        sdk.setDeepLinkTimeout(seconds)
+
+    override fun remoteDebuggingCall(data: String) =
+        sdk.remoteDebuggingCall(data)
+
     override fun getSdkVersion(): String = sdk.getSdkVersion()
 
     override fun setAnonymizeUser(enabled: Boolean) {

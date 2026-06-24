@@ -228,6 +228,72 @@ interface AppsFlyerClient {
     fun setDisableNetworkData(disable: Boolean)
 
     /**
+     * Whether to wait for customer user ID before starting. When enabled,
+     * the SDK holds off on sending events until [setCustomerUserId] is called.
+     * Android only; no-op on iOS.
+     */
+    fun waitForCustomerUserId(wait: Boolean)
+
+    /**
+     * Sets preinstall attribution data (Android only; no-op on iOS).
+     *
+     * @param mediaSource the media source.
+     * @param campaign the campaign.
+     * @param siteId the site ID.
+     */
+    fun setPreinstallAttribution(mediaSource: String, campaign: String, siteId: String)
+
+    /**
+     * Sets the out-of-store source (Android only; no-op on iOS).
+     */
+    fun setOutOfStore(source: String)
+
+    /**
+     * Disables IDFV collection (iOS only; no-op on Android).
+     */
+    fun setDisableIDFVCollection(disable: Boolean)
+
+    /**
+     * Disables Apple Search Ads collection (iOS only; no-op on Android).
+     */
+    fun setDisableCollectASA(disable: Boolean)
+
+    /**
+     * Disables Apple Ads attribution (iOS only; no-op on Android).
+     */
+    fun setDisableAppleAdsAttribution(disable: Boolean)
+
+    /**
+     * Sets whether to collect the device name (iOS only; no-op on Android).
+     */
+    fun setShouldCollectDeviceName(collect: Boolean)
+
+    /**
+     * Enables receipt validation sandbox (iOS only; no-op on Android).
+     */
+    fun setUseReceiptValidationSandbox(enable: Boolean)
+
+    /**
+     * Enables uninstall sandbox (iOS only; no-op on Android).
+     */
+    fun setUseUninstallSandbox(enable: Boolean)
+
+    /**
+     * Sets the current device language (iOS only; no-op on Android).
+     */
+    fun setCurrentDeviceLanguage(language: String?)
+
+    /**
+     * Sets the deep link timeout in seconds (iOS only; no-op on Android).
+     */
+    fun setDeepLinkTimeout(seconds: Int)
+
+    /**
+     * Sends remote debugging data (iOS only; no-op on Android).
+     */
+    fun remoteDebuggingCall(data: String)
+
+    /**
      * Validates and logs an in-app purchase using the AppsFlyer VAL V2 flow.
      * Suspends until the SDK receives a response from the server.
      *

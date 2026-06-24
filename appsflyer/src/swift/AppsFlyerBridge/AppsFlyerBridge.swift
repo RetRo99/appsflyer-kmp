@@ -170,6 +170,42 @@ public class AppsFlyerBridge: NSObject, AppsFlyerLibDelegate, AppsFlyerDeepLinkD
         }
     }
 
+    public func setDisableIDFVCollection(_ disable: Bool) {
+        AppsFlyerLib.shared().disableIDFVCollection = disable
+    }
+
+    public func setDisableCollectASA(_ disable: Bool) {
+        AppsFlyerLib.shared().disableCollectASA = disable
+    }
+
+    public func setDisableAppleAdsAttribution(_ disable: Bool) {
+        AppsFlyerLib.shared().disableAppleAdsAttribution = disable
+    }
+
+    public func setShouldCollectDeviceName(_ collect: Bool) {
+        AppsFlyerLib.shared().shouldCollectDeviceName = collect
+    }
+
+    public func setUseReceiptValidationSandbox(_ enable: Bool) {
+        AppsFlyerLib.shared().useReceiptValidationSandbox = enable
+    }
+
+    public func setUseUninstallSandbox(_ enable: Bool) {
+        AppsFlyerLib.shared().useUninstallSandbox = enable
+    }
+
+    public func setCurrentDeviceLanguage(_ language: String?) {
+        AppsFlyerLib.shared().currentDeviceLanguage = language
+    }
+
+    public func setDeepLinkTimeout(_ seconds: Int) {
+        AppsFlyerLib.shared().deepLinkTimeout = UInt(seconds)
+    }
+
+    public func remoteDebuggingCall(_ data: String) {
+        AppsFlyerLib.shared().remoteDebuggingCallV2(withData: data)
+    }
+
     public func stop(_ stop: Bool) {
         AppsFlyerLib.shared().isStopped = stop
     }
