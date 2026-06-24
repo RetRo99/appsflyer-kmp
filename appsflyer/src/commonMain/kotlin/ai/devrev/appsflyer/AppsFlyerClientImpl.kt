@@ -95,6 +95,9 @@ internal class AppsFlyerClientImpl(
     override fun setOneLinkCustomDomain(domains: List<String>) =
         sdk.setOneLinkCustomDomain(domains)
 
+    override fun appendParametersToDeepLinkingURL(contains: String, parameters: Map<String, String>) =
+        sdk.appendParametersToDeepLinkingURL(contains, parameters)
+
     override fun getSdkVersion(): String = sdk.getSdkVersion()
 
     override fun setAnonymizeUser(enabled: Boolean) {

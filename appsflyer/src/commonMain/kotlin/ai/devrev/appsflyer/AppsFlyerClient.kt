@@ -115,6 +115,15 @@ interface AppsFlyerClient {
     fun setOneLinkCustomDomain(domains: List<String>)
 
     /**
+     * Appends query parameters to deep linking URLs that match the given
+     * [contains] substring. Call before [start].
+     *
+     * @param contains the substring to match in the URL.
+     * @param parameters the key-value pairs to append.
+     */
+    fun appendParametersToDeepLinkingURL(contains: String, parameters: Map<String, String>)
+
+    /**
      * Validates and logs an in-app purchase using the AppsFlyer VAL V2 flow.
      * Suspends until the SDK receives a response from the server.
      *

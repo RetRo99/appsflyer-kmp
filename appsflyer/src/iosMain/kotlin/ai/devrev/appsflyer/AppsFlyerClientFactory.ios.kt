@@ -155,6 +155,11 @@ internal class IosAppsFlyerSdk(
         bridge.setOneLinkCustomDomains(domains)
     }
 
+    override fun appendParametersToDeepLinkingURL(contains: String, parameters: Map<String, String>) {
+        @Suppress("UNCHECKED_CAST")
+        bridge.appendParametersToDeepLinkingURL(contains, parameters as Map<Any?, *>)
+    }
+
     override fun setAnonymizeUser(enabled: Boolean) {
         bridge.setAnonymizeUser(enabled)
     }

@@ -147,6 +147,10 @@ internal class AndroidAppsFlyerSdk(
         lib.setOneLinkCustomDomain(*domains.toTypedArray())
     }
 
+    override fun appendParametersToDeepLinkingURL(contains: String, parameters: Map<String, String>) {
+        lib.appendParametersToDeepLinkingURL(contains, parameters)
+    }
+
     override fun setAnonymizeUser(enabled: Boolean) {
         lib.anonymizeUser(enabled)
     }

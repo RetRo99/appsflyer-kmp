@@ -127,6 +127,10 @@ public class AppsFlyerBridge: NSObject, AppsFlyerLibDelegate, AppsFlyerDeepLinkD
         AppsFlyerLib.shared().oneLinkCustomDomains = domains
     }
 
+    public func appendParametersToDeepLinkingURL(_ contains: String, parameters: [String: String]) {
+        AppsFlyerLib.shared().appendParametersToDeepLinkingURL(contains: contains, parameters: parameters)
+    }
+
     public func stop(_ stop: Bool) {
         AppsFlyerLib.shared().isStopped = stop
     }

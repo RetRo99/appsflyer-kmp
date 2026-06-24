@@ -63,6 +63,8 @@ internal interface AppsFlyerSdk {
 
     fun setOneLinkCustomDomain(domains: List<String>)
 
+    fun appendParametersToDeepLinkingURL(contains: String, parameters: Map<String, String>)
+
     fun getAppsFlyerUID(): String?
 
     fun getSdkVersion(): String

@@ -558,6 +558,23 @@ class AppsFlyerClientImplTest {
     }
 
     @Test
+    fun appendParametersToDeepLinkingURLForwardsToBackend() {
+        client.appendParametersToDeepLinkingURL(
+            contains = "mydomain.com",
+            parameters = mapOf("pid" to "email", "c" to "welcome"),
+        )
+        assertEquals("mydomain.com", sdk.lastDeepLinkContains)
+        assertEquals(mapOf("pid" to "email", "c" to "welcome"), sdk.lastDeepLinkParameters)
+    }
+
+    @Test
+    fun appendParametersToDeepLinkingURLEmptyMapForwardsAsIs() {
+        client.appendParametersToDeepLinkingURL(contains = "test.com", parameters = emptyMap())
+        assertEquals("test.com", sdk.lastDeepLinkContains)
+        assertEquals(emptyMap(), sdk.lastDeepLinkParameters)
+    }
+
+    @Test
     fun logAdRevenueForwardsToBackend() {
         val data = AdRevenueData(
             monetizationNetwork = "ironsource",
@@ -797,6 +814,10 @@ private class FakeAppsFlyerSdk : AppsFlyerSdk {
         private set
     var lastOneLinkCustomDomains: List<String>? = null
         private set
+    var lastDeepLinkContains: String? = null
+        private set
+    var lastDeepLinkParameters: Map<String, String>? = null
+        private set
     var lastAnonymizeUser: Boolean? = null
         private set
     var lastSharingFilterPartners: Set<String>? = null
@@ -882,6 +903,11 @@ private class FakeAppsFlyerSdk : AppsFlyerSdk {
 
     override fun setOneLinkCustomDomain(domains: List<String>) {
         lastOneLinkCustomDomains = domains
+    }
+
+    override fun appendParametersToDeepLinkingURL(contains: String, parameters: Map<String, String>) {
+        lastDeepLinkContains = contains
+        lastDeepLinkParameters = parameters
     }
 
     override fun setAnonymizeUser(enabled: Boolean) {
