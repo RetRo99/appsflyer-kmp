@@ -69,6 +69,8 @@ internal class AppsFlyerClientImpl(
 
     override fun getAppsFlyerUID(): String? = sdk.getAppsFlyerUID()
 
+    override fun setCurrencyCode(currency: String) = sdk.setCurrencyCode(currency)
+
     override fun getSdkVersion(): String = sdk.getSdkVersion()
 
     override fun setAnonymizeUser(enabled: Boolean) {

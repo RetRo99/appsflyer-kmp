@@ -107,6 +107,10 @@ internal class AndroidAppsFlyerSdk(
     override fun getSdkVersion(): String =
         lib.sdkVersion
 
+    override fun setCurrencyCode(currency: String) {
+        lib.setCurrencyCode(currency)
+    }
+
     override fun setAnonymizeUser(enabled: Boolean) {
         lib.anonymizeUser(enabled)
     }

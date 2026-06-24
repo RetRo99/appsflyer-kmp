@@ -111,6 +111,10 @@ internal class IosAppsFlyerSdk(
     override fun getSdkVersion(): String =
         bridge.getSdkVersion()
 
+    override fun setCurrencyCode(currency: String) {
+        bridge.setCurrencyCode(currency)
+    }
+
     override fun setAnonymizeUser(enabled: Boolean) {
         bridge.setAnonymizeUser(enabled)
     }

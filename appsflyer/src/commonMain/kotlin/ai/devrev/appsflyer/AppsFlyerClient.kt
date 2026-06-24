@@ -64,6 +64,9 @@ interface AppsFlyerClient {
      */
     fun setSharingFilterPartners(partners: Set<String>)
 
+    /** Sets the currency code for revenue events (ISO 4217, e.g. "USD"). */
+    fun setCurrencyCode(currency: String)
+
     /** Returns the AppsFlyer device ID, or null if the SDK hasn't started yet. */
     fun getAppsFlyerUID(): String?
 

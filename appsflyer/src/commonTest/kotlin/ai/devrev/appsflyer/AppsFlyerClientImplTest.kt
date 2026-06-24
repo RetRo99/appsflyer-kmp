@@ -330,6 +330,12 @@ class AppsFlyerClientImplTest {
     }
 
     @Test
+    fun setCurrencyCodeForwardsToBackend() {
+        client.setCurrencyCode("EUR")
+        assertEquals("EUR", sdk.lastCurrencyCode)
+    }
+
+    @Test
     fun logAdRevenueForwardsToBackend() {
         val data = AdRevenueData(
             monetizationNetwork = "ironsource",
@@ -478,6 +484,8 @@ private class FakeAppsFlyerSdk : AppsFlyerSdk {
         private set
     var lastAdRevenueData: AdRevenueData? = null
         private set
+    var lastCurrencyCode: String? = null
+        private set
     var lastAnonymizeUser: Boolean? = null
         private set
     var lastSharingFilterPartners: Set<String>? = null
@@ -521,6 +529,10 @@ private class FakeAppsFlyerSdk : AppsFlyerSdk {
     override fun getAppsFlyerUID(): String? = "fake-uid"
 
     override fun getSdkVersion(): String = "6.18.1"
+
+    override fun setCurrencyCode(currency: String) {
+        lastCurrencyCode = currency
+    }
 
     override fun setAnonymizeUser(enabled: Boolean) {
         lastAnonymizeUser = enabled

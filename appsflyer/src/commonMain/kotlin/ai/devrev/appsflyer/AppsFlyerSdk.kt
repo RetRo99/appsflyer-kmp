@@ -45,6 +45,8 @@ internal interface AppsFlyerSdk {
 
     fun setSharingFilterPartners(partners: Set<String>)
 
+    fun setCurrencyCode(currency: String)
+
     fun getAppsFlyerUID(): String?
 
     fun getSdkVersion(): String

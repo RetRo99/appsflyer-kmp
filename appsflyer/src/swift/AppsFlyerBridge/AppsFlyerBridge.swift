@@ -85,6 +85,10 @@ public class AppsFlyerBridge: NSObject, AppsFlyerLibDelegate, AppsFlyerDeepLinkD
         return AppsFlyerLib.shared().getSdkVersion()
     }
 
+    public func setCurrencyCode(_ currency: String) {
+        AppsFlyerLib.shared().currencyCode = currency
+    }
+
     public func stop(_ stop: Bool) {
         AppsFlyerLib.shared().isStopped = stop
     }
