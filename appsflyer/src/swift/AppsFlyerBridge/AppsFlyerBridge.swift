@@ -50,7 +50,8 @@ public class AppsFlyerBridge: NSObject, AppsFlyerLibDelegate, AppsFlyerDeepLinkD
         }
         AppsFlyerLib.shared().sharingFilter = sharingFilterPartners
 
-        AppsFlyerLib.shared().start(completionHandler: { (dictionary, error) in
+        AppsFlyerLib.shared().start(completionHandler: { [weak self] (dictionary, error) in
+            guard let self = self else { return }
             if let error = error {
                 let code = (error as NSError).code
                 self.onStart?(false, code, error.localizedDescription)

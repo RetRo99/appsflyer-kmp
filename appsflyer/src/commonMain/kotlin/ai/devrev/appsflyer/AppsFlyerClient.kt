@@ -57,9 +57,10 @@ interface AppsFlyerClient {
     fun setAnonymizeUser(enabled: Boolean)
 
     /**
-     * Sets the sharing filter for partners at runtime. Only the specified
-     * partners will receive data sharing; all others are excluded. The
-     * initial value is set via [AppsFlyerConfig.sharingFilterPartners].
+     * Sets the sharing filter for partners at runtime. The specified
+     * partners will be excluded from data sharing; all others continue
+     * to receive data as normal. The initial value is set via
+     * [AppsFlyerConfig.sharingFilterPartners].
      */
     fun setSharingFilterPartners(partners: Set<String>)
 
