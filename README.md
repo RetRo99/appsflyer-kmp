@@ -22,17 +22,83 @@ interface AppsFlyerClient {
     fun start()
     suspend fun getStartResult(): StartResult
     suspend fun getConversionData(): CampaignData
+    val deepLink: Flow<DeepLinkResult>
+
     fun setCustomerUserId(id: String?)
     fun logEvent(name: String, params: Map<String, Any?> = emptyMap())
     suspend fun logEventForResult(name: String, params: Map<String, Any?> = emptyMap()): LogEventResult
     fun logAdRevenue(data: AdRevenueData)
+    suspend fun validateAndLogInAppPurchase(
+        purchaseDetails: PurchaseDetails,
+        additionalParameters: Map<String, Any?> = emptyMap(),
+    ): PurchaseValidationResult
+
     fun setAnonymizeUser(enabled: Boolean)
     fun setSharingFilterPartners(partners: Set<String>)
+    fun setSharingFilterForAllPartners()
+    fun setCurrencyCode(currency: String)
+    fun logLocation(latitude: Double, longitude: Double)
+    fun setAdditionalData(data: Map<String, Any?>)
+    fun setMinTimeBetweenSessions(seconds: Int)
+    fun setDisableAdvertisingIdentifier(disable: Boolean)
+    fun setDisableSKAdNetwork(disable: Boolean)
+    fun setUserEmails(emails: List<String>, cryptType: AfEmailCryptType)
+    fun setPhoneNumber(phoneNumber: String?)
+    fun setPartnerData(partnerId: String, data: Map<String, Any?>)
+    fun setExtension(extension: String)
+    fun setInstallId(installId: String)
+    fun setAppInviteOneLink(oneLinkId: String)
+    fun setOneLinkCustomDomain(domains: List<String>)
+    fun setResolveDeepLinkURLs(urls: List<String>)
+    fun appendParametersToDeepLinkingURL(contains: String, parameters: Map<String, String>)
+    fun addPushNotificationDeepLinkPath(keys: List<String>)
+    fun setHost(hostPrefix: String, hostName: String)
+    fun getHostName(): String
+    fun getHostPrefix(): String
+    fun performOnAppAttribution(url: String)
+    fun setIsUpdate(isUpdate: Boolean)
+    fun setCollectIMEI(collect: Boolean)
+    fun setCollectOaid(collect: Boolean)
+    fun setImeiData(imei: String?)
+    fun setOaidData(oaid: String?)
+    fun setAndroidIdData(androidId: String?)
+    fun disableAppSetId()
+    fun setDisableNetworkData(disable: Boolean)
+    fun waitForCustomerUserId(wait: Boolean)
+    fun setPreinstallAttribution(mediaSource: String, campaign: String, siteId: String)
+    fun setOutOfStore(source: String)
+    fun setDisableIDFVCollection(disable: Boolean)
+    fun setDisableCollectASA(disable: Boolean)
+    fun setDisableAppleAdsAttribution(disable: Boolean)
+    fun setShouldCollectDeviceName(collect: Boolean)
+    fun setUseReceiptValidationSandbox(enable: Boolean)
+    fun setUseUninstallSandbox(enable: Boolean)
+    fun setCurrentDeviceLanguage(language: String?)
+    fun setDeepLinkTimeout(seconds: Int)
+    fun remoteDebuggingCall(data: String)
+    fun isPreInstalledApp(): Boolean
+    fun getAttributionId(): String?
+    fun getOutOfStore(): String
+    fun logSession()
+    fun onPause()
+    fun setCustomerIdAndLogSession(customerUserId: String)
+    fun isSessionReady(): Boolean
+    fun handlePushNotification(payload: Map<String, Any?>)
+    fun unregisterSessionReadyListener()
+
+    fun registerUninstall(token: String)
     fun getAppsFlyerUID(): String?
+    fun getSdkVersion(): String
     fun stop(stop: Boolean = true)
     val isStopped: Boolean
-    val deepLink: Flow<DeepLinkResult>
 }
+```
+
+**Android-only extensions** (require `Context`/`Activity`/`Intent`):
+
+```kotlin
+fun AppsFlyerClient.performOnDeepLinking(intent: Intent, context: Context)
+fun AppsFlyerClient.sendPushNotificationData(activity: Activity)
 ```
 
 ### Configuration
@@ -67,6 +133,21 @@ sealed interface LogEventResult {
     data object Success : LogEventResult
     data class Error(val code: Int, val message: String) : LogEventResult
 }
+
+sealed interface PurchaseValidationResult {
+    data class Success(val result: Map<String, Any?>) : PurchaseValidationResult
+    data class Error(val message: String?) : PurchaseValidationResult
+}
+
+enum class AfPurchaseType(val iosRawValue: Long) {
+    SUBSCRIPTION, ONE_TIME_PURCHASE,
+}
+
+data class PurchaseDetails(
+    val productId: String,
+    val transactionId: String,
+    val purchaseType: AfPurchaseType,
+)
 
 sealed interface CampaignData {
     data class Success(
@@ -558,6 +639,34 @@ func application(_ application: UIApplication,
 - **`registerUninstall()`** — registers the FCM push token for uninstall measurement.
 - **`validateAndLogInAppPurchase()`** — suspends until the server validates the
   purchase. Null values in `additionalParameters` are silently dropped.
+- **`setPartnerData()`** — sets partner-specific data. Null values are silently dropped.
+- **`setSharingFilterForAllPartners()`** — excludes all partners from data sharing.
+- **`setInstallId()`** / **`setExtension()`** — custom install ID and extension name.
+- **`setAppInviteOneLink()`** / **`setOneLinkCustomDomain()`** — cross-promotion
+  and custom OneLink domain configuration.
+- **`setResolveDeepLinkURLs()`** / **`appendParametersToDeepLinkingURL()`** /
+  **`addPushNotificationDeepLinkPath()`** — deep link URL resolution and customization.
+- **`setHost()` / `getHostName()` / `getHostPrefix()`** — custom server host configuration.
+- **`performOnAppAttribution()`** — manual attribution for a URL.
+- **`setPhoneNumber()`** — sets phone number (sent as SHA256 hash).
+- **`setIsUpdate()`** / **`setCollectIMEI()`** / **`setCollectOaid()`** /
+  **`setImeiData()`** / **`setOaidData()`** / **`setAndroidIdData()`** /
+  **`disableAppSetId()`** / **`setDisableNetworkData()`** — Android-specific
+  device identifier and network controls (no-op on iOS).
+- **`setDisableIDFVCollection()`** / **`setDisableCollectASA()`** /
+  **`setDisableAppleAdsAttribution()`** / **`setShouldCollectDeviceName()`** /
+  **`setUseReceiptValidationSandbox()`** / **`setUseUninstallSandbox()`** /
+  **`setCurrentDeviceLanguage()`** / **`setDeepLinkTimeout()`** /
+  **`remoteDebuggingCall()`** — iOS-specific controls (no-op on Android).
+- **`waitForCustomerUserId()`** / **`setCustomerIdAndLogSession()`** —
+  deferred customer ID logging (Android only; no-op on iOS).
+- **`setPreinstallAttribution()`** / **`setOutOfStore()`** /
+  **`isPreInstalledApp()`** / **`getAttributionId()`** / **`getOutOfStore()`** /
+  **`logSession()`** / **`onPause()`** — pre-install and out-of-store attribution
+  (Android only; no-op/default on iOS).
+- **`isSessionReady()`** / **`handlePushNotification()`** /
+  **`unregisterSessionReadyListener()`** — iOS session lifecycle and push
+  notification handling (no-op/default on Android).
 
 ## Platform Comparison
 
