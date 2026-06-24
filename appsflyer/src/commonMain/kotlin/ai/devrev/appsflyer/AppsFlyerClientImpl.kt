@@ -4,8 +4,10 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlin.concurrent.atomics.AtomicInt
 import kotlin.concurrent.atomics.ExperimentalAtomicApi
+import kotlin.coroutines.resume
 
 internal class AppsFlyerClientImpl(
     private val sdk: AppsFlyerSdk,
@@ -51,6 +53,18 @@ internal class AppsFlyerClientImpl(
 
     override fun logEvent(name: String, params: Map<String, Any?>) {
         sdk.logEvent(name, params.filterValues { value -> value != null })
+    }
+
+    override suspend fun logEventForResult(
+        name: String,
+        params: Map<String, Any?>,
+    ): LogEventResult = suspendCancellableCoroutine { continuation ->
+        sdk.logEventForResult(
+            name = name,
+            params = params.filterValues { value -> value != null },
+        ) { result ->
+            continuation.resume(result)
+        }
     }
 
     override fun getAppsFlyerUID(): String? = sdk.getAppsFlyerUID()

@@ -36,6 +36,12 @@ interface AppsFlyerClient {
     /** Logs an in-app event. Null values in [params] are silently dropped. */
     fun logEvent(name: String, params: Map<String, Any?> = emptyMap())
 
+    /**
+     * Logs an in-app event and suspends until the SDK confirms delivery.
+     * Null values in [params] are silently dropped.
+     */
+    suspend fun logEventForResult(name: String, params: Map<String, Any?> = emptyMap()): LogEventResult
+
     /** Returns the AppsFlyer device ID, or null if the SDK hasn't started yet. */
     fun getAppsFlyerUID(): String?
 
@@ -150,6 +156,11 @@ internal fun Map<String, Any?>.toCampaignData(): CampaignData {
 sealed interface StartResult {
     data object Success : StartResult
     data class Error(val code: Int, val message: String) : StartResult
+}
+
+sealed interface LogEventResult {
+    data object Success : LogEventResult
+    data class Error(val code: Int, val message: String) : LogEventResult
 }
 
 /**

@@ -87,6 +87,21 @@ public class AppsFlyerBridge: NSObject, AppsFlyerLibDelegate, AppsFlyerDeepLinkD
         AppsFlyerLib.shared().logEvent(name, withValues: dict)
     }
 
+    public func logEventForResult(
+        _ name: String,
+        values: NSDictionary?,
+        onResult: @escaping (Bool, Int, String?) -> Void
+    ) {
+        let dict = (values as? [String: Any]) ?? [:]
+        AppsFlyerLib.shared().logEvent(name: name, values: dict, completionHandler: { dictionary, error in
+            if let error = error {
+                onResult(false, (error as NSError).code, error.localizedDescription)
+            } else {
+                onResult(true, 0, nil)
+            }
+        })
+    }
+
     public func handleOpenUrl(_ url: URL, options: NSDictionary?) {
         let opts = options as? [UIApplication.OpenURLOptionsKey: Any] ?? [:]
         AppsFlyerLib.shared().handleOpen(url, options: opts)

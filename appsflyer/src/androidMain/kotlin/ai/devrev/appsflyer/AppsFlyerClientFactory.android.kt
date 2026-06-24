@@ -68,6 +68,24 @@ internal class AndroidAppsFlyerSdk(
         lib.logEvent(appContext, name, params)
     }
 
+    override fun logEventForResult(
+        name: String,
+        params: Map<String, Any?>,
+        onResult: (LogEventResult) -> Unit,
+    ) {
+        lib.logEvent(
+            appContext,
+            name,
+            params,
+            object : AppsFlyerRequestListener {
+                override fun onSuccess() = onResult(LogEventResult.Success)
+
+                override fun onError(code: Int, message: String) =
+                    onResult(LogEventResult.Error(code, message))
+            },
+        )
+    }
+
     override fun getAppsFlyerUID(): String? =
         lib.getAppsFlyerUID(appContext)
 

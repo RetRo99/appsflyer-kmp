@@ -35,6 +35,12 @@ internal interface AppsFlyerSdk {
 
     fun logEvent(name: String, params: Map<String, Any?>)
 
+    fun logEventForResult(
+        name: String,
+        params: Map<String, Any?>,
+        onResult: (LogEventResult) -> Unit,
+    )
+
     fun getAppsFlyerUID(): String?
 
     fun stop(stop: Boolean)

@@ -1,6 +1,7 @@
 package com.retro99.appsflyer
 
 import app.cash.turbine.test
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.async
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
@@ -236,6 +237,37 @@ class AppsFlyerClientImplTest {
     }
 
     @Test
+    fun logEventForResultResumesWithSuccess() = runBlocking {
+        sdk.logEventResult = LogEventResult.Success
+
+        val result = client.logEventForResult("event", mapOf("key" to "value"))
+
+        assertIs<LogEventResult.Success>(result)
+        assertEquals("event", sdk.lastEventName)
+        assertEquals(mapOf("key" to "value"), sdk.lastEventParams)
+    }
+
+    @Test
+    fun logEventForResultResumesWithError() = runBlocking {
+        sdk.logEventResult = LogEventResult.Error(code = 500, message = "fail")
+
+        val result = client.logEventForResult("event")
+
+        assertIs<LogEventResult.Error>(result)
+        assertEquals(500, result.code)
+        assertEquals("fail", result.message)
+    }
+
+    @Test
+    fun logEventForResultFiltersNullValues() = runBlocking {
+        sdk.logEventResult = LogEventResult.Success
+
+        client.logEventForResult("event", mapOf("a" to "b", "c" to null))
+
+        assertEquals(mapOf("a" to "b"), sdk.lastEventParams)
+    }
+
+    @Test
     fun conversionCallbackWithUnexpectedStatusEmitsError() = runTest {
         client.start()
         sdk.onConversion?.invoke(mapOf("af_status" to "Unknown"))
@@ -312,6 +344,7 @@ private class FakeAppsFlyerSdk : AppsFlyerSdk {
         private set
     var lastEventParams: Map<String, Any?>? = null
         private set
+    var logEventResult: LogEventResult? = null
 
     override fun configure(
         config: AppsFlyerConfig,
@@ -335,6 +368,16 @@ private class FakeAppsFlyerSdk : AppsFlyerSdk {
     override fun logEvent(name: String, params: Map<String, Any?>) {
         lastEventName = name
         lastEventParams = params
+    }
+
+    override fun logEventForResult(
+        name: String,
+        params: Map<String, Any?>,
+        onResult: (LogEventResult) -> Unit,
+    ) {
+        lastEventName = name
+        lastEventParams = params
+        onResult(logEventResult ?: error("logEventResult not set"))
     }
 
     override fun getAppsFlyerUID(): String? = "fake-uid"

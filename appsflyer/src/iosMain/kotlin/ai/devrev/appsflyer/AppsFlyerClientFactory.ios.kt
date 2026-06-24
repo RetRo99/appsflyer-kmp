@@ -73,6 +73,23 @@ internal class IosAppsFlyerSdk : AppsFlyerSdk {
         bridge.logEvent(name, params as Map<Any?, *>)
     }
 
+    override fun logEventForResult(
+        name: String,
+        params: Map<String, Any?>,
+        onResult: (LogEventResult) -> Unit,
+    ) {
+        @Suppress("UNCHECKED_CAST")
+        bridge.logEventForResult(name, params as Map<Any?, *>) { success, code, message ->
+            onResult(
+                if (success) {
+                    LogEventResult.Success
+                } else {
+                    LogEventResult.Error(code.toInt(), message.orEmpty())
+                },
+            )
+        }
+    }
+
     override fun getAppsFlyerUID(): String? =
         bridge.getAppsFlyerUID()
 
