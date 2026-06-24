@@ -1,8 +1,10 @@
 package com.retro99.appsflyer
 
 import android.content.Context
+import com.appsflyer.AFAdRevenueData
 import com.appsflyer.AppsFlyerConversionListener
 import com.appsflyer.AppsFlyerLib
+import com.appsflyer.MediationNetwork
 import com.appsflyer.attribution.AppsFlyerRequestListener
 import com.appsflyer.deeplink.DeepLink
 import com.appsflyer.deeplink.DeepLinkResult as AfDeepLinkResult
@@ -102,6 +104,16 @@ internal class AndroidAppsFlyerSdk(
     override fun getAppsFlyerUID(): String? =
         lib.getAppsFlyerUID(appContext)
 
+    override fun logAdRevenue(data: AdRevenueData) {
+        val adRevenueData = AFAdRevenueData(
+            data.monetizationNetwork,
+            data.mediationNetwork.toAndroidMediationNetwork(),
+            data.currency,
+            data.revenue,
+        )
+        lib.logAdRevenue(adRevenueData, data.additionalParameters)
+    }
+
     override fun stop(stop: Boolean) =
         lib.stop(stop, appContext)
 
@@ -145,6 +157,17 @@ internal fun JSONObject.toMap(): Map<String, Any?> {
     val map = mutableMapOf<String, Any?>()
     keys().forEach { key -> map[key] = opt(key).unwrap() }
     return map
+}
+
+private fun AfMediationNetwork.toAndroidMediationNetwork(): MediationNetwork = when (this) {
+    AfMediationNetwork.GOOGLE_ADMOB -> MediationNetwork.GOOGLE_ADMOB
+    AfMediationNetwork.IRON_SOURCE -> MediationNetwork.IRONSOURCE
+    AfMediationNetwork.APP_LOVIN_MAX -> MediationNetwork.APPLOVINMAX
+    AfMediationNetwork.FYBER -> MediationNetwork.FYBER
+    AfMediationNetwork.APPODEAL -> MediationNetwork.APPODEAL
+    AfMediationNetwork.ADMOST -> MediationNetwork.ADMOST
+    AfMediationNetwork.TOPON -> MediationNetwork.TOPON
+    AfMediationNetwork.TAPPX -> MediationNetwork.TAPPX
 }
 
 private fun Any?.unwrap(): Any? = when (this) {

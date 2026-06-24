@@ -323,6 +323,84 @@ class AppsFlyerClientImplTest {
             expectNoEvents()
         }
     }
+
+    @Test
+    fun logAdRevenueForwardsToBackend() {
+        val data = AdRevenueData(
+            monetizationNetwork = "ironsource",
+            mediationNetwork = AfMediationNetwork.GOOGLE_ADMOB,
+            currency = "USD",
+            revenue = 0.0015,
+            additionalParameters = mapOf("country" to "US", "ad_unit" to "89b8c0159a50ebd1"),
+        )
+
+        client.logAdRevenue(data)
+
+        assertEquals(data, sdk.lastAdRevenueData)
+    }
+
+    @Test
+    fun logAdRevenueStripsNullAdditionalParameters() {
+        val data = AdRevenueData(
+            monetizationNetwork = "ironsource",
+            mediationNetwork = AfMediationNetwork.IRON_SOURCE,
+            currency = "EUR",
+            revenue = 1.2,
+            additionalParameters = mapOf("a" to "b", "c" to null, "d" to 3),
+        )
+
+        client.logAdRevenue(data)
+
+        val forwarded = sdk.lastAdRevenueData!!
+        assertEquals(mapOf("a" to "b", "d" to 3), forwarded.additionalParameters)
+    }
+
+    @Test
+    fun logAdRevenueWithEmptyAdditionalParameters() {
+        val data = AdRevenueData(
+            monetizationNetwork = "applovin",
+            mediationNetwork = AfMediationNetwork.APP_LOVIN_MAX,
+            currency = "USD",
+            revenue = 0.0,
+        )
+
+        client.logAdRevenue(data)
+
+        assertEquals(emptyMap(), sdk.lastAdRevenueData?.additionalParameters)
+    }
+
+    @Test
+    fun logAdRevenueAllNullAdditionalParameters() {
+        val data = AdRevenueData(
+            monetizationNetwork = "fyber",
+            mediationNetwork = AfMediationNetwork.FYBER,
+            currency = "USD",
+            revenue = 0.5,
+            additionalParameters = mapOf("x" to null, "y" to null),
+        )
+
+        client.logAdRevenue(data)
+
+        assertEquals(emptyMap(), sdk.lastAdRevenueData?.additionalParameters)
+    }
+
+    @Test
+    fun logAdRevenuePreservesAllCoreFields() {
+        val data = AdRevenueData(
+            monetizationNetwork = "topon",
+            mediationNetwork = AfMediationNetwork.TOPON,
+            currency = "JPY",
+            revenue = 100.0,
+        )
+
+        client.logAdRevenue(data)
+
+        val forwarded = sdk.lastAdRevenueData!!
+        assertEquals("topon", forwarded.monetizationNetwork)
+        assertEquals(AfMediationNetwork.TOPON, forwarded.mediationNetwork)
+        assertEquals("JPY", forwarded.currency)
+        assertEquals(100.0, forwarded.revenue)
+    }
 }
 
 private class FakeAppsFlyerSdk : AppsFlyerSdk {
@@ -343,6 +421,8 @@ private class FakeAppsFlyerSdk : AppsFlyerSdk {
     var lastEventName: String? = null
         private set
     var lastEventParams: Map<String, Any?>? = null
+        private set
+    var lastAdRevenueData: AdRevenueData? = null
         private set
     var logEventResult: LogEventResult? = null
 
@@ -381,6 +461,10 @@ private class FakeAppsFlyerSdk : AppsFlyerSdk {
     }
 
     override fun getAppsFlyerUID(): String? = "fake-uid"
+
+    override fun logAdRevenue(data: AdRevenueData) {
+        lastAdRevenueData = data
+    }
 
     override fun stop(stop: Boolean) {
         isStoppedValue = stop

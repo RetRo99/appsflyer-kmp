@@ -69,6 +69,12 @@ internal class AppsFlyerClientImpl(
 
     override fun getAppsFlyerUID(): String? = sdk.getAppsFlyerUID()
 
+    override fun logAdRevenue(data: AdRevenueData) {
+        sdk.logAdRevenue(
+            data.copy(additionalParameters = data.additionalParameters.filterValues { it != null }),
+        )
+    }
+
     override fun stop(stop: Boolean) = sdk.stop(stop)
 
     override val isStopped: Boolean

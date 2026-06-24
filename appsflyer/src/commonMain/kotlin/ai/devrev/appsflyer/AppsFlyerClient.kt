@@ -42,6 +42,13 @@ interface AppsFlyerClient {
      */
     suspend fun logEventForResult(name: String, params: Map<String, Any?> = emptyMap()): LogEventResult
 
+    /**
+     * Logs ad revenue to AppsFlyer. Fire-and-forget; the SDK sends the data
+     * asynchronously. Null values in [AdRevenueData.additionalParameters] are
+     * silently dropped.
+     */
+    fun logAdRevenue(data: AdRevenueData)
+
     /** Returns the AppsFlyer device ID, or null if the SDK hasn't started yet. */
     fun getAppsFlyerUID(): String?
 
@@ -89,6 +96,33 @@ sealed interface CampaignData {
 }
 
 enum class AfStatus { ORGANIC, NON_ORGANIC }
+
+/**
+ * Ad-network mediation type known to the AppsFlyer SDK. Maps to
+ * `MediationNetwork` (Android) and `MediationNetworkType` (iOS).
+ */
+enum class AfMediationNetwork {
+    GOOGLE_ADMOB,
+    IRON_SOURCE,
+    APP_LOVIN_MAX,
+    FYBER,
+    APPODEAL,
+    ADMOST,
+    TOPON,
+    TAPPX,
+}
+
+/**
+ * Ad revenue data for [AppsFlyerClient.logAdRevenue]. Matches the AppsFlyer
+ * SDK's `AFAdRevenueData` constructor on both platforms.
+ */
+data class AdRevenueData(
+    val monetizationNetwork: String,
+    val mediationNetwork: AfMediationNetwork,
+    val currency: String,
+    val revenue: Double,
+    val additionalParameters: Map<String, Any?> = emptyMap(),
+)
 
 sealed interface DeepLinkResult {
     data class Found(

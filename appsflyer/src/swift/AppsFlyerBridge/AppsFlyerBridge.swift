@@ -105,6 +105,38 @@ public class AppsFlyerBridge: NSObject, AppsFlyerLibDelegate, AppsFlyerDeepLinkD
         AppsFlyerLib.shared().continue(userActivity, restorationHandler: nil)
     }
 
+    public func logAdRevenue(
+        monetizationNetwork: String,
+        mediationNetwork: Int,
+        currency: String,
+        revenue: Double,
+        additionalParameters: NSDictionary?
+    ) {
+        let mediation = mapMediationNetworkType(mediationNetwork)
+        let adRevenueData = AFAdRevenueData(
+            monetizationNetwork: monetizationNetwork,
+            mediationNetwork: mediation,
+            currencyIso4217Code: currency,
+            eventRevenue: revenue
+        )
+        let params = (additionalParameters as? [String: Any]) ?? [:]
+        AppsFlyerLib.shared().logAdRevenue(adRevenueData, additionalParameters: params)
+    }
+
+    private func mapMediationNetworkType(_ rawValue: Int) -> MediationNetworkType {
+        switch rawValue {
+        case 0: return .googleAdMob
+        case 1: return .ironSource
+        case 2: return .appLovinMAX
+        case 3: return .fyber
+        case 4: return .appodeal
+        case 5: return .admost
+        case 6: return .topon
+        case 7: return .tappx
+        default: return .googleAdMob
+        }
+    }
+
     // MARK: AppsFlyerLibDelegate
 
     public func onConversionDataSuccess(_ conversionInfo: [AnyHashable: Any]) {
