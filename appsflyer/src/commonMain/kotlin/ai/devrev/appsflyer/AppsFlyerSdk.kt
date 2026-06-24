@@ -53,6 +53,10 @@ internal interface AppsFlyerSdk {
 
     fun setMinTimeBetweenSessions(seconds: Int)
 
+    fun setDisableAdvertisingIdentifier(disable: Boolean)
+
+    fun setDisableSKAdNetwork(disable: Boolean)
+
     fun getAppsFlyerUID(): String?
 
     fun getSdkVersion(): String

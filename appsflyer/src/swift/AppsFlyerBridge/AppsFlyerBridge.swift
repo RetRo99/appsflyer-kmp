@@ -101,6 +101,14 @@ public class AppsFlyerBridge: NSObject, AppsFlyerLibDelegate, AppsFlyerDeepLinkD
         AppsFlyerLib.shared().minTimeBetweenSessions = UInt(seconds)
     }
 
+    public func setDisableAdvertisingIdentifier(_ disable: Bool) {
+        AppsFlyerLib.shared().disableAdvertisingIdentifier = disable
+    }
+
+    public func setDisableSKAdNetwork(_ disable: Bool) {
+        AppsFlyerLib.shared().disableSKAdNetwork = disable
+    }
+
     public func stop(_ stop: Bool) {
         AppsFlyerLib.shared().isStopped = stop
     }

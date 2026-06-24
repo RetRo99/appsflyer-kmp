@@ -80,6 +80,12 @@ internal class AppsFlyerClientImpl(
     override fun setMinTimeBetweenSessions(seconds: Int) =
         sdk.setMinTimeBetweenSessions(seconds)
 
+    override fun setDisableAdvertisingIdentifier(disable: Boolean) =
+        sdk.setDisableAdvertisingIdentifier(disable)
+
+    override fun setDisableSKAdNetwork(disable: Boolean) =
+        sdk.setDisableSKAdNetwork(disable)
+
     override fun getSdkVersion(): String = sdk.getSdkVersion()
 
     override fun setAnonymizeUser(enabled: Boolean) {

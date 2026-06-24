@@ -81,6 +81,17 @@ interface AppsFlyerClient {
     /** Sets the minimum time between sessions in seconds. */
     fun setMinTimeBetweenSessions(seconds: Int)
 
+    /**
+     * Disables collection of the advertising identifier (IDFA on iOS,
+     * advertising ID on Android).
+     */
+    fun setDisableAdvertisingIdentifier(disable: Boolean)
+
+    /**
+     * Disables SKAdNetwork measurement (iOS only). No-op on Android.
+     */
+    fun setDisableSKAdNetwork(disable: Boolean)
+
     /** Returns the AppsFlyer device ID, or null if the SDK hasn't started yet. */
     fun getAppsFlyerUID(): String?
 

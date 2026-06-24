@@ -361,6 +361,18 @@ class AppsFlyerClientImplTest {
     }
 
     @Test
+    fun setDisableAdvertisingIdentifierForwardsToBackend() {
+        client.setDisableAdvertisingIdentifier(true)
+        assertEquals(true, sdk.lastDisableAdvertisingIdentifier)
+    }
+
+    @Test
+    fun setDisableSKAdNetworkForwardsToBackend() {
+        client.setDisableSKAdNetwork(true)
+        assertEquals(true, sdk.lastDisableSKAdNetwork)
+    }
+
+    @Test
     fun logAdRevenueForwardsToBackend() {
         val data = AdRevenueData(
             monetizationNetwork = "ironsource",
@@ -519,6 +531,10 @@ private class FakeAppsFlyerSdk : AppsFlyerSdk {
         private set
     var lastMinTimeBetweenSessions: Int? = null
         private set
+    var lastDisableAdvertisingIdentifier: Boolean? = null
+        private set
+    var lastDisableSKAdNetwork: Boolean? = null
+        private set
     var lastAnonymizeUser: Boolean? = null
         private set
     var lastSharingFilterPartners: Set<String>? = null
@@ -578,6 +594,14 @@ private class FakeAppsFlyerSdk : AppsFlyerSdk {
 
     override fun setMinTimeBetweenSessions(seconds: Int) {
         lastMinTimeBetweenSessions = seconds
+    }
+
+    override fun setDisableAdvertisingIdentifier(disable: Boolean) {
+        lastDisableAdvertisingIdentifier = disable
+    }
+
+    override fun setDisableSKAdNetwork(disable: Boolean) {
+        lastDisableSKAdNetwork = disable
     }
 
     override fun setAnonymizeUser(enabled: Boolean) {

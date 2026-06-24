@@ -128,6 +128,14 @@ internal class IosAppsFlyerSdk(
         bridge.setMinTimeBetweenSessions(seconds.toLong())
     }
 
+    override fun setDisableAdvertisingIdentifier(disable: Boolean) {
+        bridge.setDisableAdvertisingIdentifier(disable)
+    }
+
+    override fun setDisableSKAdNetwork(disable: Boolean) {
+        bridge.setDisableSKAdNetwork(disable)
+    }
+
     override fun setAnonymizeUser(enabled: Boolean) {
         bridge.setAnonymizeUser(enabled)
     }

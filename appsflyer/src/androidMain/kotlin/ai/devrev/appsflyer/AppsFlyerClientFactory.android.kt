@@ -123,6 +123,14 @@ internal class AndroidAppsFlyerSdk(
         lib.setMinTimeBetweenSessions(seconds)
     }
 
+    override fun setDisableAdvertisingIdentifier(disable: Boolean) {
+        lib.setDisableAdvertisingIdentifiers(disable)
+    }
+
+    override fun setDisableSKAdNetwork(disable: Boolean) {
+        // SKAdNetwork is iOS only — no-op on Android.
+    }
+
     override fun setAnonymizeUser(enabled: Boolean) {
         lib.anonymizeUser(enabled)
     }
