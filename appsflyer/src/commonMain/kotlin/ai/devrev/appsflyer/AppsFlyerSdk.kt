@@ -49,6 +49,8 @@ internal interface AppsFlyerSdk {
 
     fun logLocation(latitude: Double, longitude: Double)
 
+    fun setAdditionalData(data: Map<String, Any?>)
+
     fun getAppsFlyerUID(): String?
 
     fun getSdkVersion(): String

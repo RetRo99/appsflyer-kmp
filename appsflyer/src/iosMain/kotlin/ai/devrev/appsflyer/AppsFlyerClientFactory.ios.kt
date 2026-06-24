@@ -119,6 +119,11 @@ internal class IosAppsFlyerSdk(
         bridge.logLocation(longitude, latitude)
     }
 
+    override fun setAdditionalData(data: Map<String, Any?>) {
+        @Suppress("UNCHECKED_CAST")
+        bridge.setCustomData(data as Map<Any?, *>?)
+    }
+
     override fun setAnonymizeUser(enabled: Boolean) {
         bridge.setAnonymizeUser(enabled)
     }

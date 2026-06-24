@@ -115,6 +115,10 @@ internal class AndroidAppsFlyerSdk(
         lib.logLocation(appContext, latitude, longitude)
     }
 
+    override fun setAdditionalData(data: Map<String, Any?>) {
+        lib.setAdditionalData(data)
+    }
+
     override fun setAnonymizeUser(enabled: Boolean) {
         lib.anonymizeUser(enabled)
     }

@@ -93,6 +93,10 @@ public class AppsFlyerBridge: NSObject, AppsFlyerLibDelegate, AppsFlyerDeepLinkD
         AppsFlyerLib.shared().logLocation(longitude: longitude, latitude: latitude)
     }
 
+    public func setCustomData(_ data: [AnyHashable: Any]?) {
+        AppsFlyerLib.shared().customData = data
+    }
+
     public func stop(_ stop: Bool) {
         AppsFlyerLib.shared().isStopped = stop
     }

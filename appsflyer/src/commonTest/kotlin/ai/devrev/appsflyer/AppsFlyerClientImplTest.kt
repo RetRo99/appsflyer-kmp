@@ -343,6 +343,18 @@ class AppsFlyerClientImplTest {
     }
 
     @Test
+    fun setAdditionalDataForwardsToBackend() {
+        client.setAdditionalData(mapOf("key1" to "value1", "key2" to 42))
+        assertEquals(mapOf("key1" to "value1", "key2" to 42), sdk.lastAdditionalData)
+    }
+
+    @Test
+    fun setAdditionalDataStripsNullValues() {
+        client.setAdditionalData(mapOf("a" to "b", "c" to null, "d" to 3))
+        assertEquals(mapOf("a" to "b", "d" to 3), sdk.lastAdditionalData)
+    }
+
+    @Test
     fun logAdRevenueForwardsToBackend() {
         val data = AdRevenueData(
             monetizationNetwork = "ironsource",
@@ -497,6 +509,8 @@ private class FakeAppsFlyerSdk : AppsFlyerSdk {
         private set
     var lastLongitude: Double? = null
         private set
+    var lastAdditionalData: Map<String, Any?>? = null
+        private set
     var lastAnonymizeUser: Boolean? = null
         private set
     var lastSharingFilterPartners: Set<String>? = null
@@ -548,6 +562,10 @@ private class FakeAppsFlyerSdk : AppsFlyerSdk {
     override fun logLocation(latitude: Double, longitude: Double) {
         lastLatitude = latitude
         lastLongitude = longitude
+    }
+
+    override fun setAdditionalData(data: Map<String, Any?>) {
+        lastAdditionalData = data
     }
 
     override fun setAnonymizeUser(enabled: Boolean) {

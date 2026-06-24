@@ -74,6 +74,9 @@ internal class AppsFlyerClientImpl(
     override fun logLocation(latitude: Double, longitude: Double) =
         sdk.logLocation(latitude, longitude)
 
+    override fun setAdditionalData(data: Map<String, Any?>) =
+        sdk.setAdditionalData(data.filterValues { it != null })
+
     override fun getSdkVersion(): String = sdk.getSdkVersion()
 
     override fun setAnonymizeUser(enabled: Boolean) {
