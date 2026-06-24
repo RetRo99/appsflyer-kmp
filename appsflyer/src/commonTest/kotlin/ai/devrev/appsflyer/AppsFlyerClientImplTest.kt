@@ -542,6 +542,12 @@ class AppsFlyerClientImplTest {
     }
 
     @Test
+    fun registerUninstallForwardsToBackend() {
+        client.registerUninstall("fcm-token-123")
+        assertEquals("fcm-token-123", sdk.lastUninstallToken)
+    }
+
+    @Test
     fun logAdRevenueForwardsToBackend() {
         val data = AdRevenueData(
             monetizationNetwork = "ironsource",
@@ -708,6 +714,8 @@ private class FakeAppsFlyerSdk : AppsFlyerSdk {
         private set
     var lastEmailCryptType: AfEmailCryptType? = null
         private set
+    var lastUninstallToken: String? = null
+        private set
     var lastAnonymizeUser: Boolean? = null
         private set
     var lastSharingFilterPartners: Set<String>? = null
@@ -780,6 +788,10 @@ private class FakeAppsFlyerSdk : AppsFlyerSdk {
     override fun setUserEmails(emails: List<String>, cryptType: AfEmailCryptType) {
         lastUserEmails = emails
         lastEmailCryptType = cryptType
+    }
+
+    override fun registerUninstall(token: String) {
+        lastUninstallToken = token
     }
 
     override fun setAnonymizeUser(enabled: Boolean) {

@@ -3,7 +3,11 @@
 package com.retro99.appsflyer
 
 import AppsFlyerBridge.AppsFlyerBridge
+import kotlinx.cinterop.addressOf
+import kotlinx.cinterop.usePinned
+import platform.Foundation.NSData
 import platform.Foundation.NSNumber
+import platform.Foundation.create
 
 internal class IosAppsFlyerSdk(
     private val launchOptions: Map<Any?, *>? = null,
@@ -140,6 +144,10 @@ internal class IosAppsFlyerSdk(
         bridge.setUserEmails(emails, cryptType.iosRawValue)
     }
 
+    override fun registerUninstall(token: String) {
+        bridge.registerUninstall(token.hexToNSData())
+    }
+
     override fun setAnonymizeUser(enabled: Boolean) {
         bridge.setAnonymizeUser(enabled)
     }
@@ -175,5 +183,14 @@ internal actual class AppsFlyerClientFactory(
             sdk = IosAppsFlyerSdk(launchOptions),
             config = config,
         )
+    }
+}
+
+internal fun String.hexToNSData(): NSData {
+    val bytes = chunked(2).map { byteStr ->
+        byteStr.toInt(16).toByte()
+    }.toByteArray()
+    return bytes.usePinned { pin ->
+        NSData.create(bytes = pin.addressOf(0), length = bytes.size.toULong())
     }
 }

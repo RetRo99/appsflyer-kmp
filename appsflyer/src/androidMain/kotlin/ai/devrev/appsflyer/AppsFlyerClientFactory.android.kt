@@ -136,6 +136,10 @@ internal class AndroidAppsFlyerSdk(
         lib.setUserEmails(cryptType.toAndroidCryptType(), *emails.toTypedArray())
     }
 
+    override fun registerUninstall(token: String) {
+        lib.updateServerUninstallToken(appContext, token)
+    }
+
     override fun setAnonymizeUser(enabled: Boolean) {
         lib.anonymizeUser(enabled)
     }

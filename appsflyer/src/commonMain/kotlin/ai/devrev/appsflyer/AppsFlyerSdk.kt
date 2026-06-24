@@ -59,6 +59,8 @@ internal interface AppsFlyerSdk {
 
     fun setUserEmails(emails: List<String>, cryptType: AfEmailCryptType)
 
+    fun registerUninstall(token: String)
+
     fun getAppsFlyerUID(): String?
 
     fun getSdkVersion(): String

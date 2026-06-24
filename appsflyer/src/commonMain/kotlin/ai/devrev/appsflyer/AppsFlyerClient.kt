@@ -95,6 +95,18 @@ interface AppsFlyerClient {
     /** Sets user emails for attribution with a hashing type. */
     fun setUserEmails(emails: List<String>, cryptType: AfEmailCryptType)
 
+    /**
+     * Registers the push notification device token for uninstall measurement.
+     * Call this when you receive the token from FCM (Android) or APNs (iOS).
+     *
+     * On iOS, the [token] should be the hex-encoded string representation of
+     * the `Data` received in `didRegisterForRemoteNotificationsWithDeviceToken`.
+     * On Android, pass the FCM token string directly.
+     *
+     * @param token the device token as a string.
+     */
+    fun registerUninstall(token: String)
+
     /** Returns the AppsFlyer device ID, or null if the SDK hasn't started yet. */
     fun getAppsFlyerUID(): String?
 

@@ -89,6 +89,9 @@ internal class AppsFlyerClientImpl(
     override fun setUserEmails(emails: List<String>, cryptType: AfEmailCryptType) =
         sdk.setUserEmails(emails, cryptType)
 
+    override fun registerUninstall(token: String) =
+        sdk.registerUninstall(token)
+
     override fun getSdkVersion(): String = sdk.getSdkVersion()
 
     override fun setAnonymizeUser(enabled: Boolean) {

@@ -119,6 +119,10 @@ public class AppsFlyerBridge: NSObject, AppsFlyerLibDelegate, AppsFlyerDeepLinkD
         AppsFlyerLib.shared().setUserEmails(emails, with: type)
     }
 
+    public func registerUninstall(_ token: Data) {
+        AppsFlyerLib.shared().registerUninstall(token)
+    }
+
     public func stop(_ stop: Bool) {
         AppsFlyerLib.shared().isStopped = stop
     }
