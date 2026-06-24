@@ -117,7 +117,7 @@ internal class IosAppsFlyerSdk : AppsFlyerSdk {
         @Suppress("UNCHECKED_CAST")
         bridge.logAdRevenue(
             monetizationNetwork = data.monetizationNetwork,
-            mediationNetwork = data.mediationNetwork.ordinal,
+            mediationNetwork = data.mediationNetwork.ordinal.toLong(),
             currency = data.currency,
             revenue = data.revenue,
             additionalParameters = data.additionalParameters as Map<Any?, *>?,

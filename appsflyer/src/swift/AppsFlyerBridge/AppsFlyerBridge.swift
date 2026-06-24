@@ -115,7 +115,7 @@ public class AppsFlyerBridge: NSObject, AppsFlyerLibDelegate, AppsFlyerDeepLinkD
     }
 
     public func logAdRevenue(
-        monetizationNetwork: String,
+        _ monetizationNetwork: String,
         mediationNetwork: Int,
         currency: String,
         revenue: Double,
@@ -126,7 +126,7 @@ public class AppsFlyerBridge: NSObject, AppsFlyerLibDelegate, AppsFlyerDeepLinkD
             monetizationNetwork: monetizationNetwork,
             mediationNetwork: mediation,
             currencyIso4217Code: currency,
-            eventRevenue: revenue
+            eventRevenue: NSNumber(value: revenue)
         )
         let params = (additionalParameters as? [String: Any]) ?? [:]
         AppsFlyerLib.shared().logAdRevenue(adRevenueData, additionalParameters: params)
@@ -136,12 +136,18 @@ public class AppsFlyerBridge: NSObject, AppsFlyerLibDelegate, AppsFlyerDeepLinkD
         switch rawValue {
         case 0: return .googleAdMob
         case 1: return .ironSource
-        case 2: return .appLovinMAX
+        case 2: return .applovinMax
         case 3: return .fyber
         case 4: return .appodeal
         case 5: return .admost
         case 6: return .topon
-        case 7: return .tappx
+        case 7: return .tradplus
+        case 8: return .yandex
+        case 9: return .chartBoost
+        case 10: return .unity
+        case 11: return .toponPte
+        case 12: return .custom
+        case 13: return .directMonetization
         default: return .googleAdMob
         }
     }

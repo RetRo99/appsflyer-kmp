@@ -124,7 +124,13 @@ enum class AfMediationNetwork {
     APPODEAL,
     ADMOST,
     TOPON,
-    TAPPX,
+    TRADPLUS,
+    YANDEX,
+    CHARTBOOST,
+    UNITY,
+    TOPON_PTE,
+    CUSTOM_MEDIATION,
+    DIRECT_MONETIZATION,
 }
 
 /**

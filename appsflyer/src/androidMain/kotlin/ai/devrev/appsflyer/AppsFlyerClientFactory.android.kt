@@ -170,12 +170,18 @@ internal fun JSONObject.toMap(): Map<String, Any?> {
 private fun AfMediationNetwork.toAndroidMediationNetwork(): MediationNetwork = when (this) {
     AfMediationNetwork.GOOGLE_ADMOB -> MediationNetwork.GOOGLE_ADMOB
     AfMediationNetwork.IRON_SOURCE -> MediationNetwork.IRONSOURCE
-    AfMediationNetwork.APP_LOVIN_MAX -> MediationNetwork.APPLOVINMAX
+    AfMediationNetwork.APP_LOVIN_MAX -> MediationNetwork.APPLOVIN_MAX
     AfMediationNetwork.FYBER -> MediationNetwork.FYBER
     AfMediationNetwork.APPODEAL -> MediationNetwork.APPODEAL
     AfMediationNetwork.ADMOST -> MediationNetwork.ADMOST
     AfMediationNetwork.TOPON -> MediationNetwork.TOPON
-    AfMediationNetwork.TAPPX -> MediationNetwork.TAPPX
+    AfMediationNetwork.TRADPLUS -> MediationNetwork.TRADPLUS
+    AfMediationNetwork.YANDEX -> MediationNetwork.YANDEX
+    AfMediationNetwork.CHARTBOOST -> MediationNetwork.CHARTBOOST
+    AfMediationNetwork.UNITY -> MediationNetwork.UNITY
+    AfMediationNetwork.TOPON_PTE -> MediationNetwork.TOPON_PTE
+    AfMediationNetwork.CUSTOM_MEDIATION -> MediationNetwork.CUSTOM_MEDIATION
+    AfMediationNetwork.DIRECT_MONETIZATION -> MediationNetwork.DIRECT_MONETIZATION_NETWORK
 }
 
 private fun Any?.unwrap(): Any? = when (this) {
