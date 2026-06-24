@@ -47,6 +47,8 @@ internal interface AppsFlyerSdk {
 
     fun setCurrencyCode(currency: String)
 
+    fun logLocation(latitude: Double, longitude: Double)
+
     fun getAppsFlyerUID(): String?
 
     fun getSdkVersion(): String

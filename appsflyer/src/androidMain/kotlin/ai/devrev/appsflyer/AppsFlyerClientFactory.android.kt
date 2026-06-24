@@ -111,6 +111,10 @@ internal class AndroidAppsFlyerSdk(
         lib.setCurrencyCode(currency)
     }
 
+    override fun logLocation(latitude: Double, longitude: Double) {
+        lib.logLocation(appContext, latitude, longitude)
+    }
+
     override fun setAnonymizeUser(enabled: Boolean) {
         lib.anonymizeUser(enabled)
     }

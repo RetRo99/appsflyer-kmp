@@ -67,6 +67,14 @@ interface AppsFlyerClient {
     /** Sets the currency code for revenue events (ISO 4217, e.g. "USD"). */
     fun setCurrencyCode(currency: String)
 
+    /**
+     * Logs a location to AppsFlyer for geo-based attribution.
+     *
+     * @param latitude the latitude in decimal degrees.
+     * @param longitude the longitude in decimal degrees.
+     */
+    fun logLocation(latitude: Double, longitude: Double)
+
     /** Returns the AppsFlyer device ID, or null if the SDK hasn't started yet. */
     fun getAppsFlyerUID(): String?
 

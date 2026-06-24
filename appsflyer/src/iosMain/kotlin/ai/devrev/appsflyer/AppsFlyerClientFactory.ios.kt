@@ -115,6 +115,10 @@ internal class IosAppsFlyerSdk(
         bridge.setCurrencyCode(currency)
     }
 
+    override fun logLocation(latitude: Double, longitude: Double) {
+        bridge.logLocation(longitude, latitude)
+    }
+
     override fun setAnonymizeUser(enabled: Boolean) {
         bridge.setAnonymizeUser(enabled)
     }

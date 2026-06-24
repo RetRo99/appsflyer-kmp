@@ -336,6 +336,13 @@ class AppsFlyerClientImplTest {
     }
 
     @Test
+    fun logLocationForwardsToBackend() {
+        client.logLocation(latitude = 37.7749, longitude = -122.4194)
+        assertEquals(37.7749, sdk.lastLatitude)
+        assertEquals(-122.4194, sdk.lastLongitude)
+    }
+
+    @Test
     fun logAdRevenueForwardsToBackend() {
         val data = AdRevenueData(
             monetizationNetwork = "ironsource",
@@ -486,6 +493,10 @@ private class FakeAppsFlyerSdk : AppsFlyerSdk {
         private set
     var lastCurrencyCode: String? = null
         private set
+    var lastLatitude: Double? = null
+        private set
+    var lastLongitude: Double? = null
+        private set
     var lastAnonymizeUser: Boolean? = null
         private set
     var lastSharingFilterPartners: Set<String>? = null
@@ -532,6 +543,11 @@ private class FakeAppsFlyerSdk : AppsFlyerSdk {
 
     override fun setCurrencyCode(currency: String) {
         lastCurrencyCode = currency
+    }
+
+    override fun logLocation(latitude: Double, longitude: Double) {
+        lastLatitude = latitude
+        lastLongitude = longitude
     }
 
     override fun setAnonymizeUser(enabled: Boolean) {

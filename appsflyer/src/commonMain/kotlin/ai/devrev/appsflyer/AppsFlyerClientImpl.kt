@@ -71,6 +71,9 @@ internal class AppsFlyerClientImpl(
 
     override fun setCurrencyCode(currency: String) = sdk.setCurrencyCode(currency)
 
+    override fun logLocation(latitude: Double, longitude: Double) =
+        sdk.logLocation(latitude, longitude)
+
     override fun getSdkVersion(): String = sdk.getSdkVersion()
 
     override fun setAnonymizeUser(enabled: Boolean) {
