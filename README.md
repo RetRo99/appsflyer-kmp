@@ -1,238 +1,43 @@
 # appsflyer-kmp
 
-A Kotlin Multiplatform library that wraps the native AppsFlyer SDKs (Android + iOS)
-behind a single shared API. There is no official AppsFlyer KMP SDK; this library
-provides one by delegating to the native SDKs via `expect`/`actual`.
+A Kotlin Multiplatform wrapper for the AppsFlyer SDK (Android + iOS). There is no
+official AppsFlyer KMP SDK — this library provides one by delegating to the
+native SDKs via `expect`/`actual`, with a coroutine-first API.
 
 ## Capabilities
 
-- **Install attribution / campaign data** — organic vs non-organic, media source, campaign name.
-- **Deep linking** — OneLink resolution via the unified deep link API.
-- **Custom event logging** — `logEvent(name, params)` and `logEventForResult(name, params)` with delivery confirmation.
-- **Ad revenue** — `logAdRevenue(data)` with typed `AdRevenueData` and `AfMediationNetwork` enum.
-- **Customer user ID** — `setCustomerUserId(id)` for attribution linking.
-- **Runtime controls** — `stop()`, `setAnonymizeUser()`, `setSharingFilterPartners()`.
-- **GDPR/DMA consent** — Pre-start consent via `AppsFlyerConfig.consentData` using `AppsFlyerConsent`.
-- **TCF data collection** — Pre-start toggle via `AppsFlyerConfig.enableTCFDataCollection`.
+- Install attribution / conversion data
+- OneLink deep linking (deferred and direct)
+- In-app event logging with delivery confirmation
+- Ad revenue measurement
+- In-app purchase validation (VAL V2)
+- Uninstall measurement
+- GDPR/DMA consent
+- 1:1 API parity with the native SDKs
 
-## Shared API
+## Kotlin-first design
 
-```kotlin
-interface AppsFlyerClient {
-    fun start()
-    suspend fun getStartResult(): StartResult
-    suspend fun getConversionData(): CampaignData
-    val deepLink: Flow<DeepLinkResult>
-
-    fun setCustomerUserId(id: String?)
-    fun logEvent(name: String, params: Map<String, Any?> = emptyMap())
-    suspend fun logEventForResult(name: String, params: Map<String, Any?> = emptyMap()): LogEventResult
-    fun logAdRevenue(data: AdRevenueData)
-    suspend fun validateAndLogInAppPurchase(
-        purchaseDetails: PurchaseDetails,
-        additionalParameters: Map<String, Any?> = emptyMap(),
-    ): PurchaseValidationResult
-
-    fun setAnonymizeUser(enabled: Boolean)
-    fun setSharingFilterPartners(partners: Set<String>)
-    fun setSharingFilterForAllPartners()
-    fun setCurrencyCode(currency: String)
-    fun logLocation(latitude: Double, longitude: Double)
-    fun setAdditionalData(data: Map<String, Any?>)
-    fun setMinTimeBetweenSessions(seconds: Int)
-    fun setDisableAdvertisingIdentifier(disable: Boolean)
-    fun setDisableSKAdNetwork(disable: Boolean)
-    fun setUserEmails(emails: List<String>, cryptType: AfEmailCryptType)
-    fun setPhoneNumber(phoneNumber: String?)
-    fun setPartnerData(partnerId: String, data: Map<String, Any?>)
-    fun setExtension(extension: String)
-    fun setInstallId(installId: String)
-    fun setAppInviteOneLink(oneLinkId: String)
-    fun setOneLinkCustomDomain(domains: List<String>)
-    fun setResolveDeepLinkURLs(urls: List<String>)
-    fun appendParametersToDeepLinkingURL(contains: String, parameters: Map<String, String>)
-    fun addPushNotificationDeepLinkPath(keys: List<String>)
-    fun setHost(hostPrefix: String, hostName: String)
-    fun getHostName(): String
-    fun getHostPrefix(): String
-    fun performOnAppAttribution(url: String)
-    fun setIsUpdate(isUpdate: Boolean)
-    fun setCollectIMEI(collect: Boolean)
-    fun setCollectOaid(collect: Boolean)
-    fun setImeiData(imei: String?)
-    fun setOaidData(oaid: String?)
-    fun setAndroidIdData(androidId: String?)
-    fun disableAppSetId()
-    fun setDisableNetworkData(disable: Boolean)
-    fun waitForCustomerUserId(wait: Boolean)
-    fun setPreinstallAttribution(mediaSource: String, campaign: String, siteId: String)
-    fun setOutOfStore(source: String)
-    fun setDisableIDFVCollection(disable: Boolean)
-    fun setDisableCollectASA(disable: Boolean)
-    fun setDisableAppleAdsAttribution(disable: Boolean)
-    fun setShouldCollectDeviceName(collect: Boolean)
-    fun setUseReceiptValidationSandbox(enable: Boolean)
-    fun setUseUninstallSandbox(enable: Boolean)
-    fun setCurrentDeviceLanguage(language: String?)
-    fun setDeepLinkTimeout(seconds: Int)
-    fun remoteDebuggingCall(data: String)
-    fun isPreInstalledApp(): Boolean
-    fun getAttributionId(): String?
-    fun getOutOfStore(): String
-    fun logSession()
-    fun onPause()
-    fun setCustomerIdAndLogSession(customerUserId: String)
-    fun isSessionReady(): Boolean
-    fun handlePushNotification(payload: Map<String, Any?>)
-    fun unregisterSessionReadyListener()
-
-    fun registerUninstall(token: String)
-    fun getAppsFlyerUID(): String?
-    fun getSdkVersion(): String
-    fun stop(stop: Boolean = true)
-    val isStopped: Boolean
-}
-```
-
-**Android-only extensions** (require `Context`/`Activity`/`Intent`):
+Asynchronous operations use suspending functions instead of callbacks:
 
 ```kotlin
-fun AppsFlyerClient.performOnDeepLinking(intent: Intent, context: Context)
-fun AppsFlyerClient.sendPushNotificationData(activity: Activity)
+suspend fun getStartResult(): StartResult
+suspend fun getConversionData(): CampaignData
+suspend fun logEventForResult(name: String, params: Map<String, Any?>): LogEventResult
+suspend fun validateAndLogInAppPurchase(...): PurchaseValidationResult
 ```
 
-### Configuration
+Deep link events use a `Flow` instead of listeners:
 
 ```kotlin
-data class AppsFlyerConfig(
-    val devKey: String,
-    val isDebug: Boolean = false,
-    val iosAppId: String? = null,
-    val collectAndroidId: Boolean = false,
-    val anonymizeUser: Boolean = false,
-    val enableTCFDataCollection: Boolean = false,
-    val consentData: AppsFlyerConsent? = null,
-    val sharingFilterPartners: Set<String> = emptySet(),
-)
+val deepLink: Flow<DeepLinkResult>
 ```
 
-`anonymizeUser`, `consentData`, `enableTCFDataCollection`, and `sharingFilterPartners`
-are applied during SDK initialization (after `init()`, before `start()`). The
-runtime methods `setAnonymizeUser()` and `setSharingFilterPartners()` can be
-called at any time after start to update these values dynamically.
+Null values in `logEvent`, `logAdRevenue`, `setAdditionalData`, `setPartnerData`,
+and `validateAndLogInAppPurchase` params are silently dropped on both platforms.
 
-### Result types
+## Setup
 
-```kotlin
-sealed interface StartResult {
-    data object Success : StartResult
-    data class Error(val code: Int, val message: String) : StartResult
-}
-
-sealed interface LogEventResult {
-    data object Success : LogEventResult
-    data class Error(val code: Int, val message: String) : LogEventResult
-}
-
-sealed interface PurchaseValidationResult {
-    data class Success(val result: Map<String, Any?>) : PurchaseValidationResult
-    data class Error(val message: String?) : PurchaseValidationResult
-}
-
-enum class AfPurchaseType(val iosRawValue: Long) {
-    SUBSCRIPTION, ONE_TIME_PURCHASE,
-}
-
-data class PurchaseDetails(
-    val productId: String,
-    val transactionId: String,
-    val purchaseType: AfPurchaseType,
-)
-
-sealed interface CampaignData {
-    data class Success(
-        val status: AfStatus,
-        val mediaSource: String?,
-        val campaign: String?,
-        val raw: Map<String, Any?>,
-    ) : CampaignData
-
-    data class Error(val message: String?) : CampaignData
-}
-
-enum class AfStatus { ORGANIC, NON_ORGANIC }
-
-sealed interface DeepLinkResult {
-    data class Found(
-        val deepLinkValue: String?,
-        val isDeferred: Boolean,
-        val mediaSource: String?,
-        val campaign: String?,
-        val raw: Map<String, Any?>,
-    ) : DeepLinkResult
-
-    data object NotFound : DeepLinkResult
-
-    data class Error(val message: String?) : DeepLinkResult
-}
-```
-
-### Ad revenue
-
-```kotlin
-data class AdRevenueData(
-    val monetizationNetwork: String,
-    val mediationNetwork: AfMediationNetwork,
-    val currency: String,
-    val revenue: Double,
-    val additionalParameters: Map<String, Any?> = emptyMap(),
-)
-
-enum class AfMediationNetwork {
-    GOOGLE_ADMOB,
-    IRON_SOURCE,
-    APP_LOVIN_MAX,
-    FYBER,
-    APPODEAL,
-    ADMOST,
-    TOPON,
-    TRADPLUS,
-    YANDEX,
-    CHARTBOOST,
-    UNITY,
-    TOPON_PTE,
-    CUSTOM_MEDIATION,
-    DIRECT_MONETIZATION,
-}
-```
-
-### Consent
-
-```kotlin
-data class AppsFlyerConsent(
-    val isUserSubjectToGDPR: Boolean? = null,
-    val hasConsentForDataUsage: Boolean? = null,
-    val hasConsentForAdsPersonalization: Boolean? = null,
-    val hasConsentForAdStorage: Boolean? = null,
-) {
-    companion object {
-        fun forNonGDPRUser() = AppsFlyerConsent(isUserSubjectToGDPR = false)
-
-        fun forGDPRUser(
-            hasConsentForDataUsage: Boolean,
-            hasConsentForAdsPersonalization: Boolean,
-        ) = AppsFlyerConsent(
-            isUserSubjectToGDPR = true,
-            hasConsentForDataUsage = hasConsentForDataUsage,
-            hasConsentForAdsPersonalization = hasConsentForAdsPersonalization,
-        )
-    }
-}
-```
-
-## Android Setup
-
-### 1. Add dependency
+### Android
 
 ```kotlin
 dependencies {
@@ -240,114 +45,24 @@ dependencies {
 }
 ```
 
-### 2. Initialize in your Activity
-
-> **Note:** Pass the Activity context so the SDK can read the incoming intent for
-> deep link resolution. The library uses `applicationContext` internally for
-> long-lived operations to avoid memory leaks.
-
 ```kotlin
-class MainActivity : ComponentActivity() {
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-
-        AppsFlyer.initialize(this, AppsFlyerConfig(
-            devKey = "YOUR_AF_DEV_KEY",
-            isDebug = BuildConfig.DEBUG,
-            collectAndroidId = true,
-        ))
-    }
-}
+AppsFlyer.initialize(this, AppsFlyerConfig(
+    devKey = "YOUR_AF_DEV_KEY",
+    isDebug = BuildConfig.DEBUG,
+))
 ```
 
-### 3. Add intent filter for deep links
+Add an intent filter for deep links in your `AndroidManifest.xml` (standard
+AppsFlyer OneLink configuration). That's it — the SDK handles the rest.
 
-In your `AndroidManifest.xml`, add an intent filter to the Activity that handles
-deep links:
+### iOS
 
-```xml
-<activity android:name=".MainActivity">
-    <!-- App Links (Universal Links equivalent) -->
-    <intent-filter android:autoVerify="true">
-        <action android:name="android.intent.action.VIEW" />
-        <category android:name="android.intent.category.DEFAULT" />
-        <category android:name="android.intent.category.BROWSABLE" />
-        <data
-            android:scheme="https"
-            android:host="yoursubdomain.onelink.me" />
-    </intent-filter>
-
-    <!-- URI scheme fallback -->
-    <intent-filter>
-        <action android:name="android.intent.action.VIEW" />
-        <category android:name="android.intent.category.DEFAULT" />
-        <category android:name="android.intent.category.BROWSABLE" />
-        <data android:scheme="yourscheme" />
-    </intent-filter>
-</activity>
-```
-
-### 4. Observe results and start
-
-> **Important:** Set up deep link collectors **before** calling `start()` to
-> avoid missing the initial deep link (the flow does not replay past emissions).
-
-```kotlin
-// 1. Subscribe to deep links first
-scope.launch {
-    AppsFlyer.client.deepLink.collect { result ->
-        when (result) {
-            is DeepLinkResult.Found -> navigate(result.deepLinkValue)
-            is DeepLinkResult.NotFound -> { /* no link */ }
-            is DeepLinkResult.Error -> log("Deep link error: ${result.message}")
-        }
-    }
-}
-
-// 2. Then start the SDK
-AppsFlyer.client.start()
-
-// 3. Observe one-shot results (these use replay, so order doesn't matter)
-scope.launch {
-    when (val result = AppsFlyer.client.getStartResult()) {
-        is StartResult.Success -> log("SDK started")
-        is StartResult.Error -> log("SDK failed: ${result.message}")
-    }
-}
-
-scope.launch {
-    when (val data = AppsFlyer.client.getConversionData()) {
-        is CampaignData.Success -> log("Attribution: ${data.status}")
-        is CampaignData.Error -> log("Conversion error: ${data.message}")
-    }
-}
-```
-
-**That's it for Android.** Deep links are handled automatically via the intent filter — no extra wiring needed.
-
----
-
-## iOS Setup
-
-### 1. Add dependency
-
-Same Gradle dependency as Android (shared KMP module).
-
-### 2. Add AppsFlyer SPM package to your Xcode project
-
+Add the AppsFlyer SPM package to your Xcode project:
 - URL: `https://github.com/AppsFlyerSDK/AppsFlyerFramework`
 - Version: `7.0.0`
 - Product: `AppsFlyerLib`
 
-### 3. Initialize and forward deep links
-
-> **Important:** Pass `launchOptions` from `didFinishLaunchingWithOptions` to
-> `initialize()`. The SDK uses `handleLaunchOptions` + `registerSessionReadyListener`
-> to pre-resolve cold-launch Universal Links and wait for ATT readiness before
-> calling `start()`.```
-import SwiftUI
-import AppsFlyerKmp // or your shared framework name if you re-export the module
-
+```swift
 class AppDelegate: NSObject, UIApplicationDelegate {
     func application(
         _ application: UIApplication,
@@ -364,380 +79,119 @@ class AppDelegate: NSObject, UIApplicationDelegate {
         return true
     }
 }
-
-@main
-struct MyApp: App {
-    @UIApplicationDelegateAdaptor(AppDelegate.self) var delegate
-
-    var body: some Scene {
-        WindowGroup {
-            ContentView()
-                .onOpenURL { url in
-                    AppsFlyer.shared.linkHandler.handleOpenUrl(url: url)
-                }
-                .onContinueUserActivity(NSUserActivityTypeBrowsingWeb) { activity in
-                    AppsFlyer.shared.linkHandler.handleUserActivity(userActivity: activity)
-                }
-        }
-    }
-}
 ```
 
-- **`.onOpenURL`** handles URI scheme deep links (e.g. `yourscheme://...`)
-- **`.onContinueUserActivity`** handles Universal Links (e.g. `https://yoursubdomain.onelink.me/...`)
-
-For UIKit apps, use the equivalent AppDelegate methods instead:
+Forward deep links from your SwiftUI views or AppDelegate:
 
 ```swift
-func application(
-    _ app: UIApplication,
-    open url: URL,
-    options: [UIApplication.OpenURLOptionsKey: Any] = [:]
-) -> Bool {
-    AppsFlyer.shared.linkHandler.handleOpenUrl(url: url)
-    return true
-}
-
-func application(
-    _ application: UIApplication,
-    continue userActivity: NSUserActivity,
-    restorationHandler: @escaping ([UIUserActivityRestoring]?) -> Void
-) -> Bool {
-    AppsFlyer.shared.linkHandler.handleUserActivity(userActivity: userActivity)
-    return true
+.onOpenURL { url in AppsFlyer.shared.linkHandler.handleOpenUrl(url: url) }
+.onContinueUserActivity(NSUserActivityTypeBrowsingWeb) { activity in
+    AppsFlyer.shared.linkHandler.handleUserActivity(userActivity: activity)
 }
 ```
 
-### 4. Configure URL scheme and Associated Domains
-
-**Info.plist** — add your URI scheme:
-```xml
-<key>CFBundleURLTypes</key>
-<array>
-    <dict>
-        <key>CFBundleURLSchemes</key>
-        <array>
-            <string>yourscheme</string>
-        </array>
-    </dict>
-</array>
-```
-
-**Entitlements** — add Associated Domains for Universal Links:
-```xml
-<key>com.apple.developer.associated-domains</key>
-<array>
-    <string>applinks:yoursubdomain.onelink.me</string>
-</array>
-```
-
-### 5. Observe results and start
-
-Same as Android — subscribe to deep links first, then call `start()` from shared code:
+## Usage
 
 ```kotlin
+// Subscribe to deep links before starting
 scope.launch {
     AppsFlyer.client.deepLink.collect { result ->
         when (result) {
             is DeepLinkResult.Found -> navigate(result.deepLinkValue)
-            is DeepLinkResult.NotFound -> { /* no link */ }
-            is DeepLinkResult.Error -> log("Deep link error: ${result.message}")
+            is DeepLinkResult.NotFound -> { }
+            is DeepLinkResult.Error -> log(result.message)
         }
     }
 }
 
+// Start the SDK
 AppsFlyer.client.start()
-```
 
----
-
-## Usage Examples
-
-### Logging events
-
-```kotlin
-// Fire-and-forget
-AppsFlyer.client.logEvent("purchase", mapOf(
-    "price" to 9.99,
-    "currency" to "USD",
-))
-
-// With delivery confirmation
+// Observe attribution
 scope.launch {
-    when (val result = AppsFlyer.client.logEventForResult("purchase", mapOf(
-        "price" to 9.99,
-        "currency" to "USD",
-    ))) {
-        is LogEventResult.Success -> log("Event sent")
-        is LogEventResult.Error -> log("Event failed: ${result.message}")
+    when (val data = AppsFlyer.client.getConversionData()) {
+        is CampaignData.Success -> log("${data.status} — ${data.mediaSource}")
+        is CampaignData.Error -> log(data.message)
     }
 }
-```
 
-Null values in params are silently dropped on both methods.
+// Log events
+AppsFlyer.client.logEvent("purchase", mapOf("price" to 9.99))
 
-### Validating in-app purchases
-
-```kotlin
-scope.launch {
-    val result = AppsFlyer.client.validateAndLogInAppPurchase(
-        purchaseDetails = PurchaseDetails(
-            productId = "com.example.pro_monthly",
-            transactionId = "GPA.1234-5678-9012-34567",
-            purchaseType = AfPurchaseType.SUBSCRIPTION,
-        ),
-        additionalParameters = mapOf(
-            "af_currency" to "USD",
-            "af_revenue" to 9.99,
-        ),
-    )
-    when (result) {
-        is PurchaseValidationResult.Success ->
-            log("Purchase validated: ${result.result}")
-        is PurchaseValidationResult.Error ->
-            log("Purchase validation failed: ${result.message}")
-    }
-}
-```
-
-Null values in `additionalParameters` are silently dropped.
-
-### Logging ad revenue
-
-```kotlin
+// Ad revenue
 AppsFlyer.client.logAdRevenue(AdRevenueData(
     monetizationNetwork = "ironsource",
     mediationNetwork = AfMediationNetwork.GOOGLE_ADMOB,
     currency = "USD",
     revenue = 0.0015,
-    additionalParameters = mapOf(
-        "country" to "US",
-        "ad_unit" to "89b8c0159a50ebd1",
-        "ad_type" to "Banner",
-        "placement" to "place",
-    ),
 ))
-```
 
-### GDPR/DMA consent
+// In-app purchase validation
+scope.launch {
+    val result = AppsFlyer.client.validateAndLogInAppPurchase(
+        PurchaseDetails(
+            productId = "com.example.pro",
+            transactionId = "txn-123",
+            purchaseType = AfPurchaseType.SUBSCRIPTION,
+        ),
+    )
+}
 
-Set consent data before starting the SDK:
-
-```kotlin
+// GDPR consent
 AppsFlyer.initialize(context, AppsFlyerConfig(
     devKey = "YOUR_AF_DEV_KEY",
-    iosAppId = "YOUR_APPLE_APP_ID",
     consentData = AppsFlyerConsent.forGDPRUser(
         hasConsentForDataUsage = true,
         hasConsentForAdsPersonalization = false,
     ),
-    enableTCFDataCollection = true,
 ))
+
+// Uninstall measurement
+AppsFlyer.client.registerUninstall(fcmToken)
 ```
 
-For users not subject to GDPR:
+## Platform-specific behavior
+
+APIs that exist on only one platform are no-ops on the other (e.g.
+`setDisableSKAdNetwork` is iOS-only, `setCollectIMEI` is Android-only).
+Android-only extensions that require `Context`/`Activity`/`Intent`:
 
 ```kotlin
-AppsFlyer.initialize(context, AppsFlyerConfig(
-    devKey = "YOUR_AF_DEV_KEY",
-    iosAppId = "YOUR_APPLE_APP_ID",
-    consentData = AppsFlyerConsent.forNonGDPRUser(),
-))
+fun AppsFlyerClient.performOnDeepLinking(intent: Intent, context: Context)
+fun AppsFlyerClient.sendPushNotificationData(activity: Activity)
 ```
 
-### Runtime controls
-
-```kotlin
-// Toggle anonymization
-AppsFlyer.client.setAnonymizeUser(true)
-
-// Exclude specific partners from data sharing
-AppsFlyer.client.setSharingFilterPartners(setOf("partner1_int", "partner2_int"))
-
-// Stop SDK data collection
-AppsFlyer.client.stop()
-// Re-enable
-AppsFlyer.client.stop(false)
-
-// Check if SDK is stopped
-if (AppsFlyer.client.isStopped) { /* ... */ }
-
-// Get AppsFlyer device ID (null before start)
-val uid = AppsFlyer.client.getAppsFlyerUID()
-```
-
-### Uninstall measurement
-
-Register the push notification device token to enable uninstall tracking:
-
-```kotlin
-AppsFlyer.client.registerUninstall(token)
-```
-
-The token is a `String` — the same format FCM provides on both platforms.
-
-**Using [gitlive firebase-messaging](https://github.com/GitLiveApp/firebase-kotlin-sdk)?**
-You can call `registerUninstall` directly from common code:
-
-```kotlin
-// commonMain
-Firebase.messaging.token.collect { token ->
-    AppsFlyer.client.registerUninstall(token)
-}
-```
-
-**Without a KMP push library?** Retrieve the token in platform-specific code:
-
-```kotlin
-// Android (FCM)
-class MyFirebaseMessagingService : FirebaseMessagingService() {
-    override fun onNewToken(token: String) {
-        AppsFlyer.client.registerUninstall(token)
-    }
-}
-```
-
-```swift
-// iOS (APNs)
-func application(_ application: UIApplication,
-                 didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
-    // Convert Data to hex string
-    let token = deviceToken.map { String(format: "%02x", $0) }.joined()
-    AppsFlyer.shared.client.registerUninstall(token: token)
-}
-```
-
-## API Design
-
-- **`start()`** — fire-and-forget, callable from `Application.onCreate()` or
-  `AppDelegate` without a coroutine scope.
-- **`getStartResult()` / `getConversionData()`** — suspend functions for one-shot
-  results. Idempotent: subsequent calls return the cached result immediately.
-  Must be called after `start()`; suspends indefinitely otherwise.
-- **`deepLink`** — a `Flow` for ongoing deep link events (including re-engagement).
-  Does not replay past emissions; collect before calling `start()` to avoid
-  missing the initial deep link.
-- **`logEvent()`** — null values in params are silently dropped.
-- **`logEventForResult()`** — suspends until the SDK confirms delivery; null
-  values in params are silently dropped.
-- **`logAdRevenue()`** — fire-and-forget; null values in `additionalParameters`
-  are silently dropped.
-- **`setCustomerUserId(null)`** — passes null to the native SDK on both platforms.
-- **`setAnonymizeUser()` / `setSharingFilterPartners()`** — runtime updates for
-  values initially set in `AppsFlyerConfig`. Can be called any time after start.
-- **`stop()`** — stops all SDK data collection and server communication.
-  Pass `false` to re-enable.
-- **`getAppsFlyerUID()`** — returns null before the SDK has started.
-- **`getSdkVersion()`** — returns the native AppsFlyer SDK version string.
-- **`setCurrencyCode()`** — sets the currency code (ISO 4217) for revenue events.
-- **`logLocation()`** — logs a location for geo-based attribution.
-- **`setAdditionalData()`** — sets custom data for raw data reports. Null values are silently dropped.
-- **`setMinTimeBetweenSessions()`** — sets the minimum time between sessions in seconds.
-- **`setDisableAdvertisingIdentifier()`** — disables advertising identifier collection (IDFA/Ad ID).
-- **`setDisableSKAdNetwork()`** — disables SKAdNetwork measurement (iOS only, no-op on Android).
-- **`setUserEmails()`** — sets user emails with a hashing type (`NONE` or `SHA256`).
-- **`registerUninstall()`** — registers the FCM push token for uninstall measurement.
-- **`validateAndLogInAppPurchase()`** — suspends until the server validates the
-  purchase. Null values in `additionalParameters` are silently dropped.
-- **`setPartnerData()`** — sets partner-specific data. Null values are silently dropped.
-- **`setSharingFilterForAllPartners()`** — excludes all partners from data sharing.
-- **`setInstallId()`** / **`setExtension()`** — custom install ID and extension name.
-- **`setAppInviteOneLink()`** / **`setOneLinkCustomDomain()`** — cross-promotion
-  and custom OneLink domain configuration.
-- **`setResolveDeepLinkURLs()`** / **`appendParametersToDeepLinkingURL()`** /
-  **`addPushNotificationDeepLinkPath()`** — deep link URL resolution and customization.
-- **`setHost()` / `getHostName()` / `getHostPrefix()`** — custom server host configuration.
-- **`performOnAppAttribution()`** — manual attribution for a URL.
-- **`setPhoneNumber()`** — sets phone number (sent as SHA256 hash).
-- **`setIsUpdate()`** / **`setCollectIMEI()`** / **`setCollectOaid()`** /
-  **`setImeiData()`** / **`setOaidData()`** / **`setAndroidIdData()`** /
-  **`disableAppSetId()`** / **`setDisableNetworkData()`** — Android-specific
-  device identifier and network controls (no-op on iOS).
-- **`setDisableIDFVCollection()`** / **`setDisableCollectASA()`** /
-  **`setDisableAppleAdsAttribution()`** / **`setShouldCollectDeviceName()`** /
-  **`setUseReceiptValidationSandbox()`** / **`setUseUninstallSandbox()`** /
-  **`setCurrentDeviceLanguage()`** / **`setDeepLinkTimeout()`** /
-  **`remoteDebuggingCall()`** — iOS-specific controls (no-op on Android).
-- **`waitForCustomerUserId()`** / **`setCustomerIdAndLogSession()`** —
-  deferred customer ID logging (Android only; no-op on iOS).
-- **`setPreinstallAttribution()`** / **`setOutOfStore()`** /
-  **`isPreInstalledApp()`** / **`getAttributionId()`** / **`getOutOfStore()`** /
-  **`logSession()`** / **`onPause()`** — pre-install and out-of-store attribution
-  (Android only; no-op/default on iOS).
-- **`isSessionReady()`** / **`handlePushNotification()`** /
-  **`unregisterSessionReadyListener()`** — iOS session lifecycle and push
-  notification handling (no-op/default on Android).
-
-## Platform Comparison
-
-| | Android | iOS |
-|---|---|---|
-| Initialize | 2 lines (Activity context) | 2 lines |
-| Deep link wiring | None (automatic via intent) | 1 line (`.onOpenURL` or AppDelegate method) |
-| Config files | Intent filter in manifest | URL scheme in Info.plist + entitlements |
-| SPM/SDK dependency | Transitive (automatic) | Must add `AppsFlyerLib` via SPM manually |
-
-## Project Structure
+## Project structure
 
 ```
-appsflyer-kmp/
-  settings.gradle.kts
-  gradle/libs.versions.toml
-  appsflyer/                       # the library module
-    build.gradle.kts
-    src/
-      commonMain/                  # shared API + expect factory
-      androidMain/                 # actual -> af-android-sdk
-      iosMain/                     # actual -> AppsFlyerLib via spm4Kmp bridge
-      swift/AppsFlyerBridge/       # Swift bridge wrapping the iOS delegates
-  samples/
-    demo-app/                      # Compose Multiplatform demo (Android + iOS)
+appsflyer/
+  src/
+    commonMain/    # shared API + implementation
+    androidMain/   # delegates to af-android-sdk
+    iosMain/       # delegates to AppsFlyerLib via Swift bridge
+    swift/         # Swift bridge wrapping iOS delegates
+samples/
+  demo-app/        # Compose Multiplatform demo
 ```
 
-## Running the Demo App Locally
+## Demo app
 
-The demo app reads AppsFlyer credentials from files that are **gitignored** so
-secrets are never committed.
+Credentials are gitignored. Add them to:
 
-### 1. Add credentials to `local.properties` (Android)
-
-In the project root `local.properties` (already in `.gitignore`), add:
-
-```properties
-appsflyer.devKey=YOUR_AF_DEV_KEY
-appsflyer.iosAppId=YOUR_APPLE_APP_ID
-```
-
-The Android `build.gradle.kts` reads these and injects them as `BuildConfig.AF_DEV_KEY`.
-
-### 2. Add credentials to `Secrets.xcconfig` (iOS)
-
-Create `samples/demo-app/iosApp/Secrets.xcconfig` (also gitignored):
-
-```
-AF_DEV_KEY = YOUR_AF_DEV_KEY
-AF_IOS_APP_ID = YOUR_APPLE_APP_ID
-```
-
-The values are exposed via `Info.plist` and read at runtime with
-`Bundle.main.object(forInfoDictionaryKey:)`.
-
-### 3. Run
+- `local.properties`: `appsflyer.devKey=...` / `appsflyer.iosAppId=...`
+- `samples/demo-app/iosApp/Secrets.xcconfig`: `AF_DEV_KEY = ...` / `AF_IOS_APP_ID = ...`
 
 ```bash
 # Android
 ./gradlew :samples:demo-app:androidApp:assembleDebug
 
-# iOS (via Xcode)
+# iOS
 cd samples/demo-app/iosApp && xcodegen && open iosApp.xcodeproj
 ```
-
----
 
 ## Publishing
 
 - **Android:** Maven publication (group `com.retro99.appsflyer`).
-- **iOS:** KMP klib + framework. Consumers must add AppsFlyer via SPM separately
-  (KMP does not propagate iOS frameworks transitively).
+- **iOS:** KMP klib + framework. Consumers must add `AppsFlyerLib` via SPM separately.
 
-The library version is controlled via `LIBRARY_VERSION` in `gradle.properties`.
+Library version is controlled via `LIBRARY_VERSION` in `gradle.properties`.
