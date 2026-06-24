@@ -459,6 +459,47 @@ if (AppsFlyer.client.isStopped) { /* ... */ }
 val uid = AppsFlyer.client.getAppsFlyerUID()
 ```
 
+### Uninstall measurement
+
+Register the push notification device token to enable uninstall tracking:
+
+```kotlin
+AppsFlyer.client.registerUninstall(token)
+```
+
+The token is a `String` — the same format FCM provides on both platforms.
+
+**Using [gitlive firebase-messaging](https://github.com/GitLiveApp/firebase-kotlin-sdk)?**
+You can call `registerUninstall` directly from common code:
+
+```kotlin
+// commonMain
+Firebase.messaging.token.collect { token ->
+    AppsFlyer.client.registerUninstall(token)
+}
+```
+
+**Without a KMP push library?** Retrieve the token in platform-specific code:
+
+```kotlin
+// Android (FCM)
+class MyFirebaseMessagingService : FirebaseMessagingService() {
+    override fun onNewToken(token: String) {
+        AppsFlyer.client.registerUninstall(token)
+    }
+}
+```
+
+```swift
+// iOS (APNs)
+func application(_ application: UIApplication,
+                 didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
+    // Convert Data to hex string
+    let token = deviceToken.map { String(format: "%02x", $0) }.joined()
+    AppsFlyer.shared.client.registerUninstall(token: token)
+}
+```
+
 ## API Design
 
 - **`start()`** — fire-and-forget, callable from `Application.onCreate()` or
@@ -480,6 +521,15 @@ val uid = AppsFlyer.client.getAppsFlyerUID()
 - **`stop()`** — stops all SDK data collection and server communication.
   Pass `false` to re-enable.
 - **`getAppsFlyerUID()`** — returns null before the SDK has started.
+- **`getSdkVersion()`** — returns the native AppsFlyer SDK version string.
+- **`setCurrencyCode()`** — sets the currency code (ISO 4217) for revenue events.
+- **`logLocation()`** — logs a location for geo-based attribution.
+- **`setAdditionalData()`** — sets custom data for raw data reports. Null values are silently dropped.
+- **`setMinTimeBetweenSessions()`** — sets the minimum time between sessions in seconds.
+- **`setDisableAdvertisingIdentifier()`** — disables advertising identifier collection (IDFA/Ad ID).
+- **`setDisableSKAdNetwork()`** — disables SKAdNetwork measurement (iOS only, no-op on Android).
+- **`setUserEmails()`** — sets user emails with a hashing type (`NONE` or `SHA256`).
+- **`registerUninstall()`** — registers the FCM push token for uninstall measurement.
 
 ## Platform Comparison
 
