@@ -165,6 +165,10 @@ internal class IosAppsFlyerSdk(
         bridge.setPartnerData(partnerId, data as Map<Any?, *>)
     }
 
+    override fun addPushNotificationDeepLinkPath(keys: List<String>) {
+        bridge.addPushNotificationDeepLinkPath(keys)
+    }
+
     override fun setAnonymizeUser(enabled: Boolean) {
         bridge.setAnonymizeUser(enabled)
     }

@@ -101,6 +101,9 @@ internal class AppsFlyerClientImpl(
     override fun setPartnerData(partnerId: String, data: Map<String, Any?>) =
         sdk.setPartnerData(partnerId, data.filterValues { it != null })
 
+    override fun addPushNotificationDeepLinkPath(keys: List<String>) =
+        sdk.addPushNotificationDeepLinkPath(keys)
+
     override fun getSdkVersion(): String = sdk.getSdkVersion()
 
     override fun setAnonymizeUser(enabled: Boolean) {

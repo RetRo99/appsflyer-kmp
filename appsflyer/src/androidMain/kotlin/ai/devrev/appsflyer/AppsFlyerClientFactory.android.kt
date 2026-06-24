@@ -155,6 +155,10 @@ internal class AndroidAppsFlyerSdk(
         lib.setPartnerData(partnerId, data)
     }
 
+    override fun addPushNotificationDeepLinkPath(keys: List<String>) {
+        lib.addPushNotificationDeepLinkPath(*keys.toTypedArray())
+    }
+
     override fun setAnonymizeUser(enabled: Boolean) {
         lib.anonymizeUser(enabled)
     }

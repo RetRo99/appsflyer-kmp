@@ -133,6 +133,14 @@ interface AppsFlyerClient {
     fun setPartnerData(partnerId: String, data: Map<String, Any?>)
 
     /**
+     * Adds keys to compose the key path used to resolve a deep link from
+     * a push notification payload.
+     *
+     * @param keys the key path components (e.g. `listOf("custom_key", "deep_link")`).
+     */
+    fun addPushNotificationDeepLinkPath(keys: List<String>)
+
+    /**
      * Validates and logs an in-app purchase using the AppsFlyer VAL V2 flow.
      * Suspends until the SDK receives a response from the server.
      *

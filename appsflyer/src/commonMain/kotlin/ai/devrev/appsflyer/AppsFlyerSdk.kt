@@ -67,6 +67,8 @@ internal interface AppsFlyerSdk {
 
     fun setPartnerData(partnerId: String, data: Map<String, Any?>)
 
+    fun addPushNotificationDeepLinkPath(keys: List<String>)
+
     fun getAppsFlyerUID(): String?
 
     fun getSdkVersion(): String

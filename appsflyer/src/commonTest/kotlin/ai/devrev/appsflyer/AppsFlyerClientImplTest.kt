@@ -594,6 +594,18 @@ class AppsFlyerClientImplTest {
     }
 
     @Test
+    fun addPushNotificationDeepLinkPathForwardsToBackend() {
+        client.addPushNotificationDeepLinkPath(listOf("custom_key", "deep_link"))
+        assertEquals(listOf("custom_key", "deep_link"), sdk.lastPushNotificationDeepLinkPath)
+    }
+
+    @Test
+    fun addPushNotificationDeepLinkPathEmptyListForwardsAsIs() {
+        client.addPushNotificationDeepLinkPath(emptyList())
+        assertEquals(emptyList(), sdk.lastPushNotificationDeepLinkPath)
+    }
+
+    @Test
     fun logAdRevenueForwardsToBackend() {
         val data = AdRevenueData(
             monetizationNetwork = "ironsource",
@@ -841,6 +853,8 @@ private class FakeAppsFlyerSdk : AppsFlyerSdk {
         private set
     var lastPartnerData: Map<String, Any?>? = null
         private set
+    var lastPushNotificationDeepLinkPath: List<String>? = null
+        private set
     var lastAnonymizeUser: Boolean? = null
         private set
     var lastSharingFilterPartners: Set<String>? = null
@@ -936,6 +950,10 @@ private class FakeAppsFlyerSdk : AppsFlyerSdk {
     override fun setPartnerData(partnerId: String, data: Map<String, Any?>) {
         lastPartnerId = partnerId
         lastPartnerData = data
+    }
+
+    override fun addPushNotificationDeepLinkPath(keys: List<String>) {
+        lastPushNotificationDeepLinkPath = keys
     }
 
     override fun setAnonymizeUser(enabled: Boolean) {

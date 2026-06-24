@@ -136,6 +136,10 @@ public class AppsFlyerBridge: NSObject, AppsFlyerLibDelegate, AppsFlyerDeepLinkD
         AppsFlyerLib.shared().setPartnerData(partnerId: partnerId, data: stringData)
     }
 
+    public func addPushNotificationDeepLinkPath(_ deepLinkPath: [String]) {
+        AppsFlyerLib.shared().addPushNotificationDeepLinkPath(deepLinkPath)
+    }
+
     public func stop(_ stop: Bool) {
         AppsFlyerLib.shared().isStopped = stop
     }
