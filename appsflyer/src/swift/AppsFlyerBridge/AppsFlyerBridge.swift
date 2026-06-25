@@ -271,11 +271,11 @@ public class AppsFlyerBridge: NSObject, AppsFlyerLibDelegate, AppsFlyerDeepLinkD
     }
 
     public func getHostName() -> String {
-        return AppsFlyerLib.shared().host ?? ""
+        return AppsFlyerLib.shared().host
     }
 
     public func getHostPrefix() -> String {
-        return AppsFlyerLib.shared().hostPrefix ?? ""
+        return AppsFlyerLib.shared().hostPrefix
     }
 
     public func setAppInviteOneLink(_ oneLinkId: String) {
