@@ -16,8 +16,6 @@ import com.appsflyer.deeplink.DeepLinkListener
 import com.appsflyer.deeplink.DeepLinkResult as AfDeepLinkResult
 import com.appsflyer.deeplink.DeepLinkResult.Status
 import java.lang.ref.WeakReference
-import org.json.JSONArray
-import org.json.JSONObject
 
 internal class AndroidAppsFlyerSdk(
     context: Context,
@@ -485,7 +483,7 @@ internal class AndroidAppsFlyerSdk(
                     isDeferred = deepLink.isDeferred,
                     mediaSource = deepLink.mediaSource,
                     campaign = deepLink.campaign,
-                    raw = deepLink.clickEvent.toMap(),
+                    raw = deepLink.clickEvent.toDeepMap(),
                 )
             }
             Status.NOT_FOUND -> mapDeepLinkResult(DeepLinkStatus.NOT_FOUND)
@@ -506,12 +504,6 @@ internal actual class AppsFlyerClientFactory(
             config = config,
         )
     }
-}
-
-internal fun JSONObject.toMap(): Map<String, Any?> {
-    val map = mutableMapOf<String, Any?>()
-    keys().forEach { key -> map[key] = opt(key).unwrap() }
-    return map.toMap()
 }
 
 internal fun AfEmailCryptType.toAndroidCryptType(): AppsFlyerProperties.EmailsCryptType = when (this) {
@@ -548,11 +540,4 @@ internal fun AfLogLevel.toAndroidLogLevel(): AFLogger.LogLevel = when (this) {
     AfLogLevel.INFO -> AFLogger.LogLevel.INFO
     AfLogLevel.DEBUG -> AFLogger.LogLevel.DEBUG
     AfLogLevel.VERBOSE -> AFLogger.LogLevel.VERBOSE
-}
-
-private fun Any?.unwrap(): Any? = when (this) {
-    is JSONObject -> toMap()
-    is JSONArray -> (0 until length()).map { i -> opt(i).unwrap() }
-    JSONObject.NULL -> null
-    else -> this
 }

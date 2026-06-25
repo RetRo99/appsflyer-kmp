@@ -7,9 +7,9 @@ import kotlin.test.assertEquals
 import kotlin.test.assertNull
 
 /**
- * Tests the recursive JSONObject → Map conversion that mirrors the production
- * code in androidMain. Uses the same org.json library (pure-Java artifact) to
- * verify nested structures are fully unwrapped to Kotlin collections.
+ * Tests the production [toMap] extension that converts JSONObject to a
+ * deeply-unwrapped Kotlin Map. This exercises the actual code used by the
+ * Android SDK at runtime (shared via the jvmCommon source set).
  */
 class JsonObjectToMapTest {
 
@@ -21,7 +21,7 @@ class JsonObjectToMapTest {
             put("active", true)
         }
 
-        val result = json.recursiveToMap()
+        val result = json.toDeepMap()
 
         assertEquals("test", result["name"])
         assertEquals(42, result["count"])
@@ -39,7 +39,7 @@ class JsonObjectToMapTest {
             put("address", inner)
         }
 
-        val result = json.recursiveToMap()
+        val result = json.toDeepMap()
 
         assertEquals("Rok", result["user"])
         assertEquals(mapOf("city" to "Ljubljana", "zip" to 1000), result["address"])
@@ -56,7 +56,7 @@ class JsonObjectToMapTest {
             put("tags", array)
         }
 
-        val result = json.recursiveToMap()
+        val result = json.toDeepMap()
 
         assertEquals(listOf("one", "two", "three"), result["tags"])
     }
@@ -74,7 +74,7 @@ class JsonObjectToMapTest {
             put("items", innerArray)
         }
 
-        val result = json.recursiveToMap()
+        val result = json.toDeepMap()
 
         val items = result["items"] as List<*>
         assertEquals(mapOf("key" to "deep_value"), items[0])
@@ -88,7 +88,7 @@ class JsonObjectToMapTest {
             put("absent", JSONObject.NULL)
         }
 
-        val result = json.recursiveToMap()
+        val result = json.toDeepMap()
 
         assertEquals("value", result["present"])
         assertNull(result["absent"])
@@ -98,7 +98,7 @@ class JsonObjectToMapTest {
     fun emptyObjectConvertsToEmptyMap() {
         val json = JSONObject()
 
-        val result = json.recursiveToMap()
+        val result = json.toDeepMap()
 
         assertEquals(emptyMap(), result)
     }
@@ -109,7 +109,7 @@ class JsonObjectToMapTest {
             put("empty", JSONArray())
         }
 
-        val result = json.recursiveToMap()
+        val result = json.toDeepMap()
 
         assertEquals(emptyList<Any>(), result["empty"])
     }
@@ -126,7 +126,7 @@ class JsonObjectToMapTest {
             put("results", array)
         }
 
-        val result = json.recursiveToMap()
+        val result = json.toDeepMap()
 
         val results = result["results"] as List<*>
         assertEquals(mapOf("id" to 1), results[0])
@@ -146,7 +146,7 @@ class JsonObjectToMapTest {
             put("mixed", array)
         }
 
-        val result = json.recursiveToMap()
+        val result = json.toDeepMap()
 
         val mixed = result["mixed"] as List<*>
         assertEquals("string", mixed[0])
@@ -154,17 +154,4 @@ class JsonObjectToMapTest {
         assertEquals(mapOf("nested" to true), mixed[2])
         assertNull(mixed[3])
     }
-}
-
-private fun JSONObject.recursiveToMap(): Map<String, Any?> {
-    val map = mutableMapOf<String, Any?>()
-    keys().forEach { key -> map[key] = opt(key).unwrap() }
-    return map
-}
-
-private fun Any?.unwrap(): Any? = when (this) {
-    is JSONObject -> recursiveToMap()
-    is JSONArray -> (0 until length()).map { i -> opt(i).unwrap() }
-    JSONObject.NULL -> null
-    else -> this
 }

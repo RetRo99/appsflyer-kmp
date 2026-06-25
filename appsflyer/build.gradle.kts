@@ -63,7 +63,14 @@ kotlin {
         }
     }
 
+    applyDefaultHierarchyTemplate()
+
     sourceSets {
+        val jvmCommon by creating
+        jvmCommon.dependsOn(commonMain.get())
+        androidMain.get().dependsOn(jvmCommon)
+        jvmMain.get().dependsOn(jvmCommon)
+
         commonMain {
             dependencies {
                 api(libs.kotlinx.coroutines.core)
@@ -81,9 +88,12 @@ kotlin {
                 api(libs.appsflyer.android.sdk)
             }
         }
+        jvmCommon.dependencies {
+            compileOnly(libs.json)
+        }
         val jvmTest by getting {
             dependencies {
-                implementation("org.json:json:20250517")
+                implementation(libs.json)
             }
         }
     }
