@@ -198,8 +198,9 @@ public class AppsFlyerBridge: NSObject, AppsFlyerLibDelegate, AppsFlyerDeepLinkD
         AppsFlyerLib.shared().sharingFilter = partners
     }
 
-    public func getAppsFlyerUID() -> String {
-        return AppsFlyerLib.shared().getAppsFlyerUID()
+    public func getAppsFlyerUID() -> String? {
+        let uid = AppsFlyerLib.shared().getAppsFlyerUID()
+        return uid.isEmpty ? nil : uid
     }
 
     public func getSdkVersion() -> String {
