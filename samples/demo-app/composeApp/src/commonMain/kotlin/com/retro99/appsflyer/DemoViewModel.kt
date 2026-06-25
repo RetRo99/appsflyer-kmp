@@ -25,6 +25,15 @@ import kotlinx.coroutines.launch
 
 enum class LogLevel { INFO, SUCCESS, ERROR, DEEPLINK }
 
+enum class LogSource { USER, SDK }
+
+enum class LogFilter(val label: String) {
+    ALL("All"),
+    SDK("SDK"),
+    ERRORS("Errors"),
+    DEEPLINK("Deep Link"),
+}
+
 enum class ButtonPlatform { ANDROID, IOS, BOTH }
 
 enum class ParamKey(val label: String, val default: String) {
@@ -60,9 +69,11 @@ enum class Section(val title: String) {
 }
 
 data class LogEntry(
+    val id: Long,
     val timestamp: String,
     val message: String,
     val level: LogLevel,
+    val source: LogSource = LogSource.USER,
 )
 
 data class DemoButton(
@@ -80,6 +91,7 @@ data class DemoUiState(
     val logs: List<LogEntry> = emptyList(),
     val params: Map<ParamKey, String> = ParamKey.entries.associateWith { it.default },
     val collapsedSections: Set<Section> = emptySet(),
+    val logFilter: LogFilter = LogFilter.ALL,
 )
 
 class DemoViewModel : ViewModel() {
@@ -89,6 +101,8 @@ class DemoViewModel : ViewModel() {
 
     private val _uiState = MutableStateFlow(DemoUiState())
     val uiState: StateFlow<DemoUiState> = _uiState.asStateFlow()
+
+    private var logIdCounter = 0L
 
     val isAndroid: Boolean get() = currentPlatform == Platform.ANDROID
 
@@ -120,6 +134,10 @@ class DemoViewModel : ViewModel() {
         _uiState.update { it.copy(logs = emptyList()) }
     }
 
+    fun setLogFilter(filter: LogFilter) {
+        _uiState.update { it.copy(logFilter = filter) }
+    }
+
     fun isButtonEnabled(platform: ButtonPlatform): Boolean =
         platform == ButtonPlatform.BOTH || platform.name == currentPlatform.name
 
@@ -130,13 +148,21 @@ class DemoViewModel : ViewModel() {
     }
 
     fun exportLogs(): String =
-        _uiState.value.logs.joinToString("\n") { "${it.timestamp} [${it.level}] ${it.message}" }
+        _uiState.value.logs.joinToString("\n") {
+            "${it.timestamp} [${it.level}] [${it.source}] ${it.message}"
+        }
 
-    private fun log(message: String, level: LogLevel = LogLevel.INFO) {
+    private fun log(
+        message: String,
+        level: LogLevel = LogLevel.INFO,
+        source: LogSource = LogSource.USER,
+    ) {
         val entry = LogEntry(
+            id = logIdCounter++,
             timestamp = formatTimestamp(nowMillis()),
             message = message,
             level = level,
+            source = source,
         )
         _uiState.update { it.copy(logs = it.logs + entry) }
     }
@@ -199,7 +225,7 @@ class DemoViewModel : ViewModel() {
                     com.retro99.platformlogs.LogLevel.DEBUG -> LogLevel.INFO
                     com.retro99.platformlogs.LogLevel.VERBOSE -> LogLevel.INFO
                 }
-                log("[SDK] ${entry.message}", level)
+                log(entry.message, level, source = LogSource.SDK)
             }
         }
     }

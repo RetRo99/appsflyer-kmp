@@ -1,8 +1,10 @@
 package com.retro99.appsflyer.sample
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -14,9 +16,14 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -26,70 +33,90 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.compositeOver
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
+@Suppress("DEPRECATION")
 @Composable
 fun DemoScreen(viewModel: DemoViewModel) {
     val uiState by viewModel.uiState.collectAsState()
     val clipboard = LocalClipboardManager.current
     var showParams by remember { mutableStateOf(true) }
+    var showLogsFullscreen by remember { mutableStateOf(false) }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = {
-                    val badge = if (viewModel.isAndroid) "Android" else "iOS"
-                    Text("AppsFlyer KMP Demo [$badge]")
-                },
-            )
-        },
-    ) { padding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding),
-        ) {
-            ParamsPanel(
-                params = uiState.params,
-                onParamChange = viewModel::updateParam,
-                expanded = showParams,
-                onToggle = { showParams = !showParams },
-                modifier = Modifier.weight(0.3f),
-            )
-            HorizontalDivider()
-            LogPanel(
-                logs = uiState.logs,
-                onClear = viewModel::clearLogs,
-                onCopy = {
-                    val text = viewModel.exportLogs()
-                    clipboard.setText(AnnotatedString(text))
-                },
-                modifier = Modifier.weight(0.25f),
-            )
-            HorizontalDivider()
-            SectionsList(
-                sections = remember(uiState.params) { viewModel.sections },
-                collapsedSections = uiState.collapsedSections,
-                onToggleSection = viewModel::toggleSection,
-                isButtonEnabled = viewModel::isButtonEnabled,
-                onRunSection = viewModel::runSection,
-                modifier = Modifier.weight(0.45f),
-            )
-        }
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp),
+    ) {
+            if (showLogsFullscreen) {
+                LogPanel(
+                    logs = uiState.logs,
+                    activeFilter = uiState.logFilter,
+                    onFilterChange = viewModel::setLogFilter,
+                    onClear = viewModel::clearLogs,
+                    onCopy = {
+                        val text = viewModel.exportLogs()
+                        clipboard.setText(AnnotatedString(text))
+                    },
+                    fullscreen = true,
+                    onToggleFullscreen = { showLogsFullscreen = false },
+                    modifier = Modifier.weight(1f),
+                )
+            } else {
+                ParamsPanel(
+                    params = uiState.params,
+                    onParamChange = viewModel::updateParam,
+                    expanded = showParams,
+                    onToggle = { showParams = !showParams },
+                    modifier = if (showParams) Modifier.weight(0.3f) else Modifier,
+                )
+                HorizontalDivider()
+                LogPanel(
+                    logs = uiState.logs,
+                    activeFilter = uiState.logFilter,
+                    onFilterChange = viewModel::setLogFilter,
+                    onClear = viewModel::clearLogs,
+                    onCopy = {
+                        val text = viewModel.exportLogs()
+                        clipboard.setText(AnnotatedString(text))
+                    },
+                    fullscreen = false,
+                    onToggleFullscreen = { showLogsFullscreen = true },
+                    modifier = Modifier.weight(0.25f),
+                )
+                HorizontalDivider()
+                SectionsList(
+                    sections = remember(uiState.params) { viewModel.sections },
+                    collapsedSections = uiState.collapsedSections,
+                    onToggleSection = viewModel::toggleSection,
+                    isButtonEnabled = viewModel::isButtonEnabled,
+                    onRunSection = viewModel::runSection,
+                    modifier = Modifier.weight(0.45f),
+                )
+            }
     }
 }
 
@@ -138,13 +165,52 @@ private fun ParamsPanel(
     }
 }
 
+@Suppress("DEPRECATION")
 @Composable
 private fun LogPanel(
     logs: List<LogEntry>,
+    activeFilter: LogFilter,
+    onFilterChange: (LogFilter) -> Unit,
     onClear: () -> Unit,
     onCopy: () -> Unit,
+    fullscreen: Boolean,
+    onToggleFullscreen: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val filteredLogs = remember(logs, activeFilter) {
+        when (activeFilter) {
+            LogFilter.ALL -> logs
+            LogFilter.SDK -> logs.filter { entry -> entry.source == LogSource.SDK }
+            LogFilter.ERRORS -> logs.filter { entry -> entry.level == LogLevel.ERROR }
+            LogFilter.DEEPLINK -> logs.filter { entry -> entry.level == LogLevel.DEEPLINK }
+        }.reversed()
+    }
+
+    var autoScroll by remember { mutableStateOf(true) }
+    val listState = rememberLazyListState()
+    val scope = rememberCoroutineScope()
+    var unseenCount by remember { mutableStateOf(0) }
+    val isAtTop by remember {
+        derivedStateOf {
+            listState.firstVisibleItemIndex == 0 && listState.firstVisibleItemScrollOffset == 0
+        }
+    }
+    LaunchedEffect(filteredLogs.firstOrNull()?.id) {
+        if (filteredLogs.isEmpty()) return@LaunchedEffect
+        if (autoScroll) {
+            listState.animateScrollToItem(0)
+            unseenCount = 0
+        } else if (!isAtTop) {
+            unseenCount++
+        }
+    }
+    LaunchedEffect(isAtTop) {
+        if (isAtTop) { unseenCount = 0 }
+    }
+
+    val expandedLogIds = remember { mutableStateMapOf<Long, Boolean>() }
+    val panelClipboard = LocalClipboardManager.current
+
     Column(
         modifier = modifier
             .fillMaxWidth()
@@ -156,61 +222,262 @@ private fun LogPanel(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text("Logs", style = MaterialTheme.typography.titleSmall)
+                Text(
+                    text = if (fullscreen) "Logs (fullscreen)" else "Logs",
+                    style = MaterialTheme.typography.titleSmall,
+                )
                 Spacer(modifier = Modifier.size(4.dp))
                 if (logs.isNotEmpty()) {
                     Text(
-                        text = "(${logs.size})",
+                        text = "(${filteredLogs.size}/${logs.size})",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
             }
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                 if (logs.isNotEmpty()) {
+                    TextButton(
+                        onClick = {
+                            autoScroll = !autoScroll
+                            if (autoScroll) {
+                                scope.launch { listState.animateScrollToItem(0) }
+                            }
+                        },
+                    ) {
+                        Text(if (autoScroll) "Auto ✓" else "Auto")
+                    }
                     TextButton(onClick = onCopy) { Text("Copy") }
                     TextButton(onClick = onClear) { Text("Clear") }
+                }
+                TextButton(onClick = onToggleFullscreen) {
+                    Text(if (fullscreen) "Collapse" else "Expand")
                 }
             }
         }
         Spacer(modifier = Modifier.height(4.dp))
-        LazyColumn(
-            modifier = Modifier.fillMaxWidth(),
-            verticalArrangement = Arrangement.spacedBy(2.dp),
-        ) {
-            items(logs.reversed()) { entry ->
-                LogRow(entry)
+        FilterChipRow(
+            activeFilter = activeFilter,
+            onFilterChange = onFilterChange,
+            showScrollToTop = logs.isNotEmpty() && (!autoScroll || unseenCount > 0) && !isAtTop,
+            onScrollToTop = { scope.launch { listState.animateScrollToItem(0) } },
+            unseenCount = unseenCount,
+        )
+        Spacer(modifier = Modifier.height(4.dp))
+        if (filteredLogs.isEmpty()) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f),
+                contentAlignment = Alignment.Center,
+            ) {
+                Text(
+                    text = when {
+                        logs.isEmpty() -> "No logs yet.\nTap a button below to get started."
+                        logs.isNotEmpty() && filteredLogs.isEmpty() ->
+                            "No logs match \"${activeFilter.label}\"."
+
+                        else -> ""
+                    },
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    textAlign = TextAlign.Center,
+                )
+            }
+        } else {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f),
+            ) {
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize(),
+                    state = listState,
+                    verticalArrangement = Arrangement.spacedBy(2.dp),
+                ) {
+                    items(
+                        items = filteredLogs,
+                        key = { entry -> entry.id },
+                    ) { entry ->
+                        val expanded = expandedLogIds[entry.id] == true
+                        LogRow(
+                            entry = entry,
+                            expanded = expanded,
+                            onToggle = { expandedLogIds[entry.id] = !expanded },
+                            onCopy = {
+                                val text = "${entry.timestamp} [${entry.level}] [${entry.source}] ${entry.message}"
+                                panelClipboard.setText(AnnotatedString(text))
+                            },
+                        )
+                    }
+                }
+                if (unseenCount > 0) {
+                    Row(
+                        modifier = Modifier
+                            .align(Alignment.TopCenter)
+                            .padding(top = 4.dp)
+                            .clip(RoundedCornerShape(12.dp))
+                            .background(MaterialTheme.colorScheme.primary)
+                            .clickable {
+                                unseenCount = 0
+                                scope.launch { listState.animateScrollToItem(0) }
+                            }
+                            .padding(horizontal = 12.dp, vertical = 4.dp),
+                        horizontalArrangement = Arrangement.spacedBy(4.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Text(
+                            text = if (unseenCount == 1) "1 new log" else "$unseenCount new logs",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onPrimary,
+                            fontSize = 11.sp,
+                        )
+                        Text(
+                            text = "↑",
+                            color = MaterialTheme.colorScheme.onPrimary,
+                            fontSize = 12.sp,
+                        )
+                    }
+                }
             }
         }
     }
 }
 
 @Composable
-private fun LogRow(entry: LogEntry) {
-    val color = when (entry.level) {
+private fun FilterChipRow(
+    activeFilter: LogFilter,
+    onFilterChange: (LogFilter) -> Unit,
+    showScrollToTop: Boolean = false,
+    onScrollToTop: () -> Unit = {},
+    unseenCount: Int = 0,
+) {
+    FlowRow(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(6.dp),
+        verticalArrangement = Arrangement.spacedBy(4.dp),
+    ) {
+        LogFilter.entries.forEach { filter ->
+            FilterChip(
+                selected = filter == activeFilter,
+                onClick = { onFilterChange(filter) },
+                label = { Text(filter.label, fontSize = 11.sp) },
+                colors = FilterChipDefaults.filterChipColors(
+                    selectedContainerColor = levelColorForFilter(filter)
+                        .copy(alpha = 0.18f)
+                        .compositeOver(MaterialTheme.colorScheme.surface),
+                    selectedLabelColor = levelColorForFilter(filter),
+                ),
+            )
+        }
+        if (showScrollToTop) {
+            FilterChip(
+                selected = true,
+                onClick = onScrollToTop,
+                label = {
+                    Text(
+                        text = if (unseenCount > 0) "↑ $unseenCount new" else "↑ Top",
+                        fontSize = 11.sp,
+                    )
+                },
+            )
+        }
+    }
+}
+
+private fun levelColorForFilter(filter: LogFilter): Color = when (filter) {
+    LogFilter.ALL -> Color(0xFF455A64)
+    LogFilter.SDK -> Color(0xFF6A1B9A)
+    LogFilter.ERRORS -> Color(0xFFC62828)
+    LogFilter.DEEPLINK -> Color(0xFF1565C0)
+}
+
+@Composable
+private fun LogRow(
+    entry: LogEntry,
+    expanded: Boolean,
+    onToggle: () -> Unit,
+    onCopy: () -> Unit,
+) {
+    val messageColor = when (entry.level) {
         LogLevel.SUCCESS -> Color(0xFF2E7D32)
         LogLevel.ERROR -> Color(0xFFC62828)
         LogLevel.DEEPLINK -> Color(0xFF1565C0)
         LogLevel.INFO -> MaterialTheme.colorScheme.onSurface
     }
+    val dotColor = when (entry.level) {
+        LogLevel.SUCCESS -> Color(0xFF2E7D32)
+        LogLevel.ERROR -> Color(0xFFC62828)
+        LogLevel.DEEPLINK -> Color(0xFF1565C0)
+        LogLevel.INFO -> Color(0xFF9E9E9E)
+    }
     Row(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onToggle() }
+            .padding(vertical = 2.dp),
+        verticalAlignment = Alignment.Top,
         horizontalArrangement = Arrangement.spacedBy(6.dp),
     ) {
-        Text(
-            text = entry.timestamp,
-            style = MaterialTheme.typography.bodySmall,
-            fontFamily = FontFamily.Monospace,
-            fontSize = 10.sp,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        Box(
+            modifier = Modifier
+                .padding(top = 4.dp)
+                .size(8.dp)
+                .clip(CircleShape)
+                .background(dotColor),
         )
-        Text(
-            text = entry.message,
-            style = MaterialTheme.typography.bodySmall,
-            fontFamily = FontFamily.Monospace,
-            fontSize = 11.sp,
-            color = color,
-        )
+        Column {
+            Row(
+                verticalAlignment = Alignment.Top,
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+            ) {
+                Text(
+                    text = entry.timestamp,
+                    style = MaterialTheme.typography.bodySmall,
+                    fontFamily = FontFamily.Monospace,
+                    fontSize = 10.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                if (entry.source == LogSource.SDK) {
+                    Text(
+                        text = "SDK",
+                        style = MaterialTheme.typography.labelSmall,
+                        fontSize = 9.sp,
+                        color = Color(0xFF6A1B9A),
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(2.dp))
+                            .background(Color(0xFF6A1B9A).copy(alpha = 0.12f))
+                            .padding(horizontal = 3.dp, vertical = 1.dp),
+                    )
+                }
+                Text(
+                    text = entry.message,
+                    style = MaterialTheme.typography.bodySmall,
+                    fontFamily = FontFamily.Monospace,
+                    fontSize = 11.sp,
+                    color = messageColor,
+                    maxLines = if (expanded) Int.MAX_VALUE else 3,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.weight(1f),
+                )
+                val longEnough = entry.message.length > 80 || '\n' in entry.message
+                if (longEnough) {
+                    Text(
+                        text = if (expanded) "▾" else "▸",
+                        fontSize = 10.sp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+                Text(
+                    text = "⧉",
+                    fontSize = 12.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier
+                        .padding(start = 4.dp, top = 2.dp)
+                        .clickable { onCopy() },
+                )
+            }
+        }
     }
 }
 
