@@ -20,6 +20,8 @@ public class AppsFlyerBridge: NSObject, AppsFlyerLibDelegate, AppsFlyerDeepLinkD
         consentData: NSDictionary?,
         sharingFilterPartners: [String],
         launchOptions: [AnyHashable: Any]?,
+        logLevelOrdinal: NSNumber?,
+        deepLinkTimeoutSeconds: NSNumber?,
         onConversion: @escaping (NSDictionary) -> Void,
         onConversionError: @escaping (String?) -> Void,
         onDeepLinkFound: @escaping (String?, Bool, String?, String?, NSDictionary?) -> Void,
@@ -50,6 +52,13 @@ public class AppsFlyerBridge: NSObject, AppsFlyerLibDelegate, AppsFlyerDeepLinkD
             AppsFlyerLib.shared().setConsentData(consent)
         }
         AppsFlyerLib.shared().sharingFilter = sharingFilterPartners
+
+        if let logLevelOrdinal = logLevelOrdinal {
+            AppsFlyerLib.shared().isDebug = logLevelOrdinal.intValue != 0
+        }
+        if let deepLinkTimeoutSeconds = deepLinkTimeoutSeconds {
+            AppsFlyerLib.shared().deepLinkTimeout = UInt(deepLinkTimeoutSeconds.intValue)
+        }
 
         AppsFlyerLib.shared().handleLaunchOptions(launchOptions)
         AppsFlyerLib.shared().registerSessionReadyListener { [weak self] in

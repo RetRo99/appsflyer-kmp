@@ -45,6 +45,10 @@ internal class IosAppsFlyerSdk(
             consentData = consentDict,
             sharingFilterPartners = config.sharingFilterPartners.toList(),
             launchOptions = launchOptions,
+            logLevelOrdinal = config.logLevel?.let { NSNumber(it.ordinal) },
+            deepLinkTimeoutSeconds = config.deepLinkTimeoutMs?.let { ms ->
+                NSNumber(((ms + 999L) / 1000L).toInt())
+            },
             onConversion = { data ->
                 if (data != null) {
                     @Suppress("UNCHECKED_CAST")
@@ -84,10 +88,6 @@ internal class IosAppsFlyerSdk(
                 )
             },
         )
-        config.logLevel?.let { level -> bridge.setLogLevel(level.ordinal.toLong()) }
-        config.deepLinkTimeoutMs?.let { timeoutMs ->
-            bridge.setDeepLinkTimeout((timeoutMs + 999) / 1000)
-        }
     }
 
     override fun setCustomerUserId(id: String?) {
