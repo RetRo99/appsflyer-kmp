@@ -346,7 +346,6 @@ internal class IosAppsFlyerSdk(
             brandDomain = params.brandDomain,
             baseDeeplink = params.baseDeeplink,
             deeplinkPath = params.deeplinkPath,
-            @Suppress("UNCHECKED_CAST")
             customParameters = params.customParameters as Map<Any?, *>?,
         ) { url: String? -> onResult(url) }
     }
