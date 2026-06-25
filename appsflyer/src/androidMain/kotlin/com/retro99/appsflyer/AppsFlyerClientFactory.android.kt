@@ -511,7 +511,7 @@ internal actual class AppsFlyerClientFactory(
 internal fun JSONObject.toMap(): Map<String, Any?> {
     val map = mutableMapOf<String, Any?>()
     keys().forEach { key -> map[key] = opt(key).unwrap() }
-    return map
+    return map.toMap()
 }
 
 internal fun AfEmailCryptType.toAndroidCryptType(): AppsFlyerProperties.EmailsCryptType = when (this) {
