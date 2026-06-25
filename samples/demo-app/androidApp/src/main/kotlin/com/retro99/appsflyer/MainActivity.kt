@@ -9,7 +9,7 @@ import com.retro99.appsflyer.AppsFlyer
 import com.retro99.appsflyer.AppsFlyerConfig
 import com.retro99.appsflyer.initialize
 
-class MainActivity : ComponentActivity() {
+class MainActivity : ComponentActivity {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

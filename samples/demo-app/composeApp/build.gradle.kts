@@ -22,6 +22,7 @@ kotlin {
             baseName = "ComposeApp"
             isStatic = true
             export(project(":appsflyer"))
+            export(project(":platform-logs"))
         }
     }
 

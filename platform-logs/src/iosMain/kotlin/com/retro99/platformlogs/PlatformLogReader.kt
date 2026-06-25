@@ -1,18 +1,36 @@
 package com.retro99.platformlogs
 
+import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.coroutines.channels.awaitClose
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.Dispatchers
+import PlatformLogsBridge.PlatformLogsBridge
 
+@OptIn(ExperimentalForeignApi::class)
 actual class PlatformLogReader {
 
+    private val bridge = PlatformLogsBridge()
+
     actual fun read(tag: String): Flow<LogEntry> = callbackFlow {
-        while (!channel.isClosedForSend) {
-            delay(Long.MAX_VALUE)
+        bridge.readLogsWithTag(tag) { timestamp, message, level ->
+            trySend(
+                LogEntry(
+                    timestamp = timestamp ?: "",
+                    message = message ?: "",
+                    level = when (level.toInt()) {
+                        1 -> LogLevel.DEBUG
+                        4 -> LogLevel.ERROR
+                        else -> LogLevel.INFO
+                    },
+                ),
+            )
         }
-        awaitClose { }
-    }
+        awaitClose {
+            bridge.stop()
+        }
+    }.flowOn(Dispatchers.Default)
 
     actual fun clear() {
     }

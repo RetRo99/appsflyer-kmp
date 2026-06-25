@@ -1,6 +1,9 @@
+import io.github.frankois944.spmForKmp.swiftPackageConfig
+
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
     alias(libs.plugins.androidLibrary)
+    alias(libs.plugins.spmForKmp)
 }
 
 group = "com.retro99.platformlogs"
@@ -33,6 +36,8 @@ kotlin {
         target.binaries.framework {
             baseName = "PlatformLogs"
             isStatic = true
+        }
+        target.swiftPackageConfig(cinteropName = "PlatformLogsBridge") {
         }
     }
 

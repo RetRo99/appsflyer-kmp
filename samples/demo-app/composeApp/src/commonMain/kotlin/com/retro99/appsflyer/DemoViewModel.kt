@@ -216,7 +216,7 @@ class DemoViewModel : ViewModel() {
 
     private fun observeSdkLogs() {
         viewModelScope.launch {
-            val tag = if (isAndroid) "AppsFlyer_6.18.1" else "AppsFlyerLib"
+            val tag = if (isAndroid) "AppsFlyer_6.18.1" else "com.appsflyer"
             sdkLogReader.read(tag).collect { entry ->
                 val level = when (entry.level) {
                     com.retro99.platformlogs.LogLevel.ERROR -> LogLevel.ERROR
