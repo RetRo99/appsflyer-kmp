@@ -405,6 +405,10 @@ interface AppsFlyerClient {
     /**
      * Enables or disables collection of Facebook Deferred AppLinks.
      * Requires the Facebook SDK to be integrated.
+     * On iOS, this is a no-op — the iOS SDK requires a `Class` parameter
+     * (`FBSDKAppLinkUtility.self`) that cannot be passed through KMP.
+     * Call `AppsFlyerLib.shared().enableFacebookDeferredApplinks(with:)`
+     * directly from Swift if needed.
      */
     fun enableFacebookDeferredApplinks(enable: Boolean)
 
