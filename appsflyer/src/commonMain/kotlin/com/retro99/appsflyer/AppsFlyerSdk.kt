@@ -135,6 +135,42 @@ internal interface AppsFlyerSdk {
 
     fun setCustomerIdAndLogSession(customerUserId: String)
 
+    fun setLogLevel(level: AfLogLevel)
+
+    fun waitForATTUserAuthorization(timeoutInterval: Double)
+
+    fun getAdvertisingIdentifier(): String?
+
+    fun logCrossPromoteImpression(
+        appId: String,
+        campaign: String,
+        parameters: Map<String, String>,
+    )
+
+    fun logAndOpenStore(
+        appId: String,
+        campaign: String,
+        parameters: Map<String, String>,
+    )
+
+    fun logInvite(
+        channel: String,
+        parameters: Map<String, String>,
+    )
+
+    fun generateInviteUrl(
+        params: InviteLinkParams,
+        onResult: (String?) -> Unit,
+    )
+
+    fun enableFacebookDeferredApplinks(enable: Boolean)
+
+    fun setPluginInfo(
+        plugin: String,
+        version: String,
+        additionalParameters: Map<String, String>,
+    )
+
     fun setSharingFilterForAllPartners()
 
     fun setExtension(extension: String)

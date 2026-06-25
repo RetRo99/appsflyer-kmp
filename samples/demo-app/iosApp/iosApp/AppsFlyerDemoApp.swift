@@ -18,7 +18,9 @@ class AppDelegate: NSObject, UIApplicationDelegate {
                 anonymizeUser: false,
                 enableTCFDataCollection: false,
                 consentData: nil,
-                sharingFilterPartners: []
+                sharingFilterPartners: [],
+                logLevel: nil,
+                deepLinkTimeoutMs: nil
             ),
             launchOptions: launchOptions
         )

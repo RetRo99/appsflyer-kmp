@@ -821,6 +821,168 @@ class AppsFlyerClientImplTest {
     }
 
     @Test
+    fun setLogLevelForwardsToBackend() {
+        client.setLogLevel(AfLogLevel.VERBOSE)
+        assertEquals(AfLogLevel.VERBOSE, sdk.lastLogLevel)
+    }
+
+    @Test
+    fun setLogLevelNoneForwardsToBackend() {
+        client.setLogLevel(AfLogLevel.NONE)
+        assertEquals(AfLogLevel.NONE, sdk.lastLogLevel)
+    }
+
+    @Test
+    fun waitForATTUserAuthorizationForwardsToBackend() {
+        client.waitForATTUserAuthorization(60.0)
+        assertEquals(60.0, sdk.lastATTTimeoutInterval)
+    }
+
+    @Test
+    fun getAdvertisingIdentifierForwardsToBackend() {
+        assertEquals("fake-idfa", client.getAdvertisingIdentifier())
+    }
+
+    @Test
+    fun logCrossPromoteImpressionForwardsToBackend() {
+        client.logCrossPromoteImpression(
+            appId = "app123",
+            campaign = "summer",
+            parameters = mapOf("key" to "value"),
+        )
+        assertEquals("app123", sdk.lastCrossPromoteAppId)
+        assertEquals("summer", sdk.lastCrossPromoteCampaign)
+        assertEquals(mapOf("key" to "value"), sdk.lastCrossPromoteParameters)
+    }
+
+    @Test
+    fun logCrossPromoteImpressionEmptyParamsByDefault() {
+        client.logCrossPromoteImpression(appId = "app123", campaign = "summer")
+        assertEquals(emptyMap(), sdk.lastCrossPromoteParameters)
+    }
+
+    @Test
+    fun logAndOpenStoreForwardsToBackend() {
+        client.logAndOpenStore(
+            appId = "app456",
+            campaign = "winter",
+            parameters = mapOf("source" to "email"),
+        )
+        assertEquals("app456", sdk.lastOpenStoreAppId)
+        assertEquals("winter", sdk.lastOpenStoreCampaign)
+        assertEquals(mapOf("source" to "email"), sdk.lastOpenStoreParameters)
+    }
+
+    @Test
+    fun logInviteForwardsToBackend() {
+        client.logInvite(
+            channel = "gmail",
+            parameters = mapOf("ref" to "user1"),
+        )
+        assertEquals("gmail", sdk.lastInviteChannel)
+        assertEquals(mapOf("ref" to "user1"), sdk.lastInviteParameters)
+    }
+
+    @Test
+    fun logInviteEmptyParamsByDefault() {
+        client.logInvite(channel = "gmail")
+        assertEquals(emptyMap(), sdk.lastInviteParameters)
+    }
+
+    @Test
+    fun generateInviteUrlResumesWithSuccess() = runBlocking {
+        val params = InviteLinkParams(
+            channel = "gmail",
+            campaign = "invite_friends",
+            referrerUID = "user-42",
+        )
+
+        val result = client.generateInviteUrl(params)
+
+        assertEquals("https://onelink.app/invite/abc123", result)
+        assertEquals(params, sdk.lastInviteLinkParams)
+    }
+
+    @Test
+    fun generateInviteUrlResumesWithNull() = runBlocking {
+        sdk.inviteUrlResult = null
+
+        val result = client.generateInviteUrl()
+
+        assertNull(result)
+    }
+
+    @Test
+    fun generateInviteUrlDefaultParams() = runBlocking {
+        client.generateInviteUrl()
+        assertEquals(InviteLinkParams(), sdk.lastInviteLinkParams)
+    }
+
+    @Test
+    fun enableFacebookDeferredApplinksForwardsToBackend() {
+        client.enableFacebookDeferredApplinks(true)
+        assertEquals(true, sdk.lastFacebookDeferredApplinks)
+
+        client.enableFacebookDeferredApplinks(false)
+        assertEquals(false, sdk.lastFacebookDeferredApplinks)
+    }
+
+    @Test
+    fun setPluginInfoForwardsToBackend() {
+        client.setPluginInfo(
+            plugin = "reactnative",
+            version = "1.0.0",
+            additionalParameters = mapOf("platform" to "android"),
+        )
+        assertEquals("reactnative", sdk.lastPluginInfoPlugin)
+        assertEquals("1.0.0", sdk.lastPluginInfoVersion)
+        assertEquals(mapOf("platform" to "android"), sdk.lastPluginInfoParams)
+    }
+
+    @Test
+    fun setPluginInfoEmptyAdditionalParamsByDefault() {
+        client.setPluginInfo(plugin = "flutter", version = "2.0.0")
+        assertEquals(emptyMap(), sdk.lastPluginInfoParams)
+    }
+
+    @Test
+    fun afLogLevelOrdinalValues() {
+        assertEquals(0, AfLogLevel.NONE.ordinal)
+        assertEquals(1, AfLogLevel.ERROR.ordinal)
+        assertEquals(2, AfLogLevel.WARN.ordinal)
+        assertEquals(3, AfLogLevel.INFO.ordinal)
+        assertEquals(4, AfLogLevel.DEBUG.ordinal)
+        assertEquals(5, AfLogLevel.VERBOSE.ordinal)
+    }
+
+    @Test
+    fun inviteLinkParamsDefaultsAreNull() {
+        val params = InviteLinkParams()
+        assertNull(params.channel)
+        assertNull(params.campaign)
+        assertNull(params.referrerCustomerId)
+        assertNull(params.referrerUID)
+        assertNull(params.referrerName)
+        assertNull(params.referrerImageURL)
+        assertNull(params.brandDomain)
+        assertNull(params.baseDeeplink)
+        assertNull(params.deeplinkPath)
+        assertEquals(emptyMap(), params.customParameters)
+    }
+
+    @Test
+    fun appsFlyerConfigLogLevelDefaultsToNull() {
+        val config = AppsFlyerConfig(devKey = "key")
+        assertNull(config.logLevel)
+    }
+
+    @Test
+    fun appsFlyerConfigDeepLinkTimeoutMsDefaultsToNull() {
+        val config = AppsFlyerConfig(devKey = "key")
+        assertNull(config.deepLinkTimeoutMs)
+    }
+
+    @Test
     fun setSharingFilterForAllPartnersForwardsToBackend() {
         client.setSharingFilterForAllPartners()
         assertEquals(true, sdk.sharingFilterForAllPartnersCalled)
@@ -1170,6 +1332,38 @@ private class FakeAppsFlyerSdk : AppsFlyerSdk {
         private set
     var lastCustomerIdForLogSession: String? = null
         private set
+    var lastLogLevel: AfLogLevel? = null
+        private set
+    var lastATTTimeoutInterval: Double? = null
+        private set
+    var advertisingIdentifierValue: String? = "fake-idfa"
+    var lastCrossPromoteAppId: String? = null
+        private set
+    var lastCrossPromoteCampaign: String? = null
+        private set
+    var lastCrossPromoteParameters: Map<String, String>? = null
+        private set
+    var lastOpenStoreAppId: String? = null
+        private set
+    var lastOpenStoreCampaign: String? = null
+        private set
+    var lastOpenStoreParameters: Map<String, String>? = null
+        private set
+    var lastInviteChannel: String? = null
+        private set
+    var lastInviteParameters: Map<String, String>? = null
+        private set
+    var lastInviteLinkParams: InviteLinkParams? = null
+        private set
+    var inviteUrlResult: String? = "https://onelink.app/invite/abc123"
+    var lastFacebookDeferredApplinks: Boolean? = null
+        private set
+    var lastPluginInfoPlugin: String? = null
+        private set
+    var lastPluginInfoVersion: String? = null
+        private set
+    var lastPluginInfoParams: Map<String, String>? = null
+        private set
     var sharingFilterForAllPartnersCalled: Boolean = false
         private set
     var lastExtension: String? = null
@@ -1409,6 +1603,66 @@ private class FakeAppsFlyerSdk : AppsFlyerSdk {
 
     override fun setCustomerIdAndLogSession(customerUserId: String) {
         lastCustomerIdForLogSession = customerUserId
+    }
+
+    override fun setLogLevel(level: AfLogLevel) {
+        lastLogLevel = level
+    }
+
+    override fun waitForATTUserAuthorization(timeoutInterval: Double) {
+        lastATTTimeoutInterval = timeoutInterval
+    }
+
+    override fun getAdvertisingIdentifier(): String? = advertisingIdentifierValue
+
+    override fun logCrossPromoteImpression(
+        appId: String,
+        campaign: String,
+        parameters: Map<String, String>,
+    ) {
+        lastCrossPromoteAppId = appId
+        lastCrossPromoteCampaign = campaign
+        lastCrossPromoteParameters = parameters
+    }
+
+    override fun logAndOpenStore(
+        appId: String,
+        campaign: String,
+        parameters: Map<String, String>,
+    ) {
+        lastOpenStoreAppId = appId
+        lastOpenStoreCampaign = campaign
+        lastOpenStoreParameters = parameters
+    }
+
+    override fun logInvite(
+        channel: String,
+        parameters: Map<String, String>,
+    ) {
+        lastInviteChannel = channel
+        lastInviteParameters = parameters
+    }
+
+    override fun generateInviteUrl(
+        params: InviteLinkParams,
+        onResult: (String?) -> Unit,
+    ) {
+        lastInviteLinkParams = params
+        onResult(inviteUrlResult)
+    }
+
+    override fun enableFacebookDeferredApplinks(enable: Boolean) {
+        lastFacebookDeferredApplinks = enable
+    }
+
+    override fun setPluginInfo(
+        plugin: String,
+        version: String,
+        additionalParameters: Map<String, String>,
+    ) {
+        lastPluginInfoPlugin = plugin
+        lastPluginInfoVersion = version
+        lastPluginInfoParams = additionalParameters
     }
 
     override fun setSharingFilterForAllPartners() {

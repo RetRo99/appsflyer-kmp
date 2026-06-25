@@ -84,6 +84,10 @@ internal class IosAppsFlyerSdk(
                 )
             },
         )
+        config.logLevel?.let { level -> bridge.setLogLevel(level.ordinal.toLong()) }
+        config.deepLinkTimeoutMs?.let { timeoutMs ->
+            bridge.setDeepLinkTimeout((timeoutMs + 999) / 1000)
+        }
     }
 
     override fun setCustomerUserId(id: String?) {
@@ -288,7 +292,76 @@ internal class IosAppsFlyerSdk(
     }
 
     override fun setCustomerIdAndLogSession(customerUserId: String) {
-        // Android only — no-op on iOS.
+        bridge.setCustomerIdAndLogSession(customerUserId)
+    }
+
+    override fun setLogLevel(level: AfLogLevel) {
+        bridge.setLogLevel(level.ordinal.toLong())
+    }
+
+    override fun waitForATTUserAuthorization(timeoutInterval: Double) {
+        bridge.waitForATTUserAuthorization(timeoutInterval)
+    }
+
+    override fun getAdvertisingIdentifier(): String? =
+        bridge.getAdvertisingIdentifier()
+
+    override fun logCrossPromoteImpression(
+        appId: String,
+        campaign: String,
+        parameters: Map<String, String>,
+    ) {
+        @Suppress("UNCHECKED_CAST")
+        bridge.logCrossPromoteImpression(appId, campaign, parameters as Map<Any?, *>?)
+    }
+
+    override fun logAndOpenStore(
+        appId: String,
+        campaign: String,
+        parameters: Map<String, String>,
+    ) {
+        @Suppress("UNCHECKED_CAST")
+        bridge.logAndOpenStore(appId, campaign, parameters as Map<Any?, *>?)
+    }
+
+    override fun logInvite(
+        channel: String,
+        parameters: Map<String, String>,
+    ) {
+        @Suppress("UNCHECKED_CAST")
+        bridge.logInvite(channel, parameters as Map<Any?, *>?)
+    }
+
+    override fun generateInviteUrl(
+        params: InviteLinkParams,
+        onResult: (String?) -> Unit,
+    ) {
+        bridge.generateInviteUrl(
+            channel = params.channel,
+            campaign = params.campaign,
+            referrerCustomerId = params.referrerCustomerId,
+            referrerUID = params.referrerUID,
+            referrerName = params.referrerName,
+            referrerImageURL = params.referrerImageURL,
+            brandDomain = params.brandDomain,
+            baseDeeplink = params.baseDeeplink,
+            deeplinkPath = params.deeplinkPath,
+            @Suppress("UNCHECKED_CAST")
+            customParameters = params.customParameters as Map<Any?, *>?,
+        ) { url: String? -> onResult(url) }
+    }
+
+    override fun enableFacebookDeferredApplinks(enable: Boolean) {
+        // iOS requires FBSDKAppLinkUtility class; not available through KMP.
+    }
+
+    override fun setPluginInfo(
+        plugin: String,
+        version: String,
+        additionalParameters: Map<String, String>,
+    ) {
+        @Suppress("UNCHECKED_CAST")
+        bridge.setPluginInfo(plugin, version, additionalParameters as Map<Any?, *>?)
     }
 
     override fun setSharingFilterForAllPartners() {

@@ -196,6 +196,59 @@ internal class AppsFlyerClientImpl(
     override fun setCustomerIdAndLogSession(customerUserId: String) =
         sdk.setCustomerIdAndLogSession(customerUserId)
 
+    override fun setLogLevel(level: AfLogLevel) =
+        sdk.setLogLevel(level)
+
+    override fun waitForATTUserAuthorization(timeoutInterval: Double) =
+        sdk.waitForATTUserAuthorization(timeoutInterval)
+
+    override fun getAdvertisingIdentifier(): String? =
+        sdk.getAdvertisingIdentifier()
+
+    override fun logCrossPromoteImpression(
+        appId: String,
+        campaign: String,
+        parameters: Map<String, String>,
+    ) = sdk.logCrossPromoteImpression(
+        appId = appId,
+        campaign = campaign,
+        parameters = parameters,
+    )
+
+    override fun logAndOpenStore(
+        appId: String,
+        campaign: String,
+        parameters: Map<String, String>,
+    ) = sdk.logAndOpenStore(
+        appId = appId,
+        campaign = campaign,
+        parameters = parameters,
+    )
+
+    override fun logInvite(
+        channel: String,
+        parameters: Map<String, String>,
+    ) = sdk.logInvite(
+        channel = channel,
+        parameters = parameters,
+    )
+
+    override suspend fun generateInviteUrl(params: InviteLinkParams): String? =
+        suspendCancellableCoroutine { continuation ->
+            sdk.generateInviteUrl(params) { url ->
+                continuation.resume(url)
+            }
+        }
+
+    override fun enableFacebookDeferredApplinks(enable: Boolean) =
+        sdk.enableFacebookDeferredApplinks(enable)
+
+    override fun setPluginInfo(
+        plugin: String,
+        version: String,
+        additionalParameters: Map<String, String>,
+    ) = sdk.setPluginInfo(plugin, version, additionalParameters)
+
     override fun setSharingFilterForAllPartners() =
         sdk.setSharingFilterForAllPartners()
 

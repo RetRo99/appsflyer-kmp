@@ -69,6 +69,118 @@ public class AppsFlyerBridge: NSObject, AppsFlyerLibDelegate, AppsFlyerDeepLinkD
         AppsFlyerLib.shared().customerUserID = id
     }
 
+    public func setCustomerIdAndLogSession(_ customerUserId: String) {
+        AppsFlyerLib.shared().customerUserID = customerUserId
+        AppsFlyerLib.shared().start()
+    }
+
+    public func setLogLevel(_ rawValue: Int) {
+        // iOS SDK only has isDebug; map non-NONE to true.
+        AppsFlyerLib.shared().isDebug = rawValue != 0
+    }
+
+    public func waitForATTUserAuthorization(_ timeoutInterval: Double) {
+        AppsFlyerLib.shared().waitForATTUserAuthorization(timeoutInterval: timeoutInterval)
+    }
+
+    public func getAdvertisingIdentifier() -> String? {
+        return AppsFlyerLib.shared().advertisingIdentifier
+    }
+
+    public func logCrossPromoteImpression(
+        _ appId: String,
+        campaign: String,
+        parameters: [String: String]?
+    ) {
+        AppsFlyerCrossPromotionHelper.logCrossPromoteImpression(
+            appId,
+            campaign: campaign,
+            userParams: parameters
+        )
+    }
+
+    public func logAndOpenStore(
+        _ appId: String,
+        campaign: String,
+        parameters: [String: String]?
+    ) {
+        AppsFlyerCrossPromotionHelper.logAndOpenStore(
+            appId,
+            campaign: campaign,
+            userParams: parameters
+        ) { _, _ in }
+    }
+
+    public func logInvite(
+        _ channel: String,
+        parameters: [String: String]?
+    ) {
+        AppsFlyerShareInviteHelper.logInvite(channel, eventParameters: parameters)
+    }
+
+    public func generateInviteUrl(
+        _ channel: String?,
+        campaign: String?,
+        referrerCustomerId: String?,
+        referrerUID: String?,
+        referrerName: String?,
+        referrerImageURL: String?,
+        brandDomain: String?,
+        baseDeeplink: String?,
+        deeplinkPath: String?,
+        customParameters: [String: String]?,
+        completion: @escaping (String?) -> Void
+    ) {
+        AppsFlyerShareInviteHelper.generateInviteLink { generator in
+            if let channel = channel { generator.setChannel(channel) }
+            if let campaign = campaign { generator.setCampaign(campaign) }
+            if let referrerCustomerId = referrerCustomerId { generator.setReferrerCustomerId(referrerCustomerId) }
+            if let referrerUID = referrerUID { generator.setReferrerUID(referrerUID) }
+            if let referrerName = referrerName { generator.setReferrerName(referrerName) }
+            if let referrerImageURL = referrerImageURL { generator.setReferrerImageUrl(referrerImageURL) }
+            if let brandDomain = brandDomain { generator.brandDomain = brandDomain }
+            if let baseDeeplink = baseDeeplink { generator.setBaseDeepLink(baseDeeplink) }
+            // deeplinkPath is not supported — the iOS AppsFlyerLinkGenerator has no setDeeplinkPath method.
+            if let customParameters = customParameters {
+                generator.addUserParams(customParameters)
+            }
+            return generator
+        } completionHandler: { url, error in
+            if let url = url {
+                completion(url.absoluteString)
+            } else {
+                completion(nil)
+            }
+        }
+    }
+
+    public func enableFacebookDeferredApplinks(_ enable: Bool) {
+        // iOS requires FBSDKAppLinkUtility class; cannot be passed through KMP.
+        // Call AppsFlyerLib.shared().enableFacebookDeferredApplinks(with: FBSDKAppLinkUtility.self)
+        // directly from Swift if needed.
+    }
+
+    public func setPluginInfo(
+        _ plugin: String,
+        version: String,
+        additionalParameters: [String: String]?
+    ) {
+        let pluginEnum: Plugin
+        switch plugin.lowercased() {
+        case "unity": pluginEnum = .unity
+        case "reactnative": pluginEnum = .reactNative
+        case "flutter": pluginEnum = .flutter
+        case "cordova": pluginEnum = .cordova
+        case "expo": pluginEnum = .expo
+        case "unreal": pluginEnum = .unreal
+        case "xamarin": pluginEnum = .xamarin
+        case "capacitor": pluginEnum = .capacitor
+        case "segment": pluginEnum = .segment
+        default: pluginEnum = .iosNative
+        }
+        AppsFlyerLib.shared().setPluginInfo(plugin: pluginEnum, version: version, additionalParams: additionalParameters)
+    }
+
     public func setAnonymizeUser(_ enabled: Bool) {
         AppsFlyerLib.shared().anonymizeUser = enabled
     }

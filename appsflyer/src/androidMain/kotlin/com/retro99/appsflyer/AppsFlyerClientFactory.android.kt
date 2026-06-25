@@ -4,6 +4,7 @@ import android.content.Context
 import com.appsflyer.AFAdRevenueData
 import com.appsflyer.AFPurchaseDetails
 import com.appsflyer.AFPurchaseType
+import com.appsflyer.AFLogger
 import com.appsflyer.AppsFlyerConversionListener
 import com.appsflyer.AppsFlyerInAppPurchaseValidationCallback
 import com.appsflyer.AppsFlyerLib
@@ -11,6 +12,7 @@ import com.appsflyer.AppsFlyerProperties
 import com.appsflyer.MediationNetwork
 import com.appsflyer.attribution.AppsFlyerRequestListener
 import com.appsflyer.deeplink.DeepLink
+import com.appsflyer.deeplink.DeepLinkListener
 import com.appsflyer.deeplink.DeepLinkResult as AfDeepLinkResult
 import com.appsflyer.deeplink.DeepLinkResult.Status
 import java.lang.ref.WeakReference
@@ -25,6 +27,8 @@ internal class AndroidAppsFlyerSdk(
     private var startContextRef: WeakReference<Context>? = WeakReference(context)
 
     private val lib: AppsFlyerLib = AppsFlyerLib.getInstance()
+    private var deepLinkCallback: ((DeepLinkResult) -> Unit)? = null
+    private var deepLinkTimeoutMs: Long? = null
 
     override fun configure(
         config: AppsFlyerConfig,
@@ -35,7 +39,8 @@ internal class AndroidAppsFlyerSdk(
     ) {
         val ctx = startContextRef?.get() ?: appContext
         startContextRef = null
-        lib.setDebugLog(config.isDebug)
+        config.logLevel?.let { level -> lib.setLogLevel(level.toAndroidLogLevel()) }
+            ?: lib.setDebugLog(config.isDebug)
         lib.setCollectAndroidID(config.collectAndroidId)
         lib.anonymizeUser(config.anonymizeUser)
         lib.setSharingFilterForPartners(*config.sharingFilterPartners.toTypedArray())
@@ -67,7 +72,9 @@ internal class AndroidAppsFlyerSdk(
                 ),
             )
         }
-        lib.subscribeForDeepLink { result -> onDeepLink(toDeepLinkResult(result)) }
+        deepLinkCallback = onDeepLink
+        config.deepLinkTimeoutMs?.let { deepLinkTimeoutMs = it }
+        subscribeForDeepLinks()
         lib.start(
             ctx,
             config.devKey,
@@ -77,6 +84,17 @@ internal class AndroidAppsFlyerSdk(
                 override fun onError(code: Int, message: String) = onStart(StartResult.Error(code, message))
             },
         )
+    }
+
+    private fun subscribeForDeepLinks() {
+        val callback = deepLinkCallback ?: return
+        val listener = DeepLinkListener { result -> callback(toDeepLinkResult(result)) }
+        val timeout = deepLinkTimeoutMs
+        if (timeout != null) {
+            lib.subscribeForDeepLink(listener, timeout)
+        } else {
+            lib.subscribeForDeepLink(listener)
+        }
     }
 
     override fun setCustomerUserId(id: String?) {
@@ -256,7 +274,8 @@ internal class AndroidAppsFlyerSdk(
     }
 
     override fun setDeepLinkTimeout(seconds: Int) {
-        // iOS only — no-op on Android.
+        deepLinkTimeoutMs = seconds * 1000L
+        subscribeForDeepLinks()
     }
 
     override fun remoteDebuggingCall(data: String) {
@@ -282,6 +301,105 @@ internal class AndroidAppsFlyerSdk(
 
     override fun setCustomerIdAndLogSession(customerUserId: String) {
         lib.setCustomerIdAndLogSession(customerUserId, appContext)
+    }
+
+    override fun setLogLevel(level: AfLogLevel) {
+        lib.setLogLevel(level.toAndroidLogLevel())
+    }
+
+    override fun waitForATTUserAuthorization(timeoutInterval: Double) {
+        // iOS only — no-op on Android.
+    }
+
+    override fun getAdvertisingIdentifier(): String? = null
+
+    override fun logCrossPromoteImpression(
+        appId: String,
+        campaign: String,
+        parameters: Map<String, String>,
+    ) {
+        com.appsflyer.share.CrossPromotionHelper.logCrossPromoteImpression(
+            appContext,
+            appId,
+            campaign,
+            parameters,
+        )
+    }
+
+    override fun logAndOpenStore(
+        appId: String,
+        campaign: String,
+        parameters: Map<String, String>,
+    ) {
+        com.appsflyer.share.CrossPromotionHelper.logAndOpenStore(
+            appContext,
+            appId,
+            campaign,
+            parameters,
+        )
+    }
+
+    override fun logInvite(
+        channel: String,
+        parameters: Map<String, String>,
+    ) {
+        com.appsflyer.share.ShareInviteHelper.logInvite(appContext, channel, parameters)
+    }
+
+    override fun generateInviteUrl(
+        params: InviteLinkParams,
+        onResult: (String?) -> Unit,
+    ) {
+        val generator = com.appsflyer.share.ShareInviteHelper.generateInviteUrl(appContext)
+        params.channel?.let { generator.setChannel(it) }
+        params.campaign?.let { generator.setCampaign(it) }
+        params.referrerCustomerId?.let { generator.setReferrerCustomerId(it) }
+        params.referrerUID?.let { generator.setReferrerUID(it) }
+        params.referrerName?.let { generator.setReferrerName(it) }
+        params.referrerImageURL?.let { generator.setReferrerImageURL(it) }
+        params.brandDomain?.let { generator.setBrandDomain(it) }
+        params.baseDeeplink?.let { generator.setBaseDeeplink(it) }
+        params.deeplinkPath?.let { generator.setDeeplinkPath(it) }
+        if (params.customParameters.isNotEmpty()) {
+            generator.addParameters(params.customParameters)
+        }
+        generator.generateLink(
+            appContext,
+            object : com.appsflyer.CreateOneLinkHttpTask.ResponseListener {
+                override fun onResponse(link: String?) = onResult(link)
+
+                override fun onResponseError(errorName: String?) = onResult(null)
+            },
+        )
+    }
+
+    override fun enableFacebookDeferredApplinks(enable: Boolean) {
+        lib.enableFacebookDeferredApplinks(enable)
+    }
+
+    override fun setPluginInfo(
+        plugin: String,
+        version: String,
+        additionalParameters: Map<String, String>,
+    ) {
+        val pluginEnum = when (plugin.lowercase()) {
+            "unity" -> com.appsflyer.internal.platform_extension.Plugin.UNITY
+            "reactnative" -> com.appsflyer.internal.platform_extension.Plugin.REACT_NATIVE
+            "flutter" -> com.appsflyer.internal.platform_extension.Plugin.FLUTTER
+            "cordova" -> com.appsflyer.internal.platform_extension.Plugin.CORDOVA
+            "expo" -> com.appsflyer.internal.platform_extension.Plugin.EXPO
+            "unreal" -> com.appsflyer.internal.platform_extension.Plugin.UNREAL
+            "xamarin" -> com.appsflyer.internal.platform_extension.Plugin.XAMARIN
+            "capacitor" -> com.appsflyer.internal.platform_extension.Plugin.CAPACITOR
+            "segment" -> com.appsflyer.internal.platform_extension.Plugin.SEGMENT
+            else -> com.appsflyer.internal.platform_extension.Plugin.NATIVE
+        }
+        val pluginInfo = com.appsflyer.internal.platform_extension.PluginInfo(
+            pluginEnum,
+            version,
+            additionalParameters,
+        )
+        lib.setPluginInfo(pluginInfo)
     }
 
     override fun setSharingFilterForAllPartners() {
@@ -421,6 +539,15 @@ internal fun AfMediationNetwork.toAndroidMediationNetwork(): MediationNetwork = 
 internal fun AfPurchaseType.toAndroidPurchaseType(): AFPurchaseType = when (this) {
     AfPurchaseType.SUBSCRIPTION -> AFPurchaseType.SUBSCRIPTION
     AfPurchaseType.ONE_TIME_PURCHASE -> AFPurchaseType.ONE_TIME_PURCHASE
+}
+
+internal fun AfLogLevel.toAndroidLogLevel(): AFLogger.LogLevel = when (this) {
+    AfLogLevel.NONE -> AFLogger.LogLevel.NONE
+    AfLogLevel.ERROR -> AFLogger.LogLevel.ERROR
+    AfLogLevel.WARN -> AFLogger.LogLevel.WARNING
+    AfLogLevel.INFO -> AFLogger.LogLevel.INFO
+    AfLogLevel.DEBUG -> AFLogger.LogLevel.DEBUG
+    AfLogLevel.VERBOSE -> AFLogger.LogLevel.VERBOSE
 }
 
 private fun Any?.unwrap(): Any? = when (this) {

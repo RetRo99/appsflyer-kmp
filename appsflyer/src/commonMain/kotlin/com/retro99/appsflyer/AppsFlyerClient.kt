@@ -284,7 +284,9 @@ interface AppsFlyerClient {
     fun setCurrentDeviceLanguage(language: String?)
 
     /**
-     * Sets the deep link timeout in seconds (iOS only; no-op on Android).
+     * Sets the deep link timeout in seconds. When the timeout elapses
+     * without a resolved deep link, the SDK reports a not-found result.
+     * Takes effect immediately on both platforms.
      */
     fun setDeepLinkTimeout(seconds: Int)
 
@@ -325,10 +327,101 @@ interface AppsFlyerClient {
     fun onPause()
 
     /**
-     * Sets the customer user ID and immediately logs a session
-     * (Android only; no-op on iOS).
+     * Sets the customer user ID and immediately logs a new session.
+     * On iOS, this also calls `start()` to re-initialize the SDK session.
      */
     fun setCustomerIdAndLogSession(customerUserId: String)
+
+    /**
+     * Sets the SDK log level. On Android this maps to [AFLogger.LogLevel]
+     * for fine-grained control. On iOS, the SDK only exposes a boolean
+     * `isDebug` toggle, so any level other than [AfLogLevel.NONE] enables
+     * full debug logging. Takes precedence over [AppsFlyerConfig.isDebug].
+     */
+    fun setLogLevel(level: AfLogLevel)
+
+    /**
+     * Delays SDK start until the ATT (App Tracking Transparency) prompt
+     * resolves or the given timeout elapses (iOS only; no-op on Android).
+     *
+     * @param timeoutInterval the maximum wait time in seconds.
+     */
+    fun waitForATTUserAuthorization(timeoutInterval: Double)
+
+    /**
+     * Returns the advertising identifier (IDFA on iOS, advertising ID on
+     * Android). Returns `null` if unavailable or not authorized.
+     * On Android, always returns `null`; use [getAttributionId] for
+     * Facebook attribution instead.
+     */
+    fun getAdvertisingIdentifier(): String?
+
+    /**
+     * Logs a cross-promotion impression for an app you own.
+     *
+     * @param appId the AppsFlyer app ID of the promoted app.
+     * @param campaign the campaign name.
+     * @param parameters optional key-value parameters.
+     */
+    fun logCrossPromoteImpression(
+        appId: String,
+        campaign: String,
+        parameters: Map<String, String> = emptyMap(),
+    )
+
+    /**
+     * Logs a cross-promotion impression and opens the store listing for
+     * the promoted app. The SDK handles the store navigation natively.
+     *
+     * @param appId the AppsFlyer app ID of the promoted app.
+     * @param campaign the campaign name.
+     * @param parameters optional key-value parameters.
+     */
+    fun logAndOpenStore(
+        appId: String,
+        campaign: String,
+        parameters: Map<String, String> = emptyMap(),
+    )
+
+    /**
+     * Logs a "user invited a friend" in-app event.
+     *
+     * @param channel the invite channel (e.g. "gmail", "facebook").
+     * @param parameters optional key-value parameters.
+     */
+    fun logInvite(
+        channel: String,
+        parameters: Map<String, String> = emptyMap(),
+    )
+
+    /**
+     * Generates a OneLink user-invite URL from the given [params].
+     * Suspends until the SDK returns the URL or fails.
+     *
+     * @return the generated URL, or `null` if generation failed.
+     */
+    suspend fun generateInviteUrl(params: InviteLinkParams = InviteLinkParams()): String?
+
+    /**
+     * Enables or disables collection of Facebook Deferred AppLinks.
+     * Requires the Facebook SDK to be integrated.
+     */
+    fun enableFacebookDeferredApplinks(enable: Boolean)
+
+    /**
+     * Identifies the consuming wrapper/plugin to the AppsFlyer backend.
+     * Useful when this SDK is consumed inside another framework (e.g.
+     * React Native, Flutter, Capacitor).
+     *
+     * @param plugin the plugin/framework name (e.g. "reactnative").
+     * @param version the plugin/framework version.
+     * @param additionalParameters optional extra metadata.
+     */
+    fun setPluginInfo(
+        plugin: String,
+        version: String,
+        additionalParameters: Map<String, String> = emptyMap(),
+    )
 
     /**
      * Excludes all partners from data sharing. Use
@@ -411,6 +504,8 @@ data class AppsFlyerConfig(
     val enableTCFDataCollection: Boolean = false,
     val consentData: AppsFlyerConsent? = null,
     val sharingFilterPartners: Set<String> = emptySet(),
+    val logLevel: AfLogLevel? = null,
+    val deepLinkTimeoutMs: Long? = null,
 ) {
     init {
         require(devKey.isNotBlank()) { "AppsFlyerConfig.devKey must not be blank." }
@@ -538,6 +633,45 @@ enum class AfPurchaseType(val iosRawValue: Long) {
     SUBSCRIPTION(iosRawValue = 0L),
     ONE_TIME_PURCHASE(iosRawValue = 1L),
 }
+
+/**
+ * Log level for [AppsFlyerClient.setLogLevel] and [AppsFlyerConfig.logLevel].
+ * Maps to `AFLogger.LogLevel` (Android) and the `isDebug` boolean toggle (iOS).
+ * On iOS only [NONE] and non-[NONE] are distinguishable; all other levels
+ * enable full debug logging.
+ */
+enum class AfLogLevel {
+    NONE,
+    ERROR,
+    WARN,
+    INFO,
+    DEBUG,
+    VERBOSE,
+}
+
+/**
+ * Parameters for [AppsFlyerClient.generateInviteUrl]. Mirrors the official
+ * `LinkGenerator` builder API. All fields are optional; only set ones are
+ * forwarded to the SDK.
+ */
+data class InviteLinkParams(
+    val channel: String? = null,
+    val campaign: String? = null,
+    val referrerCustomerId: String? = null,
+    val referrerUID: String? = null,
+    val referrerName: String? = null,
+    val referrerImageURL: String? = null,
+    val brandDomain: String? = null,
+    val baseDeeplink: String? = null,
+    /**
+     * Deep link path appended to the base link.
+     *
+     * Supported on Android only — the iOS `AppsFlyerLinkGenerator` does not
+     * expose a `setDeeplinkPath` method. The value is silently ignored on iOS.
+     */
+    val deeplinkPath: String? = null,
+    val customParameters: Map<String, String> = emptyMap(),
+)
 
 /**
  * Purchase details for [AppsFlyerClient.validateAndLogInAppPurchase].
