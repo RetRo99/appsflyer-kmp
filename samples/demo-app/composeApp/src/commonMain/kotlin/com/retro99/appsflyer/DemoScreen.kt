@@ -1,24 +1,34 @@
 package com.retro99.appsflyer.sample
 
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.Orientation
+import androidx.compose.foundation.gestures.draggable
+import androidx.compose.foundation.gestures.rememberDraggableState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -37,6 +47,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -48,6 +59,7 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.compositeOver
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontFamily
@@ -63,15 +75,25 @@ import kotlinx.coroutines.launch
 fun DemoScreen(viewModel: DemoViewModel) {
     val uiState by viewModel.uiState.collectAsState()
     val clipboard = LocalClipboardManager.current
-    var showParams by remember { mutableStateOf(true) }
-    var showLogsFullscreen by remember { mutableStateOf(false) }
+    var showParams by remember { mutableStateOf(false) }
+    if (showParams) {
+        ParamsScreen(
+            params = uiState.params,
+            onParamChange = viewModel::updateParam,
+            onDone = { showParams = false },
+        )
+        return
+    }
 
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp),
+            .navigationBarsPadding(),
     ) {
-            if (showLogsFullscreen) {
+        val splitState = remember { SplitState() }
+        SplitLayout(
+            state = splitState,
+            top = {
                 LogPanel(
                     logs = uiState.logs,
                     activeFilter = uiState.logFilter,
@@ -81,85 +103,123 @@ fun DemoScreen(viewModel: DemoViewModel) {
                         val text = viewModel.exportLogs()
                         clipboard.setText(AnnotatedString(text))
                     },
-                    fullscreen = true,
-                    onToggleFullscreen = { showLogsFullscreen = false },
+                    onShowParams = { showParams = true },
                     modifier = Modifier.weight(1f),
                 )
-            } else {
-                ParamsPanel(
-                    params = uiState.params,
-                    onParamChange = viewModel::updateParam,
-                    expanded = showParams,
-                    onToggle = { showParams = !showParams },
-                    modifier = if (showParams) Modifier.weight(0.3f) else Modifier,
-                )
-                HorizontalDivider()
-                LogPanel(
-                    logs = uiState.logs,
-                    activeFilter = uiState.logFilter,
-                    onFilterChange = viewModel::setLogFilter,
-                    onClear = viewModel::clearLogs,
-                    onCopy = {
-                        val text = viewModel.exportLogs()
-                        clipboard.setText(AnnotatedString(text))
-                    },
-                    fullscreen = false,
-                    onToggleFullscreen = { showLogsFullscreen = true },
-                    modifier = Modifier.weight(0.25f),
-                )
-                HorizontalDivider()
+            },
+            bottom = {
                 SectionsList(
                     sections = remember(uiState.params) { viewModel.sections },
                     collapsedSections = uiState.collapsedSections,
                     onToggleSection = viewModel::toggleSection,
                     isButtonEnabled = viewModel::isButtonEnabled,
                     onRunSection = viewModel::runSection,
-                    modifier = Modifier.weight(0.45f),
+                    modifier = Modifier.fillMaxSize(),
                 )
-            }
+            },
+        )
     }
 }
 
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun ParamsPanel(
+private fun SplitLayout(
+    state: SplitState,
+    top: @Composable ColumnScope.() -> Unit,
+    bottom: @Composable ColumnScope.() -> Unit,
+) {
+    var containerHeightPx by remember { mutableFloatStateOf(0f) }
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .onSizeChanged { containerHeightPx = it.height.toFloat() },
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(state.topFraction),
+            content = top,
+        )
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(20.dp)
+                .draggable(
+                    state = rememberDraggableState { delta ->
+                        if (containerHeightPx > 0f) {
+                            state.topFraction =
+                                (state.topFraction + delta / containerHeightPx).coerceIn(
+                                    minimumValue = SplitState.MIN,
+                                    maximumValue = SplitState.MAX,
+                                )
+                        }
+                    },
+                    orientation = Orientation.Vertical,
+                )
+                .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f)),
+            contentAlignment = Alignment.Center,
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(width = 36.dp, height = 4.dp)
+                    .clip(RoundedCornerShape(2.dp))
+                    .background(MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)),
+            )
+        }
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(1f - state.topFraction),
+            content = bottom,
+        )
+    }
+}
+
+private class SplitState(
+    initialFraction: Float = DEFAULT,
+) {
+    var topFraction by mutableStateOf(initialFraction)
+
+    companion object {
+        const val MIN: Float = 0.15f
+        const val MAX: Float = 0.85f
+        const val DEFAULT: Float = 0.6f
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun ParamsScreen(
     params: Map<ParamKey, String>,
     onParamChange: (ParamKey, String) -> Unit,
-    expanded: Boolean,
-    onToggle: () -> Unit,
-    modifier: Modifier = Modifier,
+    onDone: () -> Unit,
 ) {
-    Column(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 8.dp),
-    ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically,
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("Parameters") },
+                actions = {
+                    TextButton(onClick = onDone) { Text("Done") }
+                },
+            )
+        },
+    ) { padding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding)
+                .verticalScroll(rememberScrollState())
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            Text("Parameters", style = MaterialTheme.typography.titleSmall)
-            TextButton(onClick = onToggle) {
-                Text(if (expanded) "Hide" else "Show")
-            }
-        }
-        AnimatedVisibility(visible = expanded) {
-            FlowRow(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalArrangement = Arrangement.spacedBy(4.dp),
-            ) {
-                ParamKey.entries.forEach { key ->
-                    OutlinedTextField(
-                        value = params[key] ?: key.default,
-                        onValueChange = { onParamChange(key, it) },
-                        label = { Text(key.label, fontSize = 11.sp) },
-                        textStyle = MaterialTheme.typography.bodySmall,
-                        modifier = Modifier.widthIn(min = 120.dp),
-                        singleLine = true,
-                    )
-                }
+            ParamKey.entries.forEach { key ->
+                OutlinedTextField(
+                    value = params[key] ?: key.default,
+                    onValueChange = { onParamChange(key, it) },
+                    label = { Text(key.label) },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true,
+                )
             }
         }
     }
@@ -173,8 +233,7 @@ private fun LogPanel(
     onFilterChange: (LogFilter) -> Unit,
     onClear: () -> Unit,
     onCopy: () -> Unit,
-    fullscreen: Boolean,
-    onToggleFullscreen: () -> Unit,
+    onShowParams: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val filteredLogs = remember(logs, activeFilter) {
@@ -223,7 +282,7 @@ private fun LogPanel(
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
-                    text = if (fullscreen) "Logs (fullscreen)" else "Logs",
+                    text = "Logs",
                     style = MaterialTheme.typography.titleSmall,
                 )
                 Spacer(modifier = Modifier.size(4.dp))
@@ -234,25 +293,21 @@ private fun LogPanel(
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
+                Spacer(modifier = Modifier.size(4.dp))
+                TextButton(onClick = onShowParams) { Text("Params") }
             }
-            Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                if (logs.isNotEmpty()) {
-                    TextButton(
-                        onClick = {
-                            autoScroll = !autoScroll
-                            if (autoScroll) {
-                                scope.launch { listState.animateScrollToItem(0) }
-                            }
-                        },
-                    ) {
-                        Text(if (autoScroll) "Auto ✓" else "Auto")
-                    }
-                    TextButton(onClick = onCopy) { Text("Copy") }
-                    TextButton(onClick = onClear) { Text("Clear") }
-                }
-                TextButton(onClick = onToggleFullscreen) {
-                    Text(if (fullscreen) "Collapse" else "Expand")
-                }
+            Row(horizontalArrangement = Arrangement.spacedBy(2.dp)) {
+                CompactTextButton(
+                    onClick = {
+                        autoScroll = !autoScroll
+                        if (autoScroll) {
+                            scope.launch { listState.animateScrollToItem(0) }
+                        }
+                    },
+                    text = if (autoScroll) "Auto \u2713" else "Auto",
+                )
+                CompactTextButton(onClick = onCopy, text = "Copy")
+                CompactTextButton(onClick = onClear, text = "Clear")
             }
         }
         Spacer(modifier = Modifier.height(4.dp))
@@ -272,12 +327,10 @@ private fun LogPanel(
                 contentAlignment = Alignment.Center,
             ) {
                 Text(
-                    text = when {
-                        logs.isEmpty() -> "No logs yet.\nTap a button below to get started."
-                        logs.isNotEmpty() && filteredLogs.isEmpty() ->
-                            "No logs match \"${activeFilter.label}\"."
-
-                        else -> ""
+                    text = if (logs.isEmpty()) {
+                        "No logs yet.\nTap a button below to get started."
+                    } else {
+                        "No logs match \"${activeFilter.label}\"."
                     },
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -584,6 +637,22 @@ private fun SectionHeader(
                 Text("Run all", fontSize = 11.sp)
             }
         }
+    }
+}
+
+@Composable
+private fun CompactTextButton(
+    onClick: () -> Unit,
+    text: String,
+) {
+    TextButton(
+        onClick = onClick,
+        contentPadding = PaddingValues(horizontal = 8.dp, vertical = 0.dp),
+    ) {
+        Text(
+            text = text,
+            style = MaterialTheme.typography.labelSmall,
+        )
     }
 }
 
