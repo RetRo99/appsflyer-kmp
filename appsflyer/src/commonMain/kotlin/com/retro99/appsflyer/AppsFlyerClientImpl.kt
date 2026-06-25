@@ -77,8 +77,10 @@ internal class AppsFlyerClientImpl(
     override fun setAdditionalData(data: Map<String, Any?>) =
         sdk.setAdditionalData(data.filterValues { it != null })
 
-    override fun setMinTimeBetweenSessions(seconds: Int) =
+    override fun setMinTimeBetweenSessions(seconds: Int) {
+        require(seconds >= 0) { "setMinTimeBetweenSessions: seconds must be non-negative, was $seconds" }
         sdk.setMinTimeBetweenSessions(seconds)
+    }
 
     override fun setDisableAdvertisingIdentifier(disable: Boolean) =
         sdk.setDisableAdvertisingIdentifier(disable)

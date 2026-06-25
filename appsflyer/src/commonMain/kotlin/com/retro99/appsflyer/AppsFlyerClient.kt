@@ -86,7 +86,11 @@ interface AppsFlyerClient {
     /** Sets additional custom data to be included in raw data reports. */
     fun setAdditionalData(data: Map<String, Any?>)
 
-    /** Sets the minimum time between sessions in seconds. */
+    /**
+     * Sets the minimum time between sessions in seconds.
+     *
+     * @param seconds must be non-negative; negative values throw IllegalArgumentException.
+     */
     fun setMinTimeBetweenSessions(seconds: Int)
 
     /**

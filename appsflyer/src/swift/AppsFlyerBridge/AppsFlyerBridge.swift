@@ -219,7 +219,7 @@ public class AppsFlyerBridge: NSObject, AppsFlyerLibDelegate, AppsFlyerDeepLinkD
     }
 
     public func setMinTimeBetweenSessions(_ seconds: Int) {
-        AppsFlyerLib.shared().minTimeBetweenSessions = UInt(max(0, seconds))
+        AppsFlyerLib.shared().minTimeBetweenSessions = UInt(seconds)
     }
 
     public func setDisableAdvertisingIdentifier(_ disable: Bool) {
