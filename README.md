@@ -57,10 +57,25 @@ AppsFlyer OneLink configuration). That's it — the SDK handles the rest.
 
 ### iOS
 
-Add the AppsFlyer SPM package to your Xcode project:
+The `AppsFlyerLib` SPM dependency is declared via `spmForKmp` in
+`build.gradle.kts` and resolved automatically — no manual SPM setup needed.
+
+To expose the AppsFlyer API in Swift, use `export` in your framework:
+
+```kotlin
+kotlin {
+    iosArm64().binaries.framework {
+        export("com.retro99.appsflyer:appsflyer:$VERSION")
+    }
+}
+```
+
+Alternatively, you can add `AppsFlyerLib` directly via SPM in your Xcode project:
 - URL: `https://github.com/AppsFlyerSDK/AppsFlyerFramework`
 - Version: `7.0.0`
 - Product: `AppsFlyerLib`
+
+Then in Swift, import your framework and use the SDK directly:
 
 ```swift
 class AppDelegate: NSObject, UIApplicationDelegate {
@@ -192,6 +207,8 @@ cd samples/demo-app/iosApp && xcodegen && open iosApp.xcodeproj
 ## Publishing
 
 - **Android:** Maven publication (group `com.retro99.appsflyer`).
-- **iOS:** KMP klib + framework. Consumers must add `AppsFlyerLib` via SPM separately.
+- **iOS:** KMP klib + framework. The `AppsFlyerLib` SPM dependency is declared
+  via `spmForKmp` and resolved automatically — consumers do not need to add it
+  separately. Use `export` in your framework to expose the API in Swift.
 
 Library version is controlled via `LIBRARY_VERSION` in `gradle.properties`.

@@ -4,6 +4,7 @@ plugins {
     alias(libs.plugins.kotlinMultiplatform)
     alias(libs.plugins.androidLibrary)
     alias(libs.plugins.spmForKmp)
+    `maven-publish`
 }
 
 group = "com.retro99.platformlogs"

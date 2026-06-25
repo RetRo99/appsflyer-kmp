@@ -21,15 +21,15 @@ kotlin {
         target.binaries.framework {
             baseName = "ComposeApp"
             isStatic = true
-            export(project(":appsflyer"))
-            export(project(":platform-logs"))
+            export(libs.appsflyer.kmp)
+            export(libs.platform.logs)
         }
     }
 
     sourceSets {
         commonMain.dependencies {
-            api(project(":appsflyer"))
-            api(project(":platform-logs"))
+            api(libs.appsflyer.kmp)
+            api(libs.platform.logs)
             implementation(compose.runtime)
             implementation(compose.foundation)
             implementation(compose.material3)
