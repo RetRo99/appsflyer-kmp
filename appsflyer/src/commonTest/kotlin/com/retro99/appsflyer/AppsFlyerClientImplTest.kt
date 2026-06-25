@@ -1215,7 +1215,7 @@ class AppsFlyerClientImplTest {
     }
 }
 
-private class FakeAppsFlyerSdk : AppsFlyerSdk {
+internal class FakeAppsFlyerSdk : AppsFlyerSdk {
     var configureCount = 0
         private set
     var lastConfig: AppsFlyerConfig? = null

@@ -36,4 +36,8 @@ object AppsFlyer {
      */
     internal fun setClient(client: AppsFlyerClient): Boolean =
         _client.compareAndSet(null, client)
+
+    internal fun resetForTesting() {
+        _client.store(null)
+    }
 }
