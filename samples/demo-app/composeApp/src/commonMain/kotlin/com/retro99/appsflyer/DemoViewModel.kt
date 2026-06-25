@@ -13,6 +13,8 @@ import com.retro99.appsflyer.LogEventResult
 import com.retro99.appsflyer.PurchaseDetails
 import com.retro99.appsflyer.PurchaseValidationResult
 import com.retro99.appsflyer.StartResult
+import com.retro99.platformlogs.LogEntry as SdkLogEntry
+import com.retro99.platformlogs.PlatformLogReader
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -83,6 +85,7 @@ data class DemoUiState(
 class DemoViewModel : ViewModel() {
 
     private val client = AppsFlyer.client
+    private val sdkLogReader = PlatformLogReader()
 
     private val _uiState = MutableStateFlow(DemoUiState())
     val uiState: StateFlow<DemoUiState> = _uiState.asStateFlow()
@@ -94,6 +97,7 @@ class DemoViewModel : ViewModel() {
         observeDeepLinks()
         observeStartResult()
         observeConversionData()
+        observeSdkLogs()
         client.start()
     }
 
@@ -184,6 +188,22 @@ class DemoViewModel : ViewModel() {
         }
     }
 
+    private fun observeSdkLogs() {
+        viewModelScope.launch {
+            val tag = if (isAndroid) "AppsFlyer_6.18.1" else "AppsFlyerLib"
+            sdkLogReader.read(tag).collect { entry ->
+                val level = when (entry.level) {
+                    com.retro99.platformlogs.LogLevel.ERROR -> LogLevel.ERROR
+                    com.retro99.platformlogs.LogLevel.WARN -> LogLevel.INFO
+                    com.retro99.platformlogs.LogLevel.INFO -> LogLevel.SUCCESS
+                    com.retro99.platformlogs.LogLevel.DEBUG -> LogLevel.INFO
+                    com.retro99.platformlogs.LogLevel.VERBOSE -> LogLevel.INFO
+                }
+                log("[SDK] ${entry.message}", level)
+            }
+        }
+    }
+
     val sections: List<DemoSection> get() = build(p())
 
     private fun p(): Map<ParamKey, String> = _uiState.value.params
@@ -194,7 +214,6 @@ class DemoViewModel : ViewModel() {
             buttons = listOf(
                 DemoButton("start()", ButtonPlatform.BOTH) {
                     client.start()
-                    log("start() called")
                 },
                 DemoButton("getStartResult()", ButtonPlatform.BOTH) {
                     runSuspend {
@@ -220,11 +239,9 @@ class DemoViewModel : ViewModel() {
                 },
                 DemoButton("stop(true)", ButtonPlatform.BOTH) {
                     client.stop(stop = true)
-                    log("stop(true) called")
                 },
                 DemoButton("stop(false)", ButtonPlatform.BOTH) {
                     client.stop(stop = false)
-                    log("stop(false) called")
                 },
                 DemoButton("isStopped", ButtonPlatform.BOTH) {
                     log("isStopped: ${client.isStopped}")
@@ -239,7 +256,6 @@ class DemoViewModel : ViewModel() {
                         lp[ParamKey.EVENT_NAME] ?: ParamKey.EVENT_NAME.default,
                         mapOf("key" to "value", "count" to 1),
                     )
-                    log("logEvent: ${lp[ParamKey.EVENT_NAME]}")
                 },
                 DemoButton("logEventForResult()", ButtonPlatform.BOTH) {
                     runSuspend {
@@ -262,14 +278,12 @@ class DemoViewModel : ViewModel() {
                             additionalParameters = mapOf("country" to "US"),
                         ),
                     )
-                    log("logAdRevenue: ${lp[ParamKey.REVENUE]} ${lp[ParamKey.CURRENCY_CODE]}")
                 },
                 DemoButton("logLocation()", ButtonPlatform.BOTH) {
                     client.logLocation(
                         latitude = (lp[ParamKey.LATITUDE] ?: ParamKey.LATITUDE.default).toDoubleOrNull() ?: 0.0,
                         longitude = (lp[ParamKey.LONGITUDE] ?: ParamKey.LONGITUDE.default).toDoubleOrNull() ?: 0.0,
                     )
-                    log("logLocation: ${lp[ParamKey.LATITUDE]}, ${lp[ParamKey.LONGITUDE]}")
                 },
                 DemoButton("validateAndLogInAppPurchase()", ButtonPlatform.BOTH) {
                     runSuspend(LogLevel.SUCCESS) {
@@ -292,30 +306,24 @@ class DemoViewModel : ViewModel() {
             buttons = listOf(
                 DemoButton("setCustomerUserId()", ButtonPlatform.BOTH) {
                     client.setCustomerUserId(lp[ParamKey.CUSTOMER_USER_ID] ?: ParamKey.CUSTOMER_USER_ID.default)
-                    log("setCustomerUserId: ${lp[ParamKey.CUSTOMER_USER_ID]}")
                 },
                 DemoButton("setCustomerUserId(null)", ButtonPlatform.BOTH) {
                     client.setCustomerUserId(null)
-                    log("setCustomerUserId: null")
                 },
                 DemoButton("setCustomerIdAndLogSession()", ButtonPlatform.BOTH) {
                     client.setCustomerIdAndLogSession(lp[ParamKey.CUSTOMER_USER_ID] ?: ParamKey.CUSTOMER_USER_ID.default)
-                    log("setCustomerIdAndLogSession: ${lp[ParamKey.CUSTOMER_USER_ID]}")
                 },
                 DemoButton("setUserEmails()", ButtonPlatform.BOTH) {
                     client.setUserEmails(
                         emails = listOf(lp[ParamKey.EMAIL] ?: ParamKey.EMAIL.default),
                         cryptType = AfEmailCryptType.SHA256,
                     )
-                    log("setUserEmails: [${lp[ParamKey.EMAIL]}] SHA256")
                 },
                 DemoButton("setPhoneNumber()", ButtonPlatform.BOTH) {
                     client.setPhoneNumber(lp[ParamKey.PHONE_NUMBER] ?: ParamKey.PHONE_NUMBER.default)
-                    log("setPhoneNumber: ${lp[ParamKey.PHONE_NUMBER]}")
                 },
                 DemoButton("setPhoneNumber(null)", ButtonPlatform.BOTH) {
                     client.setPhoneNumber(null)
-                    log("setPhoneNumber: null")
                 },
             ),
         ),
@@ -324,38 +332,30 @@ class DemoViewModel : ViewModel() {
             buttons = listOf(
                 DemoButton("setDeepLinkTimeout(5)", ButtonPlatform.BOTH) {
                     client.setDeepLinkTimeout(5)
-                    log("setDeepLinkTimeout: 5")
                 },
                 DemoButton("performOnAppAttribution()", ButtonPlatform.BOTH) {
                     client.performOnAppAttribution(lp[ParamKey.DEEP_LINK_URL] ?: ParamKey.DEEP_LINK_URL.default)
-                    log("performOnAppAttribution: ${lp[ParamKey.DEEP_LINK_URL]}")
                 },
                 DemoButton("setOneLinkCustomDomain()", ButtonPlatform.BOTH) {
                     client.setOneLinkCustomDomain(listOf("mydomain.onelink.me"))
-                    log("setOneLinkCustomDomain: [mydomain.onelink.me]")
                 },
                 DemoButton("appendParametersToDeepLinkingURL()", ButtonPlatform.BOTH) {
                     client.appendParametersToDeepLinkingURL(
                         contains = "example",
                         parameters = mapOf("param" to "value"),
                     )
-                    log("appendParametersToDeepLinkingURL: example")
                 },
                 DemoButton("setResolveDeepLinkURLs()", ButtonPlatform.BOTH) {
                     client.setResolveDeepLinkURLs(listOf("https://redirect.example.com"))
-                    log("setResolveDeepLinkURLs: [https://redirect.example.com]")
                 },
                 DemoButton("enableFacebookDeferredApplinks(true)", ButtonPlatform.ANDROID) {
                     client.enableFacebookDeferredApplinks(true)
-                    log("enableFacebookDeferredApplinks: true")
                 },
                 DemoButton("addPushNotificationDeepLinkPath()", ButtonPlatform.BOTH) {
                     client.addPushNotificationDeepLinkPath(listOf("af", "deep_link"))
-                    log("addPushNotificationDeepLinkPath: [af, deep_link]")
                 },
                 DemoButton("handlePushNotification()", ButtonPlatform.IOS) {
                     client.handlePushNotification(mapOf("alert" to "test", "af" to "deep_link"))
-                    log("handlePushNotification: {alert=test, af=deep_link}")
                 },
             ),
         ),
@@ -364,43 +364,33 @@ class DemoViewModel : ViewModel() {
             buttons = listOf(
                 DemoButton("setAnonymizeUser(true)", ButtonPlatform.BOTH) {
                     client.setAnonymizeUser(true)
-                    log("setAnonymizeUser: true")
                 },
                 DemoButton("setAnonymizeUser(false)", ButtonPlatform.BOTH) {
                     client.setAnonymizeUser(false)
-                    log("setAnonymizeUser: false")
                 },
                 DemoButton("setSharingFilterPartners()", ButtonPlatform.BOTH) {
                     client.setSharingFilterPartners(setOf(lp[ParamKey.PARTNER_ID] ?: ParamKey.PARTNER_ID.default, "partner2"))
-                    log("setSharingFilterPartners: [${lp[ParamKey.PARTNER_ID]}, partner2]")
                 },
                 DemoButton("setSharingFilterForAllPartners()", ButtonPlatform.BOTH) {
                     client.setSharingFilterForAllPartners()
-                    log("setSharingFilterForAllPartners: called")
                 },
                 DemoButton("setDisableAdvertisingIdentifier(true)", ButtonPlatform.BOTH) {
                     client.setDisableAdvertisingIdentifier(true)
-                    log("setDisableAdvertisingIdentifier: true")
                 },
                 DemoButton("setDisableSKAdNetwork(true)", ButtonPlatform.IOS) {
                     client.setDisableSKAdNetwork(true)
-                    log("setDisableSKAdNetwork: true")
                 },
                 DemoButton("setDisableIDFVCollection(true)", ButtonPlatform.IOS) {
                     client.setDisableIDFVCollection(true)
-                    log("setDisableIDFVCollection: true")
                 },
                 DemoButton("setDisableCollectASA(true)", ButtonPlatform.IOS) {
                     client.setDisableCollectASA(true)
-                    log("setDisableCollectASA: true")
                 },
                 DemoButton("setDisableAppleAdsAttribution(true)", ButtonPlatform.IOS) {
                     client.setDisableAppleAdsAttribution(true)
-                    log("setDisableAppleAdsAttribution: true")
                 },
                 DemoButton("waitForATTUserAuthorization(60)", ButtonPlatform.IOS) {
                     client.waitForATTUserAuthorization(60.0)
-                    log("waitForATTUserAuthorization: 60s")
                 },
             ),
         ),
@@ -409,47 +399,36 @@ class DemoViewModel : ViewModel() {
             buttons = listOf(
                 DemoButton("setCurrencyCode()", ButtonPlatform.BOTH) {
                     client.setCurrencyCode(lp[ParamKey.CURRENCY_CODE] ?: ParamKey.CURRENCY_CODE.default)
-                    log("setCurrencyCode: ${lp[ParamKey.CURRENCY_CODE]}")
                 },
                 DemoButton("setAdditionalData()", ButtonPlatform.BOTH) {
                     client.setAdditionalData(mapOf("custom" to "data", "num" to 42))
-                    log("setAdditionalData: {custom=data, num=42}")
                 },
                 DemoButton("setMinTimeBetweenSessions(30)", ButtonPlatform.BOTH) {
                     client.setMinTimeBetweenSessions(30)
-                    log("setMinTimeBetweenSessions: 30")
                 },
                 DemoButton("setLogLevel(DEBUG)", ButtonPlatform.BOTH) {
                     client.setLogLevel(AfLogLevel.DEBUG)
-                    log("setLogLevel: DEBUG")
                 },
                 DemoButton("setLogLevel(NONE)", ButtonPlatform.BOTH) {
                     client.setLogLevel(AfLogLevel.NONE)
-                    log("setLogLevel: NONE")
                 },
                 DemoButton("setShouldCollectDeviceName(true)", ButtonPlatform.IOS) {
                     client.setShouldCollectDeviceName(true)
-                    log("setShouldCollectDeviceName: true")
                 },
                 DemoButton("setUseReceiptValidationSandbox(true)", ButtonPlatform.IOS) {
                     client.setUseReceiptValidationSandbox(true)
-                    log("setUseReceiptValidationSandbox: true")
                 },
                 DemoButton("setUseUninstallSandbox(true)", ButtonPlatform.IOS) {
                     client.setUseUninstallSandbox(true)
-                    log("setUseUninstallSandbox: true")
                 },
                 DemoButton("setCurrentDeviceLanguage(\"en\")", ButtonPlatform.IOS) {
                     client.setCurrentDeviceLanguage("en")
-                    log("setCurrentDeviceLanguage: en")
                 },
                 DemoButton("remoteDebuggingCall()", ButtonPlatform.IOS) {
                     client.remoteDebuggingCall("test_data")
-                    log("remoteDebuggingCall: test_data")
                 },
                 DemoButton("setHost()", ButtonPlatform.BOTH) {
                     client.setHost("prefix", "example.com")
-                    log("setHost: prefix, example.com")
                 },
                 DemoButton("getHostName()", ButtonPlatform.BOTH) {
                     log("getHostName: ${client.getHostName()}")
@@ -459,11 +438,9 @@ class DemoViewModel : ViewModel() {
                 },
                 DemoButton("setExtension(\"ext\")", ButtonPlatform.ANDROID) {
                     client.setExtension("ext")
-                    log("setExtension: ext")
                 },
                 DemoButton("setInstallId()", ButtonPlatform.BOTH) {
                     client.setInstallId("install-123")
-                    log("setInstallId: install-123")
                 },
             ),
         ),
@@ -472,47 +449,36 @@ class DemoViewModel : ViewModel() {
             buttons = listOf(
                 DemoButton("setIsUpdate(true)", ButtonPlatform.ANDROID) {
                     client.setIsUpdate(true)
-                    log("setIsUpdate: true")
                 },
                 DemoButton("setCollectIMEI(true)", ButtonPlatform.ANDROID) {
                     client.setCollectIMEI(true)
-                    log("setCollectIMEI: true")
                 },
                 DemoButton("setCollectOaid(true)", ButtonPlatform.ANDROID) {
                     client.setCollectOaid(true)
-                    log("setCollectOaid: true")
                 },
                 DemoButton("setImeiData()", ButtonPlatform.ANDROID) {
                     client.setImeiData("imei_value")
-                    log("setImeiData: imei_value")
                 },
                 DemoButton("setOaidData()", ButtonPlatform.ANDROID) {
                     client.setOaidData("oaid_value")
-                    log("setOaidData: oaid_value")
                 },
                 DemoButton("setAndroidIdData()", ButtonPlatform.ANDROID) {
                     client.setAndroidIdData("android_id_value")
-                    log("setAndroidIdData: android_id_value")
                 },
                 DemoButton("disableAppSetId()", ButtonPlatform.ANDROID) {
                     client.disableAppSetId()
-                    log("disableAppSetId: called")
                 },
                 DemoButton("setDisableNetworkData(true)", ButtonPlatform.ANDROID) {
                     client.setDisableNetworkData(true)
-                    log("setDisableNetworkData: true")
                 },
                 DemoButton("waitForCustomerUserId(true)", ButtonPlatform.ANDROID) {
                     client.waitForCustomerUserId(true)
-                    log("waitForCustomerUserId: true")
                 },
                 DemoButton("setPreinstallAttribution()", ButtonPlatform.ANDROID) {
                     client.setPreinstallAttribution("source", "campaign", "site123")
-                    log("setPreinstallAttribution: source, campaign, site123")
                 },
                 DemoButton("setOutOfStore()", ButtonPlatform.ANDROID) {
                     client.setOutOfStore("play_store")
-                    log("setOutOfStore: play_store")
                 },
                 DemoButton("isPreInstalledApp()", ButtonPlatform.ANDROID) {
                     log("isPreInstalledApp: ${client.isPreInstalledApp()}")
@@ -525,15 +491,12 @@ class DemoViewModel : ViewModel() {
                 },
                 DemoButton("logSession()", ButtonPlatform.ANDROID) {
                     client.logSession()
-                    log("logSession: called")
                 },
                 DemoButton("onPause()", ButtonPlatform.ANDROID) {
                     client.onPause()
-                    log("onPause: called")
                 },
                 DemoButton("registerUninstall()", ButtonPlatform.ANDROID) {
                     client.registerUninstall("fake-token-123")
-                    log("registerUninstall: fake-token-123")
                 },
             ),
         ),
@@ -545,7 +508,6 @@ class DemoViewModel : ViewModel() {
                 },
                 DemoButton("unregisterSessionReadyListener()", ButtonPlatform.IOS) {
                     client.unregisterSessionReadyListener()
-                    log("unregisterSessionReadyListener: called")
                 },
             ),
         ),
@@ -557,21 +519,18 @@ class DemoViewModel : ViewModel() {
                         lp[ParamKey.APP_ID] ?: ParamKey.APP_ID.default,
                         lp[ParamKey.CAMPAIGN] ?: ParamKey.CAMPAIGN.default,
                     )
-                    log("logCrossPromoteImpression: ${lp[ParamKey.APP_ID]}, ${lp[ParamKey.CAMPAIGN]}")
                 },
                 DemoButton("logAndOpenStore()", ButtonPlatform.BOTH) {
                     client.logAndOpenStore(
                         lp[ParamKey.APP_ID] ?: ParamKey.APP_ID.default,
                         lp[ParamKey.CAMPAIGN] ?: ParamKey.CAMPAIGN.default,
                     )
-                    log("logAndOpenStore: ${lp[ParamKey.APP_ID]}, ${lp[ParamKey.CAMPAIGN]}")
                 },
                 DemoButton("logInvite()", ButtonPlatform.BOTH) {
                     client.logInvite(
                         lp[ParamKey.CHANNEL] ?: ParamKey.CHANNEL.default,
                         mapOf("ref" to "user1"),
                     )
-                    log("logInvite: ${lp[ParamKey.CHANNEL]}, {ref=user1}")
                 },
                 DemoButton("generateInviteUrl()", ButtonPlatform.BOTH) {
                     runSuspend {
@@ -587,7 +546,6 @@ class DemoViewModel : ViewModel() {
                 },
                 DemoButton("setAppInviteOneLink()", ButtonPlatform.BOTH) {
                     client.setAppInviteOneLink("oneLink123")
-                    log("setAppInviteOneLink: oneLink123")
                 },
             ),
         ),
@@ -599,11 +557,9 @@ class DemoViewModel : ViewModel() {
                         lp[ParamKey.PARTNER_ID] ?: ParamKey.PARTNER_ID.default,
                         mapOf("key" to "value"),
                     )
-                    log("setPartnerData: ${lp[ParamKey.PARTNER_ID]}, {key=value}")
                 },
                 DemoButton("setPluginInfo()", ButtonPlatform.BOTH) {
                     client.setPluginInfo("kotlin", "1.0.0")
-                    log("setPluginInfo: kotlin 1.0.0")
                 },
             ),
         ),

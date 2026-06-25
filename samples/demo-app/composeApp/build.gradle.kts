@@ -28,6 +28,7 @@ kotlin {
     sourceSets {
         commonMain.dependencies {
             api(project(":appsflyer"))
+            api(project(":platform-logs"))
             implementation(compose.runtime)
             implementation(compose.foundation)
             implementation(compose.material3)
