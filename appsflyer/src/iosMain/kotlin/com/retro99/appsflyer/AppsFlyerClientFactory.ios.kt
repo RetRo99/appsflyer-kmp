@@ -451,6 +451,12 @@ internal actual class AppsFlyerClientFactory(
 }
 
 internal fun String.hexToNSData(): NSData {
+    require(length % 2 == 0) {
+        "registerUninstall token must have even-length hex, was $length characters"
+    }
+    require(all { it in '0'..'9' || it in 'a'..'f' || it in 'A'..'F' }) {
+        "registerUninstall token must contain only hex digits (0-9, a-f, A-F)"
+    }
     val bytes = chunked(2).map { byteStr ->
         byteStr.toInt(16).toByte()
     }.toByteArray()
