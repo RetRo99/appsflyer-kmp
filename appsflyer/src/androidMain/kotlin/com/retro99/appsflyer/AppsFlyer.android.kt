@@ -15,7 +15,6 @@ import android.content.Context
  * @param config SDK configuration including dev key and debug flag.
  */
 fun AppsFlyer.initialize(context: Context, config: AppsFlyerConfig) {
-    if (isInitialized) return
     val client = AppsFlyerClientFactory(context).create(config)
     setClient(client)
 }

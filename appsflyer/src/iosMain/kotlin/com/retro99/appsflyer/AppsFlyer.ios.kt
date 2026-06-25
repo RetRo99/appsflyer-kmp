@@ -67,11 +67,9 @@ private var _linkHandler: AppsFlyerLinkHandler? = null
  *   `application(_:didFinishLaunchingWithOptions:)`. Pass null if unavailable.
  */
 fun AppsFlyer.initialize(config: AppsFlyerConfig, launchOptions: Map<Any?, *>? = null) {
-    if (isInitialized) return
     val sdk = IosAppsFlyerSdk(launchOptions)
     val client = AppsFlyerClientImpl(sdk, config)
-    _linkHandler = AppsFlyerLinkHandler(sdk.bridge)
-    if (!setClient(client)) {
-        _linkHandler = null
+    if (setClient(client)) {
+        _linkHandler = AppsFlyerLinkHandler(sdk.bridge)
     }
 }
