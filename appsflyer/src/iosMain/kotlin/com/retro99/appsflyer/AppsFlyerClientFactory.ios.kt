@@ -45,7 +45,9 @@ internal class IosAppsFlyerSdk(
             consentData = consentDict,
             sharingFilterPartners = config.sharingFilterPartners.toList(),
             launchOptions = launchOptions,
-            logLevelOrdinal = config.logLevel?.let { NSNumber(it.ordinal) },
+            logLevelOrdinal = config.logLevel?.let { level ->
+                NSNumber(if (level != AfLogLevel.NONE) 1 else 0)
+            },
             deepLinkTimeoutSeconds = config.deepLinkTimeoutMs?.let { ms ->
                 NSNumber(((ms + 999L) / 1000L).toInt())
             },
@@ -296,7 +298,7 @@ internal class IosAppsFlyerSdk(
     }
 
     override fun setLogLevel(level: AfLogLevel) {
-        bridge.setLogLevel(level.ordinal.toLong())
+        bridge.setLogLevel(if (level != AfLogLevel.NONE) 1L else 0L)
     }
 
     override fun waitForATTUserAuthorization(timeoutInterval: Double) {
