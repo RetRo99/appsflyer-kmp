@@ -18,14 +18,18 @@ interface AppsFlyerClient {
 
     /**
      * Suspends until the SDK reports whether it started successfully.
-     * Must be called after [start]; suspends indefinitely if [start] was not called.
+     * Must be called after [start]; suspends indefinitely if [start] was not
+     * called or the SDK never fires the start callback. Wrap in
+     * `withTimeoutOrNull` if a bounded wait is required.
      * Idempotent — subsequent calls return the cached result immediately.
      */
     suspend fun getStartResult(): StartResult
 
     /**
      * Suspends until install conversion data is available.
-     * Must be called after [start]; suspends indefinitely if [start] was not called.
+     * Must be called after [start]; suspends indefinitely if [start] was not
+     * called or the SDK never fires the conversion callback. Wrap in
+     * `withTimeoutOrNull` if a bounded wait is required.
      * Idempotent — subsequent calls return the cached result immediately.
      */
     suspend fun getConversionData(): CampaignData
@@ -39,6 +43,10 @@ interface AppsFlyerClient {
     /**
      * Logs an in-app event and suspends until the SDK confirms delivery.
      * Null values in [params] are silently dropped.
+     *
+     * If the native SDK never invokes the callback (e.g. network lost, SDK
+     * stopped, lifecycle race), this suspends indefinitely. Wrap in
+     * `withTimeoutOrNull` if a bounded wait is required.
      */
     suspend fun logEventForResult(name: String, params: Map<String, Any?> = emptyMap()): LogEventResult
 
@@ -400,6 +408,10 @@ interface AppsFlyerClient {
      * Generates a OneLink user-invite URL from the given [params].
      * Suspends until the SDK returns the URL or fails.
      *
+     * If the native SDK never invokes the callback (e.g. network lost, SDK
+     * stopped), this suspends indefinitely. Wrap in `withTimeoutOrNull` if
+     * a bounded wait is required.
+     *
      * @return the generated URL, or `null` if generation failed.
      */
     suspend fun generateInviteUrl(params: InviteLinkParams = InviteLinkParams()): String?
@@ -468,6 +480,10 @@ interface AppsFlyerClient {
     /**
      * Validates and logs an in-app purchase using the AppsFlyer VAL V2 flow.
      * Suspends until the SDK receives a response from the server.
+     *
+     * If the native SDK never invokes the callback (e.g. network lost, SDK
+     * stopped), this suspends indefinitely. Wrap in `withTimeoutOrNull` if
+     * a bounded wait is required.
      *
      * @param purchaseDetails the purchase details (product ID, transaction ID, type).
      * @param additionalParameters optional metadata associated with the purchase.
