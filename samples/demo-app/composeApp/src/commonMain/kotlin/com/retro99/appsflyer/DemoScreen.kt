@@ -1,5 +1,7 @@
 package com.retro99.appsflyer.sample
 
+import com.retro99.appsflyer.rememberCopyToClipboard
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.Orientation
@@ -59,8 +61,8 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.compositeOver
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
-import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextAlign
@@ -70,11 +72,10 @@ import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
-@Suppress("DEPRECATION")
 @Composable
 fun DemoScreen(viewModel: DemoViewModel) {
     val uiState by viewModel.uiState.collectAsState()
-    val clipboard = LocalClipboardManager.current
+    val copyToClipboard = rememberCopyToClipboard()
     var showParams by remember { mutableStateOf(false) }
     if (showParams) {
         ParamsScreen(
@@ -100,8 +101,8 @@ fun DemoScreen(viewModel: DemoViewModel) {
                     onFilterChange = viewModel::setLogFilter,
                     onClear = viewModel::clearLogs,
                     onCopy = {
-                        val text = viewModel.exportLogs()
-                        clipboard.setText(AnnotatedString(text))
+//                        val text = viewModel.exportLogs()
+                        copyToClipboard("text")
                     },
                     onShowParams = { showParams = true },
                     modifier = Modifier.weight(1f),
@@ -225,7 +226,6 @@ private fun ParamsScreen(
     }
 }
 
-@Suppress("DEPRECATION")
 @Composable
 private fun LogPanel(
     logs: List<LogEntry>,
@@ -248,6 +248,7 @@ private fun LogPanel(
     var autoScroll by remember { mutableStateOf(true) }
     val listState = rememberLazyListState()
     val scope = rememberCoroutineScope()
+    val panelCopyToClipboard = rememberCopyToClipboard()
     var unseenCount by remember { mutableStateOf(0) }
     val isAtTop by remember {
         derivedStateOf {
@@ -268,7 +269,6 @@ private fun LogPanel(
     }
 
     val expandedLogIds = remember { mutableStateMapOf<Long, Boolean>() }
-    val panelClipboard = LocalClipboardManager.current
 
     Column(
         modifier = modifier
@@ -359,7 +359,7 @@ private fun LogPanel(
                             onToggle = { expandedLogIds[entry.id] = !expanded },
                             onCopy = {
                                 val text = "${entry.timestamp} [${entry.level}] [${entry.source}] ${entry.message}"
-                                panelClipboard.setText(AnnotatedString(text))
+                                panelCopyToClipboard(text)
                             },
                         )
                     }
@@ -521,14 +521,16 @@ private fun LogRow(
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
-                Text(
-                    text = "⧉",
-                    fontSize = 12.sp,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier
-                        .padding(start = 4.dp, top = 2.dp)
-                        .clickable { onCopy() },
-                )
+                TextButton(
+                    onClick = onCopy,
+                    contentPadding = androidx.compose.foundation.layout.PaddingValues(4.dp),
+                ) {
+                    Text(
+                        text = "⧉",
+                        fontSize = 12.sp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
             }
         }
     }
