@@ -319,7 +319,7 @@ public class AppsFlyerBridge: NSObject, AppsFlyerLibDelegate, AppsFlyerDeepLinkD
     }
 
     public func setSharingFilterForAllPartners() {
-        AppsFlyerLib.shared().sharingFilter = nil
+        AppsFlyerLib.shared().sharingFilter = ["all"]
     }
 
     public func setInstallId(_ installId: String) {
