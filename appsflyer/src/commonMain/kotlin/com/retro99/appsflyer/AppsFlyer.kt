@@ -9,9 +9,9 @@ import kotlin.concurrent.atomics.ExperimentalAtomicApi
  * Call the platform-specific [initialize] extension before accessing [client].
  * Initialization is one-shot — subsequent calls are silently ignored.
  */
+@OptIn(ExperimentalAtomicApi::class)
 object AppsFlyer {
 
-    @OptIn(ExperimentalAtomicApi::class)
     private val _client = AtomicReference<AppsFlyerClient?>(null)
 
     /**
@@ -34,7 +34,6 @@ object AppsFlyer {
      *
      * Thread-safe: atomic compare-and-set guarantees only one caller wins.
      */
-    @OptIn(ExperimentalAtomicApi::class)
     internal fun setClient(client: AppsFlyerClient): Boolean =
         _client.compareAndSet(null, client)
 }
