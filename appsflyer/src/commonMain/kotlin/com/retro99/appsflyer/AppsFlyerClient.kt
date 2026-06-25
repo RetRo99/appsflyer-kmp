@@ -296,11 +296,15 @@ interface AppsFlyerClient {
     fun setCurrentDeviceLanguage(language: String?)
 
     /**
-     * Sets the deep link timeout in seconds. When the timeout elapses
+     * Sets the deep link timeout in **seconds**. When the timeout elapses
      * without a resolved deep link, the SDK reports a not-found result.
      * Call before [start] for the timeout to apply to the initial
      * deferred deep link resolution; calling after [start] re-subscribes
      * the listener but may miss an already-resolved result.
+     *
+     * Note: [AppsFlyerConfig.deepLinkTimeoutMs] uses milliseconds for
+     * config-time granularity; this method uses seconds to match the
+     * native AppsFlyer SDK API.
      */
     fun setDeepLinkTimeout(seconds: Int)
 
@@ -531,6 +535,7 @@ data class AppsFlyerConfig(
     val consentData: AppsFlyerConsent? = null,
     val sharingFilterPartners: Set<String> = emptySet(),
     val logLevel: AfLogLevel? = null,
+    /** Deep link timeout in **milliseconds**. Converted to seconds internally. */
     val deepLinkTimeoutMs: Long? = null,
 ) {
     init {
