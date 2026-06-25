@@ -127,7 +127,7 @@ internal class IosAppsFlyerSdk(
     }
 
     override fun logLocation(latitude: Double, longitude: Double) {
-        bridge.logLocation(longitude, latitude)
+        bridge.logLocation(latitude, longitude)
     }
 
     override fun setAdditionalData(data: Map<String, Any?>) {

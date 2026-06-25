@@ -210,7 +210,7 @@ public class AppsFlyerBridge: NSObject, AppsFlyerLibDelegate, AppsFlyerDeepLinkD
         AppsFlyerLib.shared().currencyCode = currency
     }
 
-    public func logLocation(_ longitude: Double, latitude: Double) {
+    public func logLocation(_ latitude: Double, longitude: Double) {
         AppsFlyerLib.shared().logLocation(longitude: longitude, latitude: latitude)
     }
 
