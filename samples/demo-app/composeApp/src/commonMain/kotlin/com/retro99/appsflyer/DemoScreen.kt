@@ -101,8 +101,8 @@ fun DemoScreen(viewModel: DemoViewModel) {
                     onFilterChange = viewModel::setLogFilter,
                     onClear = viewModel::clearLogs,
                     onCopy = {
-//                        val text = viewModel.exportLogs()
-                        copyToClipboard("text")
+                        val text = viewModel.exportLogs()
+                        copyToClipboard(text)
                     },
                     onShowParams = { showParams = true },
                     modifier = Modifier.weight(1f),
