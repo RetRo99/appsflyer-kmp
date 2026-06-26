@@ -25,7 +25,6 @@ kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-t
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
 turbine = { module = "app.cash.turbine:turbine", version = "1.2.1" }
 appsflyer-kmp = { module = "org.retar.appsflyer:appsflyer", version.ref = "library" }
-platform-logs = { module = "org.retar.platformlogs:platform-logs", version.ref = "library" }
 json = { module = "org.json:json", version.ref = "json" }
 
 [plugins]

@@ -8,6 +8,10 @@ plugins {
 kotlin {
     jvmToolchain(17)
 
+    compilerOptions {
+        freeCompilerArgs.add("-Xexpect-actual-classes")
+    }
+
     androidLibrary {
         namespace = "org.retar.appsflyer.sample.shared"
         compileSdk = 36
@@ -22,14 +26,14 @@ kotlin {
             baseName = "ComposeApp"
             isStatic = true
             export(libs.appsflyer.kmp)
-            export(libs.platform.logs)
+            export(project(":platform-logs"))
         }
     }
 
     sourceSets {
         commonMain.dependencies {
             api(libs.appsflyer.kmp)
-            api(libs.platform.logs)
+            api(project(":platform-logs"))
             implementation(compose.runtime)
             implementation(compose.foundation)
             implementation(compose.material3)
