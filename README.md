@@ -1,19 +1,19 @@
 # appsflyer-kmp
 
-> **⚠️ Experimental & Unofficial**
+> **Experimental & Unofficial**
 >
 > This is a **personal, unofficial project** and is **not affiliated with or
 > endorsed by AppsFlyer**. It is experimental and may contain bugs. Use in
 > production at your own risk.
 
 **AppsFlyer** and the AppsFlyer SDK name are trademarks of their respective
-owners. This project is an independent wrapper and does not claim any
-affiliation with or endorsement by AppsFlyer. The underlying AppsFlyer SDKs
-are governed by their own terms and licenses.
+owners. This project is an independent wrapper and claims no affiliation with
+or endorsement by AppsFlyer. The underlying AppsFlyer SDKs are governed by
+their own terms and licenses.
 
-A Kotlin Multiplatform wrapper for the AppsFlyer SDK (Android + iOS). There is
-no official AppsFlyer KMP SDK — this library provides one by delegating to the
-native SDKs via `expect`/`actual`, with a coroutine-first API.
+A Kotlin Multiplatform wrapper for the AppsFlyer SDK (Android + iOS). AppsFlyer
+ships no official KMP SDK, so this library fills that gap by delegating to the
+native SDKs via `expect`/`actual`, behind a coroutine-first API.
 
 ## Capabilities
 
@@ -37,7 +37,7 @@ suspend fun logEventForResult(name: String, params: Map<String, Any?>): LogEvent
 suspend fun validateAndLogInAppPurchase(...): PurchaseValidationResult
 ```
 
-Deep link events use a `Flow` instead of listeners:
+Deep link events arrive as a `Flow` instead of through listeners:
 
 ```kotlin
 val deepLink: Flow<DeepLinkResult>
@@ -63,13 +63,13 @@ AppsFlyer.initialize(this, AppsFlyerConfig(
 ))
 ```
 
-Add an intent filter for deep links in your `AndroidManifest.xml` (standard
-AppsFlyer OneLink configuration). That's it — the SDK handles the rest.
+Add an intent filter for deep links in your `AndroidManifest.xml` using the
+standard AppsFlyer OneLink configuration. The SDK handles the rest.
 
 ### iOS
 
 The `AppsFlyerLib` SPM dependency is declared via `spmForKmp` in
-`build.gradle.kts` and resolved automatically — no manual SPM setup needed.
+`build.gradle.kts` and resolved for you, so there is no manual SPM step.
 
 To expose the AppsFlyer API in Swift, use `export` in your framework:
 
@@ -218,9 +218,9 @@ cd samples/demo-app/iosApp && xcodegen && open iosApp.xcodeproj
 ## Publishing
 
 - **Android:** Maven publication (group `org.retar.appsflyer`).
-- **iOS:** KMP klib + framework. The `AppsFlyerLib` SPM dependency is declared
-  via `spmForKmp` and resolved automatically — consumers do not need to add it
-  separately. Use `export` in your framework to expose the API in Swift.
+- **iOS:** KMP klib + framework. Consumers get the `AppsFlyerLib` SPM dependency
+  automatically through `spmForKmp`. Use `export` in your framework to expose
+  the API in Swift.
 
 Library version is controlled via `LIBRARY_VERSION` in `gradle.properties`.
 
