@@ -10,7 +10,11 @@ val localProps = Properties().apply {
 }
 
 val afDevKey = localProps.getProperty("appsflyer.devKey")
-    ?: error("appsFlyer.devKey not found in local.properties. Add: appsflyer.devKey=YOUR_KEY")
+    ?: if (System.getenv("CI") != null) {
+        ""
+    } else {
+        error("appsflyer.devKey not found in local.properties. Add: appsflyer.devKey=YOUR_KEY")
+    }
 
 android {
     namespace = "org.retar.appsflyer.sample"
