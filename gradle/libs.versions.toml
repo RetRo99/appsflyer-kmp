@@ -7,6 +7,7 @@ appsflyerIosSdk = "7.0.0"
 library = "0.1.0"
 json = "20250517"
 spmForKmp = "1.9.4"
+mavenPublish = "0.30.0"
 composeMultiplatform = "1.11.1"
 androidx-activityCompose = "1.10.1"
 androidx-lifecycle = "2.9.0"
@@ -35,3 +36,4 @@ androidLibrary = { id = "com.android.kotlin.multiplatform.library", version.ref 
 androidApplication = { id = "com.android.application", version.ref = "agp" }
 kotlinAndroid = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 spmForKmp = { id = "io.github.frankois944.spmForKmp", version.ref = "spmForKmp" }
+mavenPublish = { id = "com.vanniktech.maven.publish", version.ref = "mavenPublish" }

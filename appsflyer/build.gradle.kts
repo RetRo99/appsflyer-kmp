@@ -1,10 +1,11 @@
 import io.github.frankois944.spmForKmp.swiftPackageConfig
+import com.vanniktech.maven.publish.SonatypeHost
 
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
     alias(libs.plugins.androidLibrary)
     alias(libs.plugins.spmForKmp)
-    `maven-publish`
+    alias(libs.plugins.mavenPublish)
 }
 
 group = "org.retar.appsflyer"
@@ -99,27 +100,43 @@ kotlin {
     }
 }
 
-publishing {
-    publications.withType<org.gradle.api.publish.maven.MavenPublication>().configureEach {
-        pom {
-            name.set("appsflyer-kmp")
-            description.set("Kotlin Multiplatform wrapper for the AppsFlyer SDK (Android + iOS).")
-            licenses {
-                license {
-                    name.set("MIT")
-                    url.set("https://opensource.org/license/mit")
-                }
+mavenPublishing {
+    publishToMavenCentral(SonatypeHost.CENTRAL_PORTAL, automaticRelease = true)
+
+    if (providers.gradleProperty("signingInMemoryKey").isPresent ||
+        providers.environmentVariable("ORG_GRADLE_PROJECT_signingInMemoryKey").isPresent
+    ) {
+        signAllPublications()
+    }
+
+    coordinates(group.toString(), "appsflyer", version.toString())
+
+    pom {
+        name.set("appsflyer-kmp")
+        description.set("Kotlin Multiplatform wrapper for the AppsFlyer SDK (Android + iOS).")
+        inceptionYear.set("2026")
+        url.set("https://github.com/RetRo99/appsflyer-kmp")
+
+        licenses {
+            license {
+                name.set("MIT")
+                url.set("https://opensource.org/license/mit")
+                distribution.set("https://opensource.org/license/mit")
             }
-            developers {
-                developer {
-                    id.set("retar")
-                    name.set("Rok Retar")
-                }
+        }
+
+        developers {
+            developer {
+                id.set("RetRo99")
+                name.set("Rok Retar")
+                url.set("https://github.com/RetRo99")
             }
-            scm {
-                connection.set("scm:git:git://github.com/retar/appsflyer-kmp.git")
-                url.set("https://github.com/retar/appsflyer-kmp")
-            }
+        }
+
+        scm {
+            url.set("https://github.com/RetRo99/appsflyer-kmp")
+            connection.set("scm:git:git://github.com/RetRo99/appsflyer-kmp.git")
+            developerConnection.set("scm:git:ssh://git@github.com/RetRo99/appsflyer-kmp.git")
         }
     }
 }
