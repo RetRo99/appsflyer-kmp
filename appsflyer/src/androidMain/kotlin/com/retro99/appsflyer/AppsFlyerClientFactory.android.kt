@@ -25,8 +25,8 @@ internal class AndroidAppsFlyerSdk(
     private var startContextRef: WeakReference<Context>? = WeakReference(context)
 
     private val lib: AppsFlyerLib = AppsFlyerLib.getInstance()
-    private var deepLinkCallback: ((DeepLinkResult) -> Unit)? = null
-    private var deepLinkTimeoutMs: Long? = null
+    @Volatile private var deepLinkCallback: ((DeepLinkResult) -> Unit)? = null
+    @Volatile private var deepLinkTimeoutMs: Long? = null
 
     override fun configure(
         config: AppsFlyerConfig,
