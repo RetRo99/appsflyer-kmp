@@ -6,6 +6,11 @@
 > endorsed by AppsFlyer**. It is experimental and may contain bugs. Use in
 > production at your own risk.
 
+**AppsFlyer** and the AppsFlyer SDK name are trademarks of their respective
+owners. This project is an independent wrapper and does not claim any
+affiliation with or endorsement by AppsFlyer. The underlying AppsFlyer SDKs
+are governed by their own terms and licenses.
+
 A Kotlin Multiplatform wrapper for the AppsFlyer SDK (Android + iOS). There is
 no official AppsFlyer KMP SDK — this library provides one by delegating to the
 native SDKs via `expect`/`actual`, with a coroutine-first API.
@@ -218,3 +223,7 @@ cd samples/demo-app/iosApp && xcodegen && open iosApp.xcodeproj
   separately. Use `export` in your framework to expose the API in Swift.
 
 Library version is controlled via `LIBRARY_VERSION` in `gradle.properties`.
+
+## License
+
+Licensed under the [Apache License 2.0](LICENSE).
