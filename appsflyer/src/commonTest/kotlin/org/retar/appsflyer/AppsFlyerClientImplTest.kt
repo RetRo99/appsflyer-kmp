@@ -1,0 +1,1221 @@
+package org.retar.appsflyer
+
+import app.cash.turbine.test
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.async
+import kotlinx.coroutines.test.runTest
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertIs
+import kotlin.test.assertNull
+class AppsFlyerClientImplTest {
+
+    private val sdk = FakeAppsFlyerSdk()
+    private val config = AppsFlyerConfig(devKey = "dev-key")
+    private val client = AppsFlyerClientImpl(sdk, config)
+
+    @Test
+    fun startConfiguresBackendOnce() {
+        client.start()
+        client.start()
+        client.start()
+
+        assertEquals(1, sdk.configureCount)
+        assertEquals(config, sdk.lastConfig)
+    }
+
+    @Test
+    fun conversionCallbackEmitsMappedConversionData() = runTest {
+        client.start()
+        sdk.onConversion?.invoke(
+            mapOf(
+                "af_status" to "Organic",
+                "media_source" to "organic",
+                "campaign" to null,
+            ),
+        )
+
+        val result = client.getConversionData()
+
+        assertIs<CampaignData.Success>(result)
+        assertEquals(AfStatus.ORGANIC, result.status)
+        assertEquals("organic", result.mediaSource)
+        assertNull(result.campaign)
+    }
+
+    @Test
+    fun conversionCallbackMapsNonOrganic() = runTest {
+        client.start()
+        sdk.onConversion?.invoke(
+            mapOf(
+                "af_status" to "Non-organic",
+                "media_source" to "facebook",
+                "campaign" to "summer",
+            ),
+        )
+
+        val result = client.getConversionData()
+
+        assertIs<CampaignData.Success>(result)
+        assertEquals(AfStatus.NON_ORGANIC, result.status)
+        assertEquals("summer", result.campaign)
+    }
+
+    @Test
+    fun conversionErrorCallbackEmitsError() = runTest {
+        client.start()
+        sdk.onConversionError?.invoke("Network timeout")
+
+        val result = client.getConversionData()
+
+        assertIs<CampaignData.Error>(result)
+        assertEquals("Network timeout", result.message)
+    }
+
+    @Test
+    fun conversionErrorWithEmptyMessage() = runTest {
+        client.start()
+        sdk.onConversionError?.invoke("")
+
+        val result = client.getConversionData()
+
+        assertIs<CampaignData.Error>(result)
+        assertEquals("", result.message)
+    }
+
+    @Test
+    fun startResultSuccessEmitted() = runTest {
+        client.start()
+        sdk.onStart?.invoke(StartResult.Success)
+
+        assertIs<StartResult.Success>(client.getStartResult())
+    }
+
+    @Test
+    fun startResultErrorEmittedWithCodeAndMessage() = runTest {
+        client.start()
+        sdk.onStart?.invoke(StartResult.Error(code = 403, message = "Forbidden"))
+
+        val result = client.getStartResult()
+
+        assertIs<StartResult.Error>(result)
+        assertEquals(403, result.code)
+        assertEquals("Forbidden", result.message)
+    }
+
+    @Test
+    fun getStartResultIsIdempotent() = runTest {
+        client.start()
+        sdk.onStart?.invoke(StartResult.Success)
+
+        val first = client.getStartResult()
+        val second = client.getStartResult()
+
+        assertEquals(first, second)
+    }
+
+    @Test
+    fun getConversionDataIsIdempotent() = runTest {
+        client.start()
+        sdk.onConversion?.invoke(
+            mapOf(
+                "af_status" to "Non-organic",
+                "media_source" to "facebook",
+                "campaign" to "summer",
+            ),
+        )
+
+        val first = client.getConversionData()
+        val second = client.getConversionData()
+
+        assertEquals(first, second)
+    }
+
+    @Test
+    fun deepLinkCallbackEmitsToFlow() = runTest {
+        client.start()
+        val expected = DeepLinkResult.Found(
+            deepLinkValue = "product_123",
+            isDeferred = false,
+            mediaSource = "email",
+            campaign = "welcome",
+            raw = mapOf("deep_link_value" to "product_123"),
+        )
+
+        client.deepLink.test {
+            sdk.onDeepLink?.invoke(expected)
+            assertEquals(expected, awaitItem())
+        }
+    }
+
+    @Test
+    fun deepLinkFlowEmitsMultipleResults() = runTest {
+        client.start()
+
+        client.deepLink.test {
+            sdk.onDeepLink?.invoke(DeepLinkResult.NotFound)
+            assertIs<DeepLinkResult.NotFound>(awaitItem())
+
+            sdk.onDeepLink?.invoke(
+                DeepLinkResult.Found(
+                    deepLinkValue = "page_1",
+                    isDeferred = true,
+                    mediaSource = null,
+                    campaign = null,
+                    raw = emptyMap(),
+                ),
+            )
+            assertIs<DeepLinkResult.Found>(awaitItem())
+
+            sdk.onDeepLink?.invoke(DeepLinkResult.Error(message = "fail"))
+            assertIs<DeepLinkResult.Error>(awaitItem())
+        }
+    }
+
+    @Test
+    fun setCustomerUserIdForwardsToBackend() {
+        client.setCustomerUserId("user-42")
+        assertEquals("user-42", sdk.lastCustomerUserId)
+
+        client.setCustomerUserId(null)
+        assertNull(sdk.lastCustomerUserId)
+    }
+
+    @Test
+    fun logEventForwardsNameAndParams() {
+        client.logEvent("purchase", mapOf("price" to 9.99, "currency" to "USD"))
+
+        assertEquals("purchase", sdk.lastEventName)
+        assertEquals(
+            mapOf("price" to 9.99, "currency" to "USD"),
+            sdk.lastEventParams,
+        )
+    }
+
+    @Test
+    fun logEventStripsNullValues() {
+        client.logEvent("event", mapOf("a" to 1, "b" to null, "c" to "x"))
+
+        assertEquals(
+            mapOf("a" to 1, "c" to "x"),
+            sdk.lastEventParams,
+        )
+    }
+
+    @Test
+    fun logEventEmptyParamsByDefault() {
+        client.logEvent("event")
+
+        assertEquals("event", sdk.lastEventName)
+        assertEquals(emptyMap(), sdk.lastEventParams)
+    }
+
+    @Test
+    fun logEventStripsAllNullValuesToEmptyMap() {
+        client.logEvent("event", mapOf("a" to null, "b" to null))
+
+        assertEquals("event", sdk.lastEventName)
+        assertEquals(emptyMap(), sdk.lastEventParams)
+    }
+
+    @Test
+    fun logEventEmptyMapForwardsAsIs() {
+        client.logEvent("event", emptyMap())
+
+        assertEquals("event", sdk.lastEventName)
+        assertEquals(emptyMap(), sdk.lastEventParams)
+    }
+
+    @Test
+    fun logEventWorksBeforeStart() {
+        client.logEvent("event", mapOf("key" to "value"))
+
+        assertEquals("event", sdk.lastEventName)
+        assertEquals(mapOf("key" to "value"), sdk.lastEventParams)
+    }
+
+    @Test
+    fun logEventForResultResumesWithSuccess() = runBlocking {
+        sdk.logEventResult = LogEventResult.Success
+
+        val result = client.logEventForResult("event", mapOf("key" to "value"))
+
+        assertIs<LogEventResult.Success>(result)
+        assertEquals("event", sdk.lastEventName)
+        assertEquals(mapOf("key" to "value"), sdk.lastEventParams)
+    }
+
+    @Test
+    fun logEventForResultResumesWithError() = runBlocking {
+        sdk.logEventResult = LogEventResult.Error(code = 500, message = "fail")
+
+        val result = client.logEventForResult("event")
+
+        assertIs<LogEventResult.Error>(result)
+        assertEquals(500, result.code)
+        assertEquals("fail", result.message)
+    }
+
+    @Test
+    fun logEventForResultFiltersNullValues() = runBlocking {
+        sdk.logEventResult = LogEventResult.Success
+
+        client.logEventForResult("event", mapOf("a" to "b", "c" to null))
+
+        assertEquals(mapOf("a" to "b"), sdk.lastEventParams)
+    }
+
+    @Test
+    fun conversionCallbackWithUnexpectedStatusEmitsError() = runTest {
+        client.start()
+        sdk.onConversion?.invoke(mapOf("af_status" to "Unknown"))
+
+        val result = client.getConversionData()
+
+        assertIs<CampaignData.Error>(result)
+        assertEquals("Unexpected af_status: Unknown", result.message)
+    }
+
+    @Test
+    fun getStartResultSuspendsUntilCallbackFires() = runTest {
+        client.start()
+
+        var result: StartResult? = null
+        val deferred = async { result = client.getStartResult() }
+
+        assertEquals(null, result)
+        sdk.onStart?.invoke(StartResult.Success)
+        deferred.join()
+
+        assertIs<StartResult.Success>(result)
+    }
+
+    @Test
+    fun getConversionDataSuspendsUntilCallbackFires() = runTest {
+        client.start()
+
+        var result: CampaignData? = null
+        val deferred = async { result = client.getConversionData() }
+
+        assertEquals(null, result)
+        sdk.onConversion?.invoke(
+            mapOf(
+                "af_status" to "Organic",
+                "media_source" to "organic",
+            ),
+        )
+        deferred.join()
+
+        assertIs<CampaignData.Success>(result)
+        assertEquals(AfStatus.ORGANIC, (result as CampaignData.Success).status)
+    }
+
+    @Test
+    fun deepLinkFlowDoesNotReplayPastEmissions() = runTest {
+        client.start()
+        sdk.onDeepLink?.invoke(DeepLinkResult.NotFound)
+
+        client.deepLink.test {
+            sdk.onDeepLink?.invoke(DeepLinkResult.Error(message = "new"))
+            assertIs<DeepLinkResult.Error>(awaitItem())
+            expectNoEvents()
+        }
+    }
+
+    @Test
+    fun getSdkVersionForwardsToBackend() {
+        assertEquals("6.18.1", client.getSdkVersion())
+    }
+
+    @Test
+    fun setCurrencyCodeForwardsToBackend() {
+        client.setCurrencyCode("EUR")
+        assertEquals("EUR", sdk.lastCurrencyCode)
+    }
+
+    @Test
+    fun logLocationForwardsToBackend() {
+        client.logLocation(latitude = 37.7749, longitude = -122.4194)
+        assertEquals(37.7749, sdk.lastLatitude)
+        assertEquals(-122.4194, sdk.lastLongitude)
+    }
+
+    @Test
+    fun setAdditionalDataForwardsToBackend() {
+        client.setAdditionalData(mapOf("key1" to "value1", "key2" to 42))
+        assertEquals(mapOf("key1" to "value1", "key2" to 42), sdk.lastAdditionalData)
+    }
+
+    @Test
+    fun setAdditionalDataStripsNullValues() {
+        client.setAdditionalData(mapOf("a" to "b", "c" to null, "d" to 3))
+        assertEquals(mapOf("a" to "b", "d" to 3), sdk.lastAdditionalData)
+    }
+
+    @Test
+    fun setMinTimeBetweenSessionsForwardsToBackend() {
+        client.setMinTimeBetweenSessions(10)
+        assertEquals(10, sdk.lastMinTimeBetweenSessions)
+    }
+
+    @Test
+    fun setDisableAdvertisingIdentifierForwardsToBackend() {
+        client.setDisableAdvertisingIdentifier(true)
+        assertEquals(true, sdk.lastDisableAdvertisingIdentifier)
+    }
+
+    @Test
+    fun setDisableSKAdNetworkForwardsToBackend() {
+        client.setDisableSKAdNetwork(true)
+        assertEquals(true, sdk.lastDisableSKAdNetwork)
+    }
+
+    @Test
+    fun afEmailCryptTypeIosRawValues() {
+        assertEquals(0L, AfEmailCryptType.NONE.iosRawValue)
+        assertEquals(3L, AfEmailCryptType.SHA256.iosRawValue)
+    }
+
+    @Test
+    fun afMediationNetworkIosRawValues() {
+        assertEquals(1L, AfMediationNetwork.GOOGLE_ADMOB.iosRawValue)
+        assertEquals(2L, AfMediationNetwork.IRON_SOURCE.iosRawValue)
+        assertEquals(3L, AfMediationNetwork.APP_LOVIN_MAX.iosRawValue)
+        assertEquals(4L, AfMediationNetwork.FYBER.iosRawValue)
+        assertEquals(5L, AfMediationNetwork.APPODEAL.iosRawValue)
+        assertEquals(6L, AfMediationNetwork.ADMOST.iosRawValue)
+        assertEquals(7L, AfMediationNetwork.TOPON.iosRawValue)
+        assertEquals(8L, AfMediationNetwork.TRADPLUS.iosRawValue)
+        assertEquals(9L, AfMediationNetwork.YANDEX.iosRawValue)
+        assertEquals(10L, AfMediationNetwork.CHARTBOOST.iosRawValue)
+        assertEquals(11L, AfMediationNetwork.UNITY.iosRawValue)
+        assertEquals(12L, AfMediationNetwork.TOPON_PTE.iosRawValue)
+        assertEquals(13L, AfMediationNetwork.CUSTOM_MEDIATION.iosRawValue)
+        assertEquals(14L, AfMediationNetwork.DIRECT_MONETIZATION.iosRawValue)
+    }
+
+    @Test
+    fun mapDeepLinkResultFoundMapsAllFields() {
+        val result = mapDeepLinkResult(
+            status = DeepLinkStatus.FOUND,
+            deepLinkValue = "product_123",
+            isDeferred = true,
+            mediaSource = "email",
+            campaign = "welcome",
+            raw = mapOf("key" to "value"),
+        )
+
+        val found = assertIs<DeepLinkResult.Found>(result)
+        assertEquals("product_123", found.deepLinkValue)
+        assertEquals(true, found.isDeferred)
+        assertEquals("email", found.mediaSource)
+        assertEquals("welcome", found.campaign)
+        assertEquals(mapOf("key" to "value"), found.raw)
+    }
+
+    @Test
+    fun mapDeepLinkResultFoundWithNullIsDeferredDefaultsToFalse() {
+        val result = mapDeepLinkResult(
+            status = DeepLinkStatus.FOUND,
+            isDeferred = null,
+        )
+
+        val found = assertIs<DeepLinkResult.Found>(result)
+        assertEquals(false, found.isDeferred)
+    }
+
+    @Test
+    fun mapDeepLinkResultNotFound() {
+        val result = mapDeepLinkResult(status = DeepLinkStatus.NOT_FOUND)
+        assertIs<DeepLinkResult.NotFound>(result)
+    }
+
+    @Test
+    fun mapDeepLinkResultErrorWithMessage() {
+        val result = mapDeepLinkResult(
+            status = DeepLinkStatus.ERROR,
+            error = "Something went wrong",
+        )
+
+        val error = assertIs<DeepLinkResult.Error>(result)
+        assertEquals("Something went wrong", error.message)
+    }
+
+    @Test
+    fun mapDeepLinkResultErrorWithNullMessage() {
+        val result = mapDeepLinkResult(status = DeepLinkStatus.ERROR)
+
+        val error = assertIs<DeepLinkResult.Error>(result)
+        assertNull(error.message)
+    }
+
+    @Test
+    fun toCampaignDataOrganicWithAllFields() {
+        val result = mapOf(
+            "af_status" to "Organic",
+            "media_source" to "organic",
+            "campaign" to "default",
+        ).toCampaignData()
+
+        val success = assertIs<CampaignData.Success>(result)
+        assertEquals(AfStatus.ORGANIC, success.status)
+        assertEquals("organic", success.mediaSource)
+        assertEquals("default", success.campaign)
+    }
+
+    @Test
+    fun toCampaignDataNonOrganic() {
+        val result = mapOf(
+            "af_status" to "Non-organic",
+            "media_source" to "facebook",
+            "campaign" to "summer",
+        ).toCampaignData()
+
+        val success = assertIs<CampaignData.Success>(result)
+        assertEquals(AfStatus.NON_ORGANIC, success.status)
+        assertEquals("facebook", success.mediaSource)
+        assertEquals("summer", success.campaign)
+    }
+
+    @Test
+    fun toCampaignDataMissingMediaSourceReturnsNull() {
+        val result = mapOf("af_status" to "Organic").toCampaignData()
+
+        val success = assertIs<CampaignData.Success>(result)
+        assertNull(success.mediaSource)
+        assertNull(success.campaign)
+    }
+
+    @Test
+    fun toCampaignDataUnexpectedStatusReturnsError() {
+        val result = mapOf("af_status" to "Unknown").toCampaignData()
+
+        val error = assertIs<CampaignData.Error>(result)
+        assertEquals("Unexpected af_status: Unknown", error.message)
+    }
+
+    @Test
+    fun toCampaignDataMissingStatusReturnsError() {
+        val result = mapOf("media_source" to "facebook").toCampaignData()
+
+        val error = assertIs<CampaignData.Error>(result)
+        assertEquals("Unexpected af_status: null", error.message)
+    }
+
+    @Test
+    fun toCampaignDataEmptyMapReturnsError() {
+        val result = emptyMap<String, Any?>().toCampaignData()
+
+        val error = assertIs<CampaignData.Error>(result)
+        assertEquals("Unexpected af_status: null", error.message)
+    }
+
+    @Test
+    fun toCampaignDataPreservesRawMap() {
+        val raw = mapOf(
+            "af_status" to "Organic",
+            "media_source" to "organic",
+            "campaign" to "default",
+            "extra_field" to "extra_value",
+            "is_lat" to true,
+        )
+
+        val result = raw.toCampaignData()
+
+        val success = assertIs<CampaignData.Success>(result)
+        assertEquals(raw, success.raw)
+    }
+
+    @Test
+    fun setUserEmailsForwardsToBackend() {
+        client.setUserEmails(listOf("a@b.com", "c@d.com"), cryptType = AfEmailCryptType.SHA256)
+        assertEquals(listOf("a@b.com", "c@d.com"), sdk.lastUserEmails)
+        assertEquals(AfEmailCryptType.SHA256, sdk.lastEmailCryptType)
+    }
+
+    @Test
+    fun setUserEmailsWithNoneCryptType() {
+        client.setUserEmails(listOf("a@b.com"), cryptType = AfEmailCryptType.NONE)
+        assertEquals(AfEmailCryptType.NONE, sdk.lastEmailCryptType)
+    }
+
+    @Test
+    fun registerUninstallForwardsToBackend() {
+        client.registerUninstall("fcm-token-123")
+        assertEquals("fcm-token-123", sdk.lastUninstallToken)
+    }
+
+    @Test
+    fun setOneLinkCustomDomainForwardsToBackend() {
+        client.setOneLinkCustomDomain(listOf("mydomain.com", "sub.domain.com"))
+        assertEquals(listOf("mydomain.com", "sub.domain.com"), sdk.lastOneLinkCustomDomains)
+    }
+
+    @Test
+    fun setOneLinkCustomDomainEmptyListForwardsAsIs() {
+        client.setOneLinkCustomDomain(emptyList())
+        assertEquals(emptyList(), sdk.lastOneLinkCustomDomains)
+    }
+
+    @Test
+    fun appendParametersToDeepLinkingURLForwardsToBackend() {
+        client.appendParametersToDeepLinkingURL(
+            contains = "mydomain.com",
+            parameters = mapOf("pid" to "email", "c" to "welcome"),
+        )
+        assertEquals("mydomain.com", sdk.lastDeepLinkContains)
+        assertEquals(mapOf("pid" to "email", "c" to "welcome"), sdk.lastDeepLinkParameters)
+    }
+
+    @Test
+    fun appendParametersToDeepLinkingURLEmptyMapForwardsAsIs() {
+        client.appendParametersToDeepLinkingURL(contains = "test.com", parameters = emptyMap())
+        assertEquals("test.com", sdk.lastDeepLinkContains)
+        assertEquals(emptyMap(), sdk.lastDeepLinkParameters)
+    }
+
+    @Test
+    fun setPartnerDataForwardsToBackend() {
+        client.setPartnerData("partner1", mapOf("key1" to "value1", "key2" to 42))
+        assertEquals("partner1", sdk.lastPartnerId)
+        assertEquals(mapOf("key1" to "value1", "key2" to 42), sdk.lastPartnerData)
+    }
+
+    @Test
+    fun setPartnerDataStripsNullValues() {
+        client.setPartnerData("partner1", mapOf("a" to "b", "c" to null, "d" to 3))
+        assertEquals(mapOf("a" to "b", "d" to 3), sdk.lastPartnerData)
+    }
+
+    @Test
+    fun setPartnerDataEmptyMapForwardsAsIs() {
+        client.setPartnerData("partner1", emptyMap())
+        assertEquals(emptyMap(), sdk.lastPartnerData)
+    }
+
+    @Test
+    fun addPushNotificationDeepLinkPathForwardsToBackend() {
+        client.addPushNotificationDeepLinkPath(listOf("custom_key", "deep_link"))
+        assertEquals(listOf("custom_key", "deep_link"), sdk.lastPushNotificationDeepLinkPath)
+    }
+
+    @Test
+    fun addPushNotificationDeepLinkPathEmptyListForwardsAsIs() {
+        client.addPushNotificationDeepLinkPath(emptyList())
+        assertEquals(emptyList(), sdk.lastPushNotificationDeepLinkPath)
+    }
+
+    @Test
+    fun setResolveDeepLinkURLsForwardsToBackend() {
+        client.setResolveDeepLinkURLs(listOf("short.link", "another.link"))
+        assertEquals(listOf("short.link", "another.link"), sdk.lastResolveDeepLinkURLs)
+    }
+
+    @Test
+    fun setResolveDeepLinkURLsEmptyListForwardsAsIs() {
+        client.setResolveDeepLinkURLs(emptyList())
+        assertEquals(emptyList(), sdk.lastResolveDeepLinkURLs)
+    }
+
+    @Test
+    fun setHostForwardsToBackend() {
+        client.setHost(hostPrefix = "prefix", hostName = "example.com")
+        assertEquals("prefix", sdk.lastHostPrefix)
+        assertEquals("example.com", sdk.lastHostName)
+    }
+
+    @Test
+    fun getHostNameForwardsToBackend() {
+        assertEquals("default-host", client.getHostName())
+    }
+
+    @Test
+    fun getHostPrefixForwardsToBackend() {
+        assertEquals("default-prefix", client.getHostPrefix())
+    }
+
+    @Test
+    fun setAppInviteOneLinkForwardsToBackend() {
+        client.setAppInviteOneLink("abc123")
+        assertEquals("abc123", sdk.lastAppInviteOneLink)
+    }
+
+    @Test
+    fun setPhoneNumberForwardsToBackend() {
+        client.setPhoneNumber("+1234567890")
+        assertEquals("+1234567890", sdk.lastPhoneNumber)
+    }
+
+    @Test
+    fun setPhoneNumberNullForwardsToBackend() {
+        client.setPhoneNumber(null)
+        assertEquals(null, sdk.lastPhoneNumber)
+    }
+
+    @Test
+    fun performOnAppAttributionForwardsToBackend() {
+        client.performOnAppAttribution("https://example.com/link")
+        assertEquals("https://example.com/link", sdk.lastAttributionUrl)
+    }
+
+    @Test
+    fun setIsUpdateForwardsToBackend() {
+        client.setIsUpdate(true)
+        assertEquals(true, sdk.lastIsUpdate)
+    }
+
+    @Test
+    fun setCollectIMEIForwardsToBackend() {
+        client.setCollectIMEI(true)
+        assertEquals(true, sdk.lastCollectIMEI)
+    }
+
+    @Test
+    fun setCollectOaidForwardsToBackend() {
+        client.setCollectOaid(false)
+        assertEquals(false, sdk.lastCollectOaid)
+    }
+
+    @Test
+    fun setImeiDataForwardsToBackend() {
+        client.setImeiData("imei-123")
+        assertEquals("imei-123", sdk.lastImeiData)
+    }
+
+    @Test
+    fun setOaidDataForwardsToBackend() {
+        client.setOaidData("oaid-456")
+        assertEquals("oaid-456", sdk.lastOaidData)
+    }
+
+    @Test
+    fun setAndroidIdDataForwardsToBackend() {
+        client.setAndroidIdData("android-id-789")
+        assertEquals("android-id-789", sdk.lastAndroidIdData)
+    }
+
+    @Test
+    fun disableAppSetIdForwardsToBackend() {
+        client.disableAppSetId()
+        assertEquals(true, sdk.disableAppSetIdCalled)
+    }
+
+    @Test
+    fun setDisableNetworkDataForwardsToBackend() {
+        client.setDisableNetworkData(true)
+        assertEquals(true, sdk.lastDisableNetworkData)
+    }
+
+    @Test
+    fun waitForCustomerUserIdForwardsToBackend() {
+        client.waitForCustomerUserId(true)
+        assertEquals(true, sdk.lastWaitForCustomerUserId)
+    }
+
+    @Test
+    fun setPreinstallAttributionForwardsToBackend() {
+        client.setPreinstallAttribution("organic", "campaign1", "site123")
+        assertEquals("organic", sdk.lastPreinstallMediaSource)
+        assertEquals("campaign1", sdk.lastPreinstallCampaign)
+        assertEquals("site123", sdk.lastPreinstallSiteId)
+    }
+
+    @Test
+    fun setOutOfStoreForwardsToBackend() {
+        client.setOutOfStore("amazon")
+        assertEquals("amazon", sdk.lastOutOfStore)
+    }
+
+    @Test
+    fun setDisableIDFVCollectionForwardsToBackend() {
+        client.setDisableIDFVCollection(true)
+        assertEquals(true, sdk.lastDisableIDFVCollection)
+    }
+
+    @Test
+    fun setDisableCollectASAForwardsToBackend() {
+        client.setDisableCollectASA(true)
+        assertEquals(true, sdk.lastDisableCollectASA)
+    }
+
+    @Test
+    fun setDisableAppleAdsAttributionForwardsToBackend() {
+        client.setDisableAppleAdsAttribution(true)
+        assertEquals(true, sdk.lastDisableAppleAdsAttribution)
+    }
+
+    @Test
+    fun setShouldCollectDeviceNameForwardsToBackend() {
+        client.setShouldCollectDeviceName(true)
+        assertEquals(true, sdk.lastShouldCollectDeviceName)
+    }
+
+    @Test
+    fun setUseReceiptValidationSandboxForwardsToBackend() {
+        client.setUseReceiptValidationSandbox(true)
+        assertEquals(true, sdk.lastUseReceiptValidationSandbox)
+    }
+
+    @Test
+    fun setUseUninstallSandboxForwardsToBackend() {
+        client.setUseUninstallSandbox(true)
+        assertEquals(true, sdk.lastUseUninstallSandbox)
+    }
+
+    @Test
+    fun setCurrentDeviceLanguageForwardsToBackend() {
+        client.setCurrentDeviceLanguage("EN")
+        assertEquals("EN", sdk.lastCurrentDeviceLanguage)
+    }
+
+    @Test
+    fun setCurrentDeviceLanguageNullForwardsToBackend() {
+        client.setCurrentDeviceLanguage(null)
+        assertEquals(null, sdk.lastCurrentDeviceLanguage)
+    }
+
+    @Test
+    fun setDeepLinkTimeoutForwardsToBackend() {
+        client.setDeepLinkTimeout(5)
+        assertEquals(5, sdk.lastDeepLinkTimeout)
+    }
+
+    @Test
+    fun remoteDebuggingCallForwardsToBackend() {
+        client.remoteDebuggingCall("debug-data")
+        assertEquals("debug-data", sdk.lastRemoteDebuggingData)
+    }
+
+    @Test
+    fun isPreInstalledAppForwardsToBackend() {
+        sdk.isPreInstalledAppValue = true
+        assertEquals(true, client.isPreInstalledApp())
+        assertEquals(true, sdk.lastIsPreInstalledApp)
+
+        sdk.isPreInstalledAppValue = false
+        assertEquals(false, client.isPreInstalledApp())
+        assertEquals(false, sdk.lastIsPreInstalledApp)
+    }
+
+    @Test
+    fun getAttributionIdForwardsToBackend() {
+        assertEquals("fb-attribution-123", client.getAttributionId())
+    }
+
+    @Test
+    fun getOutOfStoreForwardsToBackend() {
+        assertEquals("amazon", client.getOutOfStore())
+    }
+
+    @Test
+    fun logSessionForwardsToBackend() {
+        client.logSession()
+        assertEquals(true, sdk.logSessionCalled)
+    }
+
+    @Test
+    fun onPauseForwardsToBackend() {
+        client.onPause()
+        assertEquals(true, sdk.onPauseCalled)
+    }
+
+    @Test
+    fun setCustomerIdAndLogSessionForwardsToBackend() {
+        client.setCustomerIdAndLogSession("user-42")
+        assertEquals("user-42", sdk.lastCustomerIdForLogSession)
+    }
+
+    @Test
+    fun setLogLevelForwardsToBackend() {
+        client.setLogLevel(AfLogLevel.VERBOSE)
+        assertEquals(AfLogLevel.VERBOSE, sdk.lastLogLevel)
+    }
+
+    @Test
+    fun setLogLevelNoneForwardsToBackend() {
+        client.setLogLevel(AfLogLevel.NONE)
+        assertEquals(AfLogLevel.NONE, sdk.lastLogLevel)
+    }
+
+    @Test
+    fun waitForATTUserAuthorizationForwardsToBackend() {
+        client.waitForATTUserAuthorization(60.0)
+        assertEquals(60.0, sdk.lastATTTimeoutInterval)
+    }
+
+    @Test
+    fun getAdvertisingIdentifierForwardsToBackend() {
+        assertEquals("fake-idfa", client.getAdvertisingIdentifier())
+    }
+
+    @Test
+    fun logCrossPromoteImpressionForwardsToBackend() {
+        client.logCrossPromoteImpression(
+            appId = "app123",
+            campaign = "summer",
+            parameters = mapOf("key" to "value"),
+        )
+        assertEquals("app123", sdk.lastCrossPromoteAppId)
+        assertEquals("summer", sdk.lastCrossPromoteCampaign)
+        assertEquals(mapOf("key" to "value"), sdk.lastCrossPromoteParameters)
+    }
+
+    @Test
+    fun logCrossPromoteImpressionEmptyParamsByDefault() {
+        client.logCrossPromoteImpression(appId = "app123", campaign = "summer")
+        assertEquals(emptyMap(), sdk.lastCrossPromoteParameters)
+    }
+
+    @Test
+    fun logAndOpenStoreForwardsToBackend() {
+        client.logAndOpenStore(
+            appId = "app456",
+            campaign = "winter",
+            parameters = mapOf("source" to "email"),
+        )
+        assertEquals("app456", sdk.lastOpenStoreAppId)
+        assertEquals("winter", sdk.lastOpenStoreCampaign)
+        assertEquals(mapOf("source" to "email"), sdk.lastOpenStoreParameters)
+    }
+
+    @Test
+    fun logInviteForwardsToBackend() {
+        client.logInvite(
+            channel = "gmail",
+            parameters = mapOf("ref" to "user1"),
+        )
+        assertEquals("gmail", sdk.lastInviteChannel)
+        assertEquals(mapOf("ref" to "user1"), sdk.lastInviteParameters)
+    }
+
+    @Test
+    fun logInviteEmptyParamsByDefault() {
+        client.logInvite(channel = "gmail")
+        assertEquals(emptyMap(), sdk.lastInviteParameters)
+    }
+
+    @Test
+    fun generateInviteUrlResumesWithSuccess() = runBlocking {
+        val params = InviteLinkParams(
+            channel = "gmail",
+            campaign = "invite_friends",
+            referrerUID = "user-42",
+        )
+
+        val result = client.generateInviteUrl(params)
+
+        assertEquals("https://onelink.app/invite/abc123", result)
+        assertEquals(params, sdk.lastInviteLinkParams)
+    }
+
+    @Test
+    fun generateInviteUrlResumesWithNull() = runBlocking {
+        sdk.inviteUrlResult = null
+
+        val result = client.generateInviteUrl()
+
+        assertNull(result)
+    }
+
+    @Test
+    fun generateInviteUrlDefaultParams() = runBlocking {
+        client.generateInviteUrl()
+        assertEquals(InviteLinkParams(), sdk.lastInviteLinkParams)
+    }
+
+    @Test
+    fun enableFacebookDeferredApplinksForwardsToBackend() {
+        client.enableFacebookDeferredApplinks(true)
+        assertEquals(true, sdk.lastFacebookDeferredApplinks)
+
+        client.enableFacebookDeferredApplinks(false)
+        assertEquals(false, sdk.lastFacebookDeferredApplinks)
+    }
+
+    @Test
+    fun setPluginInfoForwardsToBackend() {
+        client.setPluginInfo(
+            plugin = "reactnative",
+            version = "1.0.0",
+            additionalParameters = mapOf("platform" to "android"),
+        )
+        assertEquals("reactnative", sdk.lastPluginInfoPlugin)
+        assertEquals("1.0.0", sdk.lastPluginInfoVersion)
+        assertEquals(mapOf("platform" to "android"), sdk.lastPluginInfoParams)
+    }
+
+    @Test
+    fun setPluginInfoEmptyAdditionalParamsByDefault() {
+        client.setPluginInfo(plugin = "flutter", version = "2.0.0")
+        assertEquals(emptyMap(), sdk.lastPluginInfoParams)
+    }
+
+    @Test
+    fun afLogLevelOrdinalValues() {
+        assertEquals(0, AfLogLevel.NONE.ordinal)
+        assertEquals(1, AfLogLevel.ERROR.ordinal)
+        assertEquals(2, AfLogLevel.WARN.ordinal)
+        assertEquals(3, AfLogLevel.INFO.ordinal)
+        assertEquals(4, AfLogLevel.DEBUG.ordinal)
+        assertEquals(5, AfLogLevel.VERBOSE.ordinal)
+    }
+
+    @Test
+    fun inviteLinkParamsDefaultsAreNull() {
+        val params = InviteLinkParams()
+        assertNull(params.channel)
+        assertNull(params.campaign)
+        assertNull(params.referrerCustomerId)
+        assertNull(params.referrerUID)
+        assertNull(params.referrerName)
+        assertNull(params.referrerImageURL)
+        assertNull(params.brandDomain)
+        assertNull(params.baseDeeplink)
+        assertNull(params.deeplinkPath)
+        assertEquals(emptyMap(), params.customParameters)
+    }
+
+    @Test
+    fun appsFlyerConfigLogLevelDefaultsToNull() {
+        val config = AppsFlyerConfig(devKey = "key")
+        assertNull(config.logLevel)
+    }
+
+    @Test
+    fun appsFlyerConfigDeepLinkTimeoutMsDefaultsToNull() {
+        val config = AppsFlyerConfig(devKey = "key")
+        assertNull(config.deepLinkTimeoutMs)
+    }
+
+    @Test
+    fun setSharingFilterForAllPartnersForwardsToBackend() {
+        client.setSharingFilterForAllPartners()
+        assertEquals(true, sdk.sharingFilterForAllPartnersCalled)
+    }
+
+    @Test
+    fun setExtensionForwardsToBackend() {
+        client.setExtension("cordova")
+        assertEquals("cordova", sdk.lastExtension)
+    }
+
+    @Test
+    fun setInstallIdForwardsToBackend() {
+        client.setInstallId("install-123")
+        assertEquals("install-123", sdk.lastInstallId)
+    }
+
+    @Test
+    fun isSessionReadyForwardsToBackend() {
+        assertEquals(true, sdk.isSessionReadyValue)
+        client.isSessionReady()
+    }
+
+    @Test
+    fun handlePushNotificationForwardsToBackend() {
+        client.handlePushNotification(mapOf("af" to "value"))
+        assertEquals(mapOf("af" to "value"), sdk.lastPushNotificationPayload)
+    }
+
+    @Test
+    fun unregisterSessionReadyListenerForwardsToBackend() {
+        client.unregisterSessionReadyListener()
+        assertEquals(true, sdk.unregisterSessionReadyCalled)
+    }
+
+    @Test
+    fun logAdRevenueForwardsToBackend() {
+        val data = AdRevenueData(
+            monetizationNetwork = "ironsource",
+            mediationNetwork = AfMediationNetwork.GOOGLE_ADMOB,
+            currency = "USD",
+            revenue = 0.0015,
+            additionalParameters = mapOf("country" to "US", "ad_unit" to "89b8c0159a50ebd1"),
+        )
+
+        client.logAdRevenue(data)
+
+        assertEquals(data, sdk.lastAdRevenueData)
+    }
+
+    @Test
+    fun logAdRevenueStripsNullAdditionalParameters() {
+        val data = AdRevenueData(
+            monetizationNetwork = "ironsource",
+            mediationNetwork = AfMediationNetwork.IRON_SOURCE,
+            currency = "EUR",
+            revenue = 1.2,
+            additionalParameters = mapOf("a" to "b", "c" to null, "d" to 3),
+        )
+
+        client.logAdRevenue(data)
+
+        val forwarded = sdk.lastAdRevenueData!!
+        assertEquals(mapOf("a" to "b", "d" to 3), forwarded.additionalParameters)
+    }
+
+    @Test
+    fun logAdRevenueWithEmptyAdditionalParameters() {
+        val data = AdRevenueData(
+            monetizationNetwork = "applovin",
+            mediationNetwork = AfMediationNetwork.APP_LOVIN_MAX,
+            currency = "USD",
+            revenue = 0.0,
+        )
+
+        client.logAdRevenue(data)
+
+        assertEquals(emptyMap(), sdk.lastAdRevenueData?.additionalParameters)
+    }
+
+    @Test
+    fun logAdRevenueAllNullAdditionalParameters() {
+        val data = AdRevenueData(
+            monetizationNetwork = "fyber",
+            mediationNetwork = AfMediationNetwork.FYBER,
+            currency = "USD",
+            revenue = 0.5,
+            additionalParameters = mapOf("x" to null, "y" to null),
+        )
+
+        client.logAdRevenue(data)
+
+        assertEquals(emptyMap(), sdk.lastAdRevenueData?.additionalParameters)
+    }
+
+    @Test
+    fun logAdRevenuePreservesAllCoreFields() {
+        val data = AdRevenueData(
+            monetizationNetwork = "topon",
+            mediationNetwork = AfMediationNetwork.TOPON,
+            currency = "JPY",
+            revenue = 100.0,
+        )
+
+        client.logAdRevenue(data)
+
+        val forwarded = sdk.lastAdRevenueData!!
+        assertEquals("topon", forwarded.monetizationNetwork)
+        assertEquals(AfMediationNetwork.TOPON, forwarded.mediationNetwork)
+        assertEquals("JPY", forwarded.currency)
+        assertEquals(100.0, forwarded.revenue)
+    }
+
+    @Test
+    fun setAnonymizeUserForwardsToBackend() {
+        client.setAnonymizeUser(true)
+        assertEquals(true, sdk.lastAnonymizeUser)
+
+        client.setAnonymizeUser(false)
+        assertEquals(false, sdk.lastAnonymizeUser)
+    }
+
+    @Test
+    fun setAnonymizeUserWorksBeforeStart() {
+        client.setAnonymizeUser(true)
+
+        assertEquals(0, sdk.configureCount)
+        assertEquals(true, sdk.lastAnonymizeUser)
+    }
+
+    @Test
+    fun setSharingFilterPartnersForwardsToBackend() {
+        val partners = setOf("facebook", "google")
+
+        client.setSharingFilterPartners(partners)
+
+        assertEquals(partners, sdk.lastSharingFilterPartners)
+    }
+
+    @Test
+    fun setSharingFilterPartnersReplacesPreviousValue() {
+        client.setSharingFilterPartners(setOf("facebook"))
+        client.setSharingFilterPartners(setOf("google", "twitter"))
+
+        assertEquals(setOf("google", "twitter"), sdk.lastSharingFilterPartners)
+    }
+
+    @Test
+    fun setSharingFilterPartnersEmptySetForwardsAsIs() {
+        client.setSharingFilterPartners(emptySet())
+
+        assertEquals(emptySet(), sdk.lastSharingFilterPartners)
+    }
+
+    @Test
+    fun setSharingFilterPartnersWorksBeforeStart() {
+        client.setSharingFilterPartners(setOf("facebook"))
+
+        assertEquals(0, sdk.configureCount)
+        assertEquals(setOf("facebook"), sdk.lastSharingFilterPartners)
+    }
+
+    @Test
+    fun afPurchaseTypeIosRawValues() {
+        assertEquals(0L, AfPurchaseType.SUBSCRIPTION.iosRawValue)
+        assertEquals(1L, AfPurchaseType.ONE_TIME_PURCHASE.iosRawValue)
+    }
+
+    @Test
+    fun validateAndLogInAppPurchaseResumesWithSuccess() = runBlocking {
+        sdk.purchaseValidationResult = PurchaseValidationResult.Success(
+            result = mapOf("status" to "ok"),
+        )
+        val details = PurchaseDetails(
+            productId = "com.example.pro",
+            transactionId = "txn-123",
+            purchaseType = AfPurchaseType.SUBSCRIPTION,
+        )
+
+        val result = client.validateAndLogInAppPurchase(details)
+
+        val success = assertIs<PurchaseValidationResult.Success>(result)
+        assertEquals(mapOf("status" to "ok"), success.result)
+    }
+
+    @Test
+    fun validateAndLogInAppPurchaseResumesWithError() = runBlocking {
+        sdk.purchaseValidationResult = PurchaseValidationResult.Error(message = "network error")
+        val details = PurchaseDetails(
+            productId = "com.example.pro",
+            transactionId = "txn-123",
+            purchaseType = AfPurchaseType.ONE_TIME_PURCHASE,
+        )
+
+        val result = client.validateAndLogInAppPurchase(details)
+
+        val error = assertIs<PurchaseValidationResult.Error>(result)
+        assertEquals("network error", error.message)
+    }
+
+    @Test
+    fun validateAndLogInAppPurchaseForwardsPurchaseDetailsAndParams() = runBlocking {
+        sdk.purchaseValidationResult = PurchaseValidationResult.Success(emptyMap())
+        val details = PurchaseDetails(
+            productId = "com.example.pro",
+            transactionId = "txn-456",
+            purchaseType = AfPurchaseType.SUBSCRIPTION,
+        )
+        val params = mapOf("key" to "value", "extra" to null)
+
+        client.validateAndLogInAppPurchase(details, params)
+
+        assertEquals(details, sdk.lastPurchaseDetails)
+        assertEquals(mapOf("key" to "value"), sdk.lastPurchaseAdditionalParams)
+    }
+
+    @Test
+    fun validateAndLogInAppPurchaseErrorWithNullMessage() = runBlocking {
+        sdk.purchaseValidationResult = PurchaseValidationResult.Error(message = null)
+        val details = PurchaseDetails(
+            productId = "p",
+            transactionId = "t",
+            purchaseType = AfPurchaseType.ONE_TIME_PURCHASE,
+        )
+
+        val result = client.validateAndLogInAppPurchase(details)
+
+        val error = assertIs<PurchaseValidationResult.Error>(result)
+        assertNull(error.message)
+    }
+}

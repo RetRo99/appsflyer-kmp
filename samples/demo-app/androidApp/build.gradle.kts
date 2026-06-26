@@ -13,11 +13,11 @@ val afDevKey = localProps.getProperty("appsflyer.devKey")
     ?: error("appsFlyer.devKey not found in local.properties. Add: appsflyer.devKey=YOUR_KEY")
 
 android {
-    namespace = "com.retro99.appsflyer.sample"
+    namespace = "org.retar.appsflyer.sample"
     compileSdk = 36
 
     defaultConfig {
-        applicationId = "com.retro99.appsflyer.sample"
+        applicationId = "org.retar.appsflyer.sample"
         minSdk = 29
         targetSdk = 36
         versionCode = 1

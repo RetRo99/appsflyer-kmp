@@ -41,7 +41,7 @@ and `validateAndLogInAppPurchase` params are silently dropped on both platforms.
 
 ```kotlin
 dependencies {
-    implementation("io.github.retro99:appsflyer-kmp:0.1.0")
+    implementation("org.retar:appsflyer-kmp:0.1.0")
 }
 ```
 
@@ -65,7 +65,7 @@ To expose the AppsFlyer API in Swift, use `export` in your framework:
 ```kotlin
 kotlin {
     iosArm64().binaries.framework {
-        export("com.retro99.appsflyer:appsflyer:0.1.0")
+        export("org.retar.appsflyer:appsflyer:0.1.0")
     }
 }
 ```
@@ -206,7 +206,7 @@ cd samples/demo-app/iosApp && xcodegen && open iosApp.xcodeproj
 
 ## Publishing
 
-- **Android:** Maven publication (group `com.retro99.appsflyer`).
+- **Android:** Maven publication (group `org.retar.appsflyer`).
 - **iOS:** KMP klib + framework. The `AppsFlyerLib` SPM dependency is declared
   via `spmForKmp` and resolved automatically — consumers do not need to add it
   separately. Use `export` in your framework to expose the API in Swift.

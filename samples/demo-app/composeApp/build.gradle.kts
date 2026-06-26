@@ -9,7 +9,7 @@ kotlin {
     jvmToolchain(17)
 
     androidLibrary {
-        namespace = "com.retro99.appsflyer.sample.shared"
+        namespace = "org.retar.appsflyer.sample.shared"
         compileSdk = 36
         minSdk = 29
     }

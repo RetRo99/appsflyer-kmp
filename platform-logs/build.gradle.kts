@@ -7,7 +7,7 @@ plugins {
     `maven-publish`
 }
 
-group = "com.retro99.platformlogs"
+group = "org.retar.platformlogs"
 version = providers.gradleProperty("LIBRARY_VERSION").orElse("0.1.0").get()
 
 kotlin {
@@ -16,7 +16,7 @@ kotlin {
     }
 
     android {
-        namespace = "com.retro99.platformlogs"
+        namespace = "org.retar.platformlogs"
         compileSdk = 36
         minSdk = 29
 

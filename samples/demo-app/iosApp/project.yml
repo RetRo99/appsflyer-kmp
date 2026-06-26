@@ -1,6 +1,6 @@
 name: iosApp
 options:
-  bundleIdPrefix: com.retro99.appsflyer.sample
+  bundleIdPrefix: org.retar.appsflyer.sample
   deploymentTarget:
     iOS: "16.0"
 
@@ -42,7 +42,7 @@ targets:
           - applinks:appsflyerkmp.onelink.me
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.retro99.appsflyer.sample.ios
+        PRODUCT_BUNDLE_IDENTIFIER: org.retar.appsflyer.sample.ios
         INFOPLIST_FILE: iosApp/Info.plist
         CODE_SIGN_ENTITLEMENTS: iosApp/iosApp.entitlements
         FRAMEWORK_SEARCH_PATHS:

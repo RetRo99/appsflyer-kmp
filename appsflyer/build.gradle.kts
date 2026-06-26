@@ -7,7 +7,7 @@ plugins {
     `maven-publish`
 }
 
-group = "com.retro99.appsflyer"
+group = "org.retar.appsflyer"
 version = providers.gradleProperty("LIBRARY_VERSION").orElse("0.1.0").get()
 
 kotlin {
@@ -16,7 +16,7 @@ kotlin {
     }
 
     android {
-        namespace = "com.retro99.appsflyer"
+        namespace = "org.retar.appsflyer"
         compileSdk = 36
         minSdk = 29
 
@@ -112,13 +112,13 @@ publishing {
             }
             developers {
                 developer {
-                    id.set("retro99")
-                    name.set("Retros99")
+                    id.set("retar")
+                    name.set("Rok Retar")
                 }
             }
             scm {
-                connection.set("scm:git:git://github.com/retro99/appsflyer-kmp.git")
-                url.set("https://github.com/retro99/appsflyer-kmp")
+                connection.set("scm:git:git://github.com/retar/appsflyer-kmp.git")
+                url.set("https://github.com/retar/appsflyer-kmp")
             }
         }
     }
