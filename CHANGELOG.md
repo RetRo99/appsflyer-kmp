@@ -1,6 +1,6 @@
 # Changelog
 
-## 1.0.0
+## 0.1.0
 
 Initial release of appsflyer-kmp — a Kotlin Multiplatform wrapper for the AppsFlyer SDK (Android + iOS).
 

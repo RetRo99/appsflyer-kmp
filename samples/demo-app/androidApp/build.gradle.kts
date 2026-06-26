@@ -9,6 +9,9 @@ val localProps = Properties().apply {
     rootProject.file("local.properties").takeIf { it.exists() }?.inputStream()?.use { load(it) }
 }
 
+val afDevKey = localProps.getProperty("appsflyer.devKey")
+    ?: error("appsFlyer.devKey not found in local.properties. Add: appsflyer.devKey=YOUR_KEY")
+
 android {
     namespace = "com.retro99.appsflyer.sample"
     compileSdk = 36
@@ -19,11 +22,11 @@ android {
         targetSdk = 36
         versionCode = 1
         versionName = "1.0"
-        buildConfigField(
-            "String",
-            "AF_DEV_KEY",
-            "\"${localProps.getProperty("appsflyer.devKey", "")}\"",
-        )
+            buildConfigField(
+                "String",
+                "AF_DEV_KEY",
+                "\"$afDevKey\"",
+            )
     }
 
     buildFeatures {

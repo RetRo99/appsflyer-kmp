@@ -41,7 +41,7 @@ and `validateAndLogInAppPurchase` params are silently dropped on both platforms.
 
 ```kotlin
 dependencies {
-    implementation("io.github.retro99:appsflyer-kmp:$VERSION")
+    implementation("io.github.retro99:appsflyer-kmp:0.1.0")
 }
 ```
 
@@ -65,7 +65,7 @@ To expose the AppsFlyer API in Swift, use `export` in your framework:
 ```kotlin
 kotlin {
     iosArm64().binaries.framework {
-        export("com.retro99.appsflyer:appsflyer:$VERSION")
+        export("com.retro99.appsflyer:appsflyer:0.1.0")
     }
 }
 ```
