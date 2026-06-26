@@ -1,7 +1,13 @@
 # appsflyer-kmp
 
-A Kotlin Multiplatform wrapper for the AppsFlyer SDK (Android + iOS). There is no
-official AppsFlyer KMP SDK — this library provides one by delegating to the
+> **⚠️ Experimental & Unofficial**
+>
+> This is a **personal, unofficial project** and is **not affiliated with or
+> endorsed by AppsFlyer**. It is experimental and may contain bugs. Use in
+> production at your own risk.
+
+A Kotlin Multiplatform wrapper for the AppsFlyer SDK (Android + iOS). There is
+no official AppsFlyer KMP SDK — this library provides one by delegating to the
 native SDKs via `expect`/`actual`, with a coroutine-first API.
 
 ## Capabilities
@@ -41,7 +47,7 @@ and `validateAndLogInAppPurchase` params are silently dropped on both platforms.
 
 ```kotlin
 dependencies {
-    implementation("org.retar:appsflyer-kmp:0.1.0")
+    implementation("org.retar.appsflyer:appsflyer:0.1.0")
 }
 ```
 
